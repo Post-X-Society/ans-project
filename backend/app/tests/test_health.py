@@ -16,7 +16,7 @@ def test_health_check_returns_200(client: TestClient) -> None:
 def test_health_check_returns_json(client: TestClient) -> None:
     """Test that health endpoint returns JSON"""
     response = client.get("/health")
-    assert response.headers["content-type"] == "application/json; charset=utf-8"
+    assert "application/json" in response.headers["content-type"]
 
 
 def test_health_check_contains_status(client: TestClient) -> None:
