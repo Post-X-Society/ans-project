@@ -1,0 +1,35 @@
+name: AI Service Tests
+
+on:
+  pull_request:
+    paths:
+      - 'ai-service/**'
+      - '.github/workflows/ai-service-tests.yml'
+  push:
+    branches: [develop, main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install dependencies
+        working-directory: ./ai-service
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+      
+      - name: Run tests with coverage
+        working-directory: ./ai-service
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY_TEST }}
+        run: |
+          pytest --cov=. --cov-report=xml --cov-fail-under=80
