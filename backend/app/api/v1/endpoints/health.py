@@ -1,0 +1,32 @@
+"""
+Health check endpoint
+
+Provides service health status for monitoring and load balancers
+"""
+from fastapi import APIRouter
+
+from app.core.config import settings
+
+router = APIRouter()
+
+
+@router.get("/health")
+async def health_check() -> dict[str, str]:
+    """
+    Health check endpoint
+
+    Returns:
+        JSON with service status, name, and version
+
+    Example response:
+        {
+            "status": "healthy",
+            "service": "ans-backend",
+            "version": "0.1.0"
+        }
+    """
+    return {
+        "status": "healthy",
+        "service": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+    }
