@@ -37,6 +37,7 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
-    "@tanstack/svelte-query": "^5.62.7"
+    "@tanstack/svelte-query": "^5.62.7",
+    "axios": "^1.13.2"
   }
 }
