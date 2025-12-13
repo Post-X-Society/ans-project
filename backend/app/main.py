@@ -6,7 +6,7 @@ FastAPI application for the Ans fact-checking service
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.endpoints.health import router as health_router
+from app.api.v1.router import api_router
 from app.core.config import settings
 
 # Create FastAPI app
@@ -26,8 +26,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(health_router, tags=["health"])
+# Include API v1 router
+app.include_router(api_router, prefix="/api/v1")
 
 
 @app.get("/")
