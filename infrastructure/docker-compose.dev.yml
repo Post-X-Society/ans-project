@@ -77,8 +77,9 @@ services:
       dockerfile: Dockerfile
     container_name: ans-frontend
     environment:
-      - VITE_API_URL=http://localhost:8000
       - NODE_ENV=development
+      # Note: VITE_API_URL not set here because Vite uses default http://localhost:8000
+      # which is correct for browser accessing host machine's backend
     ports:
       - "5173:5173"
     volumes:
