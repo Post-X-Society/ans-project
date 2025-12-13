@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^3.2.5",
+    "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.8.5",
     "@sveltejs/vite-plugin-svelte": "^4.0.1",
     "@testing-library/jest-dom": "^6.6.3",

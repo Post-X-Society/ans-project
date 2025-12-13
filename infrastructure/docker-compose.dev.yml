@@ -62,7 +62,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -77,15 +77,23 @@ services:
       dockerfile: Dockerfile
     container_name: ans-frontend
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://backend:8000
+      - NODE_ENV=development
     ports:
       - "5173:5173"
     volumes:
-      - ../frontend:/app
-      - /app/node_modules
-    command: npm run dev -- --host
+      - ../frontend/src:/app/src
+      - ../frontend/static:/app/static
+      - ../frontend/svelte.config.js:/app/svelte.config.js
+      - ../frontend/vite.config.js:/app/vite.config.js
+      - ../frontend/tsconfig.json:/app/tsconfig.json
+      - ../frontend/tailwind.config.js:/app/tailwind.config.js
+      - ../frontend/postcss.config.js:/app/postcss.config.js
+      - ../frontend/package.json:/app/package.json
+    command: npm run dev -- --host 0.0.0.0
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - ans-network
 
