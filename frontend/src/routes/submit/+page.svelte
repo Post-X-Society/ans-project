@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Submit page - form placeholder (Task 5 will implement the actual form)
+	import SubmissionForm from '$lib/components/SubmissionForm.svelte';
 </script>
 
 <div class="container mx-auto px-4 py-8">
@@ -11,13 +11,6 @@
 			will analyze it and provide you with verified results.
 		</p>
 
-		<div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-			<p class="text-blue-800 font-medium">
-				Submission form coming soon (Task 5)
-			</p>
-			<p class="text-blue-600 text-sm mt-2">
-				We're currently building the submission form with full validation and API integration.
-			</p>
-		</div>
+		<SubmissionForm />
 	</div>
 </div>

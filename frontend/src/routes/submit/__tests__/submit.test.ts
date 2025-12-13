@@ -1,31 +1,45 @@
 import { render, screen } from '@testing-library/svelte';
-import { describe, it, expect } from 'vitest';
-import SubmitPage from '../+page.svelte';
+import { describe, it, expect, vi } from 'vitest';
+import SubmitPageTest from './SubmitPageTest.svelte';
+
+// Mock the API
+vi.mock('$lib/api/submissions', () => ({
+	createSubmission: vi.fn().mockResolvedValue({
+		id: '123',
+		content: 'Test',
+		submission_type: 'text',
+		status: 'pending',
+		user_id: null,
+		created_at: '2025-01-01',
+		updated_at: '2025-01-01'
+	})
+}));
 
 describe('Submit Page', () => {
 	it('should render the page heading', () => {
-		render(SubmitPage);
+		render(SubmitPageTest);
 
 		const heading = screen.getByRole('heading', { name: /submit.*claim/i });
 		expect(heading).toBeInTheDocument();
 	});
 
 	it('should display a description about submitting claims', () => {
-		render(SubmitPage);
+		render(SubmitPageTest);
 
 		// Should have paragraph with AI and verified text
 		expect(screen.getByText(/AI.*analyze.*verified/i)).toBeInTheDocument();
 	});
 
-	it('should have a placeholder message for the form', () => {
-		render(SubmitPage);
+	it('should render the submission form', () => {
+		render(SubmitPageTest);
 
-		// Since this is just a placeholder, expect "coming soon" or similar
-		expect(screen.getByText(/form.*coming soon|placeholder/i)).toBeInTheDocument();
+		// Form should be present with textarea and button
+		expect(screen.getByLabelText(/claim.*content/i)).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
 	});
 
 	it('should render in a container', () => {
-		const { container } = render(SubmitPage);
+		const { container } = render(SubmitPageTest);
 
 		const wrapper = container.querySelector('.container');
 		expect(wrapper).toBeInTheDocument();
