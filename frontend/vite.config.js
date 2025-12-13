@@ -3,11 +3,17 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	plugins: [sveltekit()],
+	resolve: {
+		conditions: ['browser']
+	},
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}'],
 		globals: true,
 		environment: 'jsdom',
 		setupFiles: ['./src/__tests__/setup.ts'],
+		alias: {
+			$lib: '/src/lib'
+		},
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html'],
