@@ -183,18 +183,3 @@ async def logout(refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(g
     return {"message": "Successfully logged out"}
 
 
-@router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
-async def get_current_user(
-    # TODO: Add authentication dependency to get current user from token
-    db: AsyncSession = Depends(get_db),
-) -> UserResponse:
-    """
-    Get current authenticated user information.
-
-    Requires valid access token.
-    """
-    # This will be implemented in Phase 2 with authentication dependencies
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Endpoint not yet implemented",
-    )

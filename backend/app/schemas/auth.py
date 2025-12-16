@@ -3,6 +3,7 @@ Authentication and authorization schemas
 """
 from datetime import datetime
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
@@ -58,7 +59,7 @@ class RefreshTokenRequest(BaseModel):
 class UserResponse(BaseModel):
     """Schema for user response"""
 
-    id: int = Field(..., description="User ID")
+    id: UUID = Field(..., description="User ID")
     email: str = Field(..., description="User email address")
     role: UserRole = Field(..., description="User role")
     is_active: bool = Field(..., description="Whether user account is active")
