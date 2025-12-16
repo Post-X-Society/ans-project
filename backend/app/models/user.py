@@ -1,9 +1,10 @@
 """
 User model for authentication and authorization
 """
+import enum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String
+from sqlalchemy import Boolean, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import TimeStampedModel
@@ -13,16 +14,28 @@ if TYPE_CHECKING:
     from app.models.volunteer import Volunteer
 
 
+class UserRole(str, enum.Enum):
+    """User role enumeration for role-based access control"""
+
+    SUPER_ADMIN = "super_admin"
+    ADMIN = "admin"
+    REVIEWER = "reviewer"
+    SUBMITTER = "submitter"
+
+
 class User(TimeStampedModel):
-    """User model for storing user authentication data"""
+    """User model for authentication and role-based access control"""
 
     __tablename__ = "users"
 
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[str] = mapped_column(
-        String(50), nullable=False, default="user"
-    )  # user, volunteer, admin
+    role: Mapped[UserRole] = mapped_column(
+        Enum(UserRole, values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+        default=UserRole.SUBMITTER
+    )
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     # Relationships
     submissions: Mapped[list["Submission"]] = relationship(
@@ -33,4 +46,4 @@ class User(TimeStampedModel):
     )
 
     def __repr__(self) -> str:
-        return f"<User(id={self.id}, email={self.email}, role={self.role})>"
+        return f"<User(id={self.id}, email={self.email}, role={self.role.value})>"
