@@ -3,6 +3,7 @@ Health check endpoint
 
 Provides service health status for monitoring and load balancers
 """
+
 from fastapi import APIRouter
 
 from app.core.config import settings

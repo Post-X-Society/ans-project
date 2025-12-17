@@ -1,6 +1,7 @@
 """
 Claim model for extracted claims with vector embeddings
 """
+
 from typing import TYPE_CHECKING, List, Optional
 
 from pgvector.sqlalchemy import Vector

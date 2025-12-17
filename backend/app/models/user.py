@@ -1,6 +1,7 @@
 """
 User model for authentication and authorization
 """
+
 import enum
 from typing import TYPE_CHECKING, List, Optional
 
@@ -33,7 +34,7 @@ class User(TimeStampedModel):
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole, values_callable=lambda obj: [e.value for e in obj]),
         nullable=False,
-        default=UserRole.SUBMITTER
+        default=UserRole.SUBMITTER,
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 

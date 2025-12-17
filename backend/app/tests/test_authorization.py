@@ -1,6 +1,7 @@
 """
 Comprehensive tests for authorization and role-based access control
 """
+
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
@@ -17,7 +18,7 @@ async def submitter_user(db_session: AsyncSession) -> User:
         email="submitter@test.com",
         password_hash=hash_password("password123"),
         role=UserRole.SUBMITTER,
-        is_active=True
+        is_active=True,
     )
     db_session.add(user)
     await db_session.commit()
@@ -32,7 +33,7 @@ async def reviewer_user(db_session: AsyncSession) -> User:
         email="reviewer@test.com",
         password_hash=hash_password("password123"),
         role=UserRole.REVIEWER,
-        is_active=True
+        is_active=True,
     )
     db_session.add(user)
     await db_session.commit()
@@ -47,7 +48,7 @@ async def admin_user(db_session: AsyncSession) -> User:
         email="admin@test.com",
         password_hash=hash_password("password123"),
         role=UserRole.ADMIN,
-        is_active=True
+        is_active=True,
     )
     db_session.add(user)
     await db_session.commit()
@@ -62,7 +63,7 @@ async def super_admin_user(db_session: AsyncSession) -> User:
         email="superadmin@test.com",
         password_hash=hash_password("password123"),
         role=UserRole.SUPER_ADMIN,
-        is_active=True
+        is_active=True,
     )
     db_session.add(user)
     await db_session.commit()
@@ -77,7 +78,7 @@ async def inactive_user(db_session: AsyncSession) -> User:
         email="inactive@test.com",
         password_hash=hash_password("password123"),
         role=UserRole.SUBMITTER,
-        is_active=False
+        is_active=False,
     )
     db_session.add(user)
     await db_session.commit()
@@ -87,11 +88,7 @@ async def inactive_user(db_session: AsyncSession) -> User:
 
 def get_auth_header(user: User) -> dict:
     """Helper function to create authorization header"""
-    token_data = {
-        "sub": str(user.id),
-        "email": user.email,
-        "role": user.role.value
-    }
+    token_data = {"sub": str(user.id), "email": user.email, "role": user.role.value}
     token = create_access_token(token_data)
     return {"Authorization": f"Bearer {token}"}
 
@@ -246,7 +243,7 @@ class TestUpdateUserRole:
         response = client.patch(
             f"/api/v1/users/{submitter_user.id}/role",
             headers=headers,
-            json={"role": UserRole.REVIEWER.value}
+            json={"role": UserRole.REVIEWER.value},
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -262,7 +259,7 @@ class TestUpdateUserRole:
         response = client.patch(
             f"/api/v1/users/{submitter_user.id}/role",
             headers=headers,
-            json={"role": UserRole.ADMIN.value}
+            json={"role": UserRole.ADMIN.value},
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -278,7 +275,7 @@ class TestUpdateUserRole:
             email="otheradmin@test.com",
             password_hash=hash_password("password123"),
             role=UserRole.ADMIN,
-            is_active=True
+            is_active=True,
         )
         db_session.add(other_admin)
         await db_session.commit()
@@ -288,7 +285,7 @@ class TestUpdateUserRole:
         response = client.patch(
             f"/api/v1/users/{other_admin.id}/role",
             headers=headers,
-            json={"role": UserRole.REVIEWER.value}
+            json={"role": UserRole.REVIEWER.value},
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -303,7 +300,7 @@ class TestUpdateUserRole:
         response = client.patch(
             f"/api/v1/users/{submitter_user.id}/role",
             headers=headers,
-            json={"role": UserRole.ADMIN.value}
+            json={"role": UserRole.ADMIN.value},
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -319,7 +316,7 @@ class TestUpdateUserRole:
         response = client.patch(
             f"/api/v1/users/{admin_user.id}/role",
             headers=headers,
-            json={"role": UserRole.REVIEWER.value}
+            json={"role": UserRole.REVIEWER.value},
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -335,7 +332,7 @@ class TestUpdateUserRole:
         response = client.patch(
             f"/api/v1/users/{reviewer_user.id}/role",
             headers=headers,
-            json={"role": UserRole.SUBMITTER.value}
+            json={"role": UserRole.SUBMITTER.value},
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -348,7 +345,7 @@ class TestUpdateUserRole:
         response = client.patch(
             f"/api/v1/users/{fake_uuid}/role",
             headers=headers,
-            json={"role": UserRole.REVIEWER.value}
+            json={"role": UserRole.REVIEWER.value},
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -369,9 +366,7 @@ class TestDeleteUser:
         assert "deleted" in response.json()["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_super_admin_cannot_delete_self(
-        self, client: TestClient, super_admin_user: User
-    ):
+    async def test_super_admin_cannot_delete_self(self, client: TestClient, super_admin_user: User):
         """Test super admin cannot delete their own account"""
         headers = get_auth_header(super_admin_user)
         response = client.delete(f"/api/v1/users/{super_admin_user.id}", headers=headers)
@@ -414,11 +409,12 @@ class TestRoleHierarchy:
 
     @pytest.mark.asyncio
     async def test_role_hierarchy_list_users(
-        self, client: TestClient,
+        self,
+        client: TestClient,
         submitter_user: User,
         reviewer_user: User,
         admin_user: User,
-        super_admin_user: User
+        super_admin_user: User,
     ):
         """Test role hierarchy for listing users"""
         # Submitter - should fail
@@ -458,7 +454,7 @@ class TestTokenValidation:
         token_data = {
             "sub": str(submitter_user.id),
             "email": submitter_user.email,
-            "role": submitter_user.role.value
+            "role": submitter_user.role.value,
         }
         token = create_access_token(token_data)
         headers = {"Authorization": token}  # Missing "Bearer " prefix
@@ -471,7 +467,7 @@ class TestTokenValidation:
         token_data = {
             "sub": "00000000-0000-0000-0000-000000000000",
             "email": "nonexistent@test.com",
-            "role": UserRole.SUBMITTER.value
+            "role": UserRole.SUBMITTER.value,
         }
         token = create_access_token(token_data)
         headers = {"Authorization": f"Bearer {token}"}
@@ -482,10 +478,7 @@ class TestTokenValidation:
     async def test_token_without_sub_claim(self, client: TestClient):
         """Test token without 'sub' claim returns 401"""
         # Create token without sub claim
-        token_data = {
-            "email": "test@test.com",
-            "role": UserRole.SUBMITTER.value
-        }
+        token_data = {"email": "test@test.com", "role": UserRole.SUBMITTER.value}
         token = create_access_token(token_data)
         headers = {"Authorization": f"Bearer {token}"}
         response = client.get("/api/v1/users/me", headers=headers)
@@ -497,7 +490,7 @@ class TestTokenValidation:
         token_data = {
             "sub": "not-a-valid-uuid",
             "email": "test@test.com",
-            "role": UserRole.SUBMITTER.value
+            "role": UserRole.SUBMITTER.value,
         }
         token = create_access_token(token_data)
         headers = {"Authorization": f"Bearer {token}"}
@@ -518,7 +511,7 @@ class TestIntegrationScenarios:
             email="workflow@test.com",
             password_hash=hash_password("password123"),
             role=UserRole.SUBMITTER,
-            is_active=True
+            is_active=True,
         )
         db_session.add(new_user)
         await db_session.commit()
@@ -535,7 +528,7 @@ class TestIntegrationScenarios:
         response = client.patch(
             f"/api/v1/users/{new_user.id}/role",
             headers=headers,
-            json={"role": UserRole.REVIEWER.value}
+            json={"role": UserRole.REVIEWER.value},
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["role"] == UserRole.REVIEWER.value
@@ -544,7 +537,7 @@ class TestIntegrationScenarios:
         response = client.patch(
             f"/api/v1/users/{new_user.id}/role",
             headers=headers,
-            json={"role": UserRole.ADMIN.value}
+            json={"role": UserRole.ADMIN.value},
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["role"] == UserRole.ADMIN.value
@@ -553,7 +546,7 @@ class TestIntegrationScenarios:
         response = client.patch(
             f"/api/v1/users/{new_user.id}/role",
             headers=headers,
-            json={"role": UserRole.SUBMITTER.value}
+            json={"role": UserRole.SUBMITTER.value},
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["role"] == UserRole.SUBMITTER.value

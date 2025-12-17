@@ -1,6 +1,7 @@
 """
 API v1 router - aggregates all v1 endpoints
 """
+
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import auth, health, submissions, users

@@ -1,6 +1,7 @@
 """
 Tests for database models - TDD approach: Write tests FIRST
 """
+
 import pytest
 from datetime import datetime
 from uuid import UUID

@@ -1,6 +1,7 @@
 """
 Authentication endpoints for user registration, login, and token management
 """
+
 from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -115,9 +116,7 @@ async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)) -> T
 
 
 @router.post("/refresh", response_model=Token, status_code=status.HTTP_200_OK)
-async def refresh(
-    refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(get_db)
-) -> Token:
+async def refresh(refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(get_db)) -> Token:
     """
     Refresh access token using a valid refresh token.
 
@@ -143,6 +142,7 @@ async def refresh(
 
     # Verify user still exists and is active
     from uuid import UUID
+
     user_id = payload.get("sub")
     stmt = select(User).where(User.id == UUID(user_id))
     result = await db.execute(stmt)
@@ -169,7 +169,9 @@ async def refresh(
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
-async def logout(refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(get_db)) -> Dict[str, str]:
+async def logout(
+    refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(get_db)
+) -> Dict[str, str]:
     """
     Logout user by invalidating refresh token.
 
@@ -181,5 +183,3 @@ async def logout(refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(g
     # The client should delete the tokens from storage
 
     return {"message": "Successfully logged out"}
-
-

@@ -1,6 +1,7 @@
 """
 Submission model for user-submitted content
 """
+
 from typing import TYPE_CHECKING
 from uuid import UUID
 
@@ -20,9 +21,7 @@ class Submission(TimeStampedModel):
 
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
-    submission_type: Mapped[str] = mapped_column(
-        String(50), nullable=False
-    )  # text, image, video
+    submission_type: Mapped[str] = mapped_column(String(50), nullable=False)  # text, image, video
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="pending", index=True
     )  # pending, processing, completed

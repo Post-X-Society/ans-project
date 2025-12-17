@@ -3,6 +3,7 @@ Ans Backend API - Main Application
 
 FastAPI application for the Ans fact-checking service
 """
+
 from typing import Dict
 
 from fastapi import FastAPI

@@ -1,6 +1,7 @@
 """
 Seed script for populating development database with sample data
 """
+
 import asyncio
 from datetime import datetime
 

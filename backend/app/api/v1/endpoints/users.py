@@ -1,6 +1,7 @@
 """
 User management endpoints with role-based access control
 """
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -31,8 +32,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 
 @router.get("", response_model=List[UserResponse])
 async def list_users(
-    current_user: User = Depends(require_admin),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)
 ):
     """
     List all users (admin+ only).
@@ -53,7 +53,7 @@ async def list_users(
 async def get_user(
     user_id: UUID,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Get user by ID (self or admin+).
@@ -75,10 +75,12 @@ async def get_user(
         HTTPException: 404 if user not found
     """
     # Users can view their own profile, admins can view any profile
-    if user_id != current_user.id and current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+    if user_id != current_user.id and current_user.role not in [
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ]:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Insufficient permissions"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
         )
 
     stmt = select(User).where(User.id == user_id)
@@ -86,10 +88,7 @@ async def get_user(
     user = result.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     return user
 
@@ -99,7 +98,7 @@ async def update_user_role(
     user_id: UUID,
     role_update: UserRoleUpdate,
     current_user: User = Depends(require_admin),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Update user role (admin+ with restrictions).
@@ -129,10 +128,7 @@ async def update_user_role(
     target_user = result.scalar_one_or_none()
 
     if not target_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Permission checks
     if current_user.role == UserRole.ADMIN:
@@ -140,13 +136,13 @@ async def update_user_role(
         if target_user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot modify admin or super admin roles"
+                detail="Cannot modify admin or super admin roles",
             )
         # Admins cannot promote to admin or super admin
         if role_update.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Cannot promote users to admin or super admin"
+                detail="Cannot promote users to admin or super admin",
             )
 
     # Super admins can change any role
@@ -161,7 +157,7 @@ async def update_user_role(
 async def delete_user(
     user_id: UUID,
     current_user: User = Depends(require_super_admin),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Delete user (super admin only).
@@ -184,15 +180,11 @@ async def delete_user(
     user = result.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     if user.id == current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete your own account"
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot delete your own account"
         )
 
     await db.delete(user)

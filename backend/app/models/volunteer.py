@@ -1,6 +1,7 @@
 """
 Volunteer model for fact-checker profiles
 """
+
 from typing import TYPE_CHECKING
 from uuid import UUID
 
@@ -23,9 +24,7 @@ class Volunteer(TimeStampedModel):
     )
     score: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     verified_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    accuracy_rate: Mapped[float] = mapped_column(
-        Float, nullable=False, default=0.0
-    )  # 0.0 to 1.0
+    accuracy_rate: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)  # 0.0 to 1.0
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="volunteer", lazy="selectin")

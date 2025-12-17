@@ -1,6 +1,7 @@
 """
 Tests for Submissions API - TDD Approach (Tests written FIRST)
 """
+
 import pytest
 from uuid import UUID
 from fastapi.testclient import TestClient
@@ -118,7 +119,9 @@ class TestListSubmissions:
     """Tests for GET /api/v1/submissions (list with pagination)"""
 
     @pytest.mark.asyncio
-    async def test_list_submissions_empty(self, client: TestClient, db_session: AsyncSession) -> None:
+    async def test_list_submissions_empty(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
         """Test listing submissions when none exist"""
         response = client.get("/api/v1/submissions")
 

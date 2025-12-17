@@ -1,6 +1,7 @@
 """
 Base model with common fields for all database models
 """
+
 from datetime import datetime
 from uuid import UUID, uuid4
 

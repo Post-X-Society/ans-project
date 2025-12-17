@@ -1,6 +1,7 @@
 """
 User schemas for user management endpoints
 """
+
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr
 from uuid import UUID

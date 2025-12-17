@@ -1,6 +1,7 @@
 """
 Tests for authentication endpoints
 """
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -131,9 +132,7 @@ class TestUserLogin:
         assert "incorrect" in response.json()["detail"].lower()
 
     @pytest.mark.asyncio
-    async def test_login_inactive_user(
-        self, client: TestClient, db_session: AsyncSession
-    ) -> None:
+    async def test_login_inactive_user(self, client: TestClient, db_session: AsyncSession) -> None:
         """Test login fails for inactive user"""
         # Create an inactive user
         user = User(
@@ -190,9 +189,7 @@ class TestTokenRefresh:
 
     def test_refresh_invalid_token(self, client: TestClient) -> None:
         """Test refresh fails with invalid token"""
-        response = client.post(
-            "/api/v1/auth/refresh", json={"refresh_token": "invalid.token.here"}
-        )
+        response = client.post("/api/v1/auth/refresh", json={"refresh_token": "invalid.token.here"})
 
         assert response.status_code == 401
         assert "invalid" in response.json()["detail"].lower()
@@ -246,9 +243,7 @@ class TestLogout:
         refresh_token = login_response.json()["refresh_token"]
 
         # Logout
-        logout_response = client.post(
-            "/api/v1/auth/logout", json={"refresh_token": refresh_token}
-        )
+        logout_response = client.post("/api/v1/auth/logout", json={"refresh_token": refresh_token})
 
         assert logout_response.status_code == 200
         assert "success" in logout_response.json()["message"].lower()
