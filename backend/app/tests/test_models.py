@@ -40,7 +40,8 @@ class TestUserModel:
         assert isinstance(user.id, UUID)
         assert user.email == "test@example.com"
         assert user.password_hash == "hashed_password_here"
-        assert user.role == "user"
+        assert user.role == UserRole.SUBMITTER
+        assert user.is_active is True
         assert isinstance(user.created_at, datetime)
         assert isinstance(user.updated_at, datetime)
 
@@ -65,13 +66,13 @@ class TestUserModel:
         """Test that user role must be valid enum"""
         from app.models.user import User
 
-        # Valid roles: user, volunteer, admin
-        user = User(email="admin@example.com", password_hash="hash", role="admin")
+        # Valid roles: SUBMITTER, REVIEWER, ADMIN, SUPER_ADMIN
+        user = User(email="admin@example.com", password_hash="hash", role=UserRole.ADMIN)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
 
-        assert user.role == "admin"
+        assert user.role == UserRole.ADMIN
 
 
 class TestSubmissionModel:
@@ -249,8 +250,8 @@ class TestVolunteerModel:
         from app.models.user import User
         from app.models.volunteer import Volunteer
 
-        # Create user first
-        user = User(email="volunteer@example.com", password_hash="hash", role="volunteer")
+        # Create user first (reviewer role for volunteers)
+        user = User(email="volunteer@example.com", password_hash="hash", role=UserRole.REVIEWER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
@@ -278,7 +279,7 @@ class TestVolunteerModel:
         from app.models.user import User
         from app.models.volunteer import Volunteer
 
-        user = User(email="vol@example.com", password_hash="hash", role="volunteer")
+        user = User(email="vol@example.com", password_hash="hash", role=UserRole.REVIEWER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
