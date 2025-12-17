@@ -15,11 +15,11 @@ setup: ## Initial project setup
 
 docker-build: ## Build Docker containers
 	@echo "Building Docker containers..."
-	docker compose -f infrastructure/docker compose.dev.yml build
+	docker compose -f infrastructure/docker-compose.dev.yml build
 
 docker-up: ## Start all services
 	@echo "Starting Ans development environment..."
-	docker compose -f infrastructure/docker compose.dev.yml up -d
+	docker compose -f infrastructure/docker-compose.dev.yml up -d
 	@echo " Services started"
 	@echo "  - Backend API: http://localhost:8000"
 	@echo "  - Frontend: http://localhost:5173"
@@ -29,16 +29,16 @@ docker-up: ## Start all services
 
 docker-down: ## Stop all services
 	@echo "Stopping services..."
-	docker compose -f infrastructure/docker compose.dev.yml down
+	docker compose -f infrastructure/docker-compose.dev.yml down
 
 docker-logs: ## View logs from all services
-	docker compose -f infrastructure/docker compose.dev.yml logs -f
+	docker compose -f infrastructure/docker-compose.dev.yml logs -f
 
 docker-logs-backend: ## View backend logs
-	docker compose -f infrastructure/docker compose.dev.yml logs -f backend
+	docker compose -f infrastructure/docker-compose.dev.yml logs -f backend
 
 docker-logs-frontend: ## View frontend logs
-	docker compose -f infrastructure/docker compose.dev.yml logs -f frontend
+	docker compose -f infrastructure/docker-compose.dev.yml logs -f frontend
 
 dev: docker-up ## Start development environment (alias for docker-up)
 
@@ -62,23 +62,23 @@ lint: ## Run linters
 
 clean: ## Clean up containers and volumes
 	@echo "Cleaning up..."
-	docker compose -f infrastructure/docker compose.dev.yml down -v
+	docker compose -f infrastructure/docker-compose.dev.yml down -v
 	@echo " Containers and volumes removed"
 
 db-migrate: ## Run database migrations
-	docker compose -f infrastructure/docker compose.dev.yml exec backend alembic upgrade head
+	docker compose -f infrastructure/docker-compose.dev.yml exec backend alembic upgrade head
 
 db-rollback: ## Rollback last migration
-	docker compose -f infrastructure/docker compose.dev.yml exec backend alembic downgrade -1
+	docker compose -f infrastructure/docker-compose.dev.yml exec backend alembic downgrade -1
 
 db-shell: ## Open PostgreSQL shell
-	docker compose -f infrastructure/docker compose.dev.yml exec postgres psql -U postgres -d ans_dev
+	docker compose -f infrastructure/docker-compose.dev.yml exec postgres psql -U postgres -d ans_dev
 
 redis-shell: ## Open Redis CLI
-	docker compose -f infrastructure/docker compose.dev.yml exec redis redis-cli
+	docker compose -f infrastructure/docker-compose.dev.yml exec redis redis-cli
 
 backend-shell: ## Open backend container shell
-	docker compose -f infrastructure/docker compose.dev.yml exec backend /bin/bash
+	docker compose -f infrastructure/docker-compose.dev.yml exec backend /bin/bash
 
 status: ## Show status of all services
-	docker compose -f infrastructure/docker compose.dev.yml ps
+	docker compose -f infrastructure/docker-compose.dev.yml ps
