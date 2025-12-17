@@ -1,12 +1,15 @@
 """
 Tests for database models - TDD approach: Write tests FIRST
 """
-import pytest
+
 from datetime import datetime
 from uuid import UUID
 
+import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.user import UserRole
 
 # Models will be imported once they're created
 # from app.models.user import User
@@ -27,7 +30,7 @@ class TestUserModel:
         user = User(
             email="test@example.com",
             password_hash="hashed_password_here",
-            role="user",
+            role=UserRole.SUBMITTER,
         )
 
         db_session.add(user)
@@ -38,21 +41,23 @@ class TestUserModel:
         assert isinstance(user.id, UUID)
         assert user.email == "test@example.com"
         assert user.password_hash == "hashed_password_here"
-        assert user.role == "user"
+        assert user.role == UserRole.SUBMITTER
+        assert user.is_active is True
         assert isinstance(user.created_at, datetime)
         assert isinstance(user.updated_at, datetime)
 
     @pytest.mark.asyncio
     async def test_user_email_unique(self, db_session: AsyncSession) -> None:
         """Test that user email must be unique"""
-        from app.models.user import User
         from sqlalchemy.exc import IntegrityError
 
-        user1 = User(email="test@example.com", password_hash="hash1", role="user")
+        from app.models.user import User
+
+        user1 = User(email="test@example.com", password_hash="hash1", role=UserRole.SUBMITTER)
         db_session.add(user1)
         await db_session.commit()
 
-        user2 = User(email="test@example.com", password_hash="hash2", role="user")
+        user2 = User(email="test@example.com", password_hash="hash2", role=UserRole.SUBMITTER)
         db_session.add(user2)
 
         with pytest.raises(IntegrityError):
@@ -63,13 +68,13 @@ class TestUserModel:
         """Test that user role must be valid enum"""
         from app.models.user import User
 
-        # Valid roles: user, volunteer, admin
-        user = User(email="admin@example.com", password_hash="hash", role="admin")
+        # Valid roles: SUBMITTER, REVIEWER, ADMIN, SUPER_ADMIN
+        user = User(email="admin@example.com", password_hash="hash", role=UserRole.ADMIN)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
 
-        assert user.role == "admin"
+        assert user.role == UserRole.ADMIN
 
 
 class TestSubmissionModel:
@@ -78,11 +83,11 @@ class TestSubmissionModel:
     @pytest.mark.asyncio
     async def test_create_submission(self, db_session: AsyncSession) -> None:
         """Test creating a submission"""
-        from app.models.user import User
         from app.models.submission import Submission
+        from app.models.user import User
 
         # Create a user first
-        user = User(email="user@example.com", password_hash="hash", role="user")
+        user = User(email="user@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
@@ -108,10 +113,10 @@ class TestSubmissionModel:
     @pytest.mark.asyncio
     async def test_submission_user_relationship(self, db_session: AsyncSession) -> None:
         """Test that submission has relationship to user"""
-        from app.models.user import User
         from app.models.submission import Submission
+        from app.models.user import User
 
-        user = User(email="user@example.com", password_hash="hash", role="user")
+        user = User(email="user@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
@@ -247,8 +252,8 @@ class TestVolunteerModel:
         from app.models.user import User
         from app.models.volunteer import Volunteer
 
-        # Create user first
-        user = User(email="volunteer@example.com", password_hash="hash", role="volunteer")
+        # Create user first (reviewer role for volunteers)
+        user = User(email="volunteer@example.com", password_hash="hash", role=UserRole.REVIEWER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
@@ -276,7 +281,7 @@ class TestVolunteerModel:
         from app.models.user import User
         from app.models.volunteer import Volunteer
 
-        user = User(email="vol@example.com", password_hash="hash", role="volunteer")
+        user = User(email="vol@example.com", password_hash="hash", role=UserRole.REVIEWER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)

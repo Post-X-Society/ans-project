@@ -1,8 +1,9 @@
 """
 Pydantic schemas for Submission API
 """
+
 from datetime import datetime
-from typing import Literal
+from typing import List, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
@@ -27,7 +28,7 @@ class SubmissionResponse(BaseModel):
     """Schema for submission response"""
 
     id: UUID
-    user_id: UUID | None = None  # Optional for now (no auth yet)
+    user_id: Optional[UUID] = None  # Optional for now (no auth yet)
     content: str
     submission_type: str
     status: str
@@ -40,7 +41,7 @@ class SubmissionResponse(BaseModel):
 class SubmissionListResponse(BaseModel):
     """Schema for paginated list of submissions"""
 
-    items: list[SubmissionResponse]
+    items: List[SubmissionResponse]
     total: int
     page: int
     page_size: int

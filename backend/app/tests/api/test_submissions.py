@@ -1,13 +1,15 @@
 """
 Tests for Submissions API - TDD Approach (Tests written FIRST)
 """
-import pytest
+
 from uuid import UUID
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User
 from app.models.submission import Submission
+from app.models.user import User, UserRole
 
 
 class TestCreateSubmission:
@@ -72,7 +74,7 @@ class TestGetSubmission:
     ) -> None:
         """Test getting a submission by ID"""
         # Create a user first
-        user = User(email="test@example.com", password_hash="hash", role="user")
+        user = User(email="test@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
@@ -118,7 +120,9 @@ class TestListSubmissions:
     """Tests for GET /api/v1/submissions (list with pagination)"""
 
     @pytest.mark.asyncio
-    async def test_list_submissions_empty(self, client: TestClient, db_session: AsyncSession) -> None:
+    async def test_list_submissions_empty(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
         """Test listing submissions when none exist"""
         response = client.get("/api/v1/submissions")
 
@@ -136,7 +140,7 @@ class TestListSubmissions:
     ) -> None:
         """Test listing submissions with data"""
         # Create a user
-        user = User(email="test@example.com", password_hash="hash", role="user")
+        user = User(email="test@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
@@ -167,7 +171,7 @@ class TestListSubmissions:
     ) -> None:
         """Test pagination of submissions list"""
         # Create a user
-        user = User(email="test@example.com", password_hash="hash", role="user")
+        user = User(email="test@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)

@@ -1,7 +1,8 @@
 """
 Claim model for extracted claims with vector embeddings
 """
-from typing import TYPE_CHECKING
+
+from typing import TYPE_CHECKING, List, Optional
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import String, Text
@@ -20,12 +21,12 @@ class Claim(TimeStampedModel):
 
     content: Mapped[str] = mapped_column(Text, nullable=False)
     source: Mapped[str] = mapped_column(String(255), nullable=False)  # Where claim came from
-    embedding: Mapped[list[float] | None] = mapped_column(
+    embedding: Mapped[Optional[List[float]]] = mapped_column(
         Vector(1536), nullable=True
     )  # text-embedding-3-small dimension
 
     # Relationships
-    fact_checks: Mapped[list["FactCheck"]] = relationship(
+    fact_checks: Mapped[List["FactCheck"]] = relationship(
         "FactCheck", back_populates="claim", lazy="selectin"
     )
 

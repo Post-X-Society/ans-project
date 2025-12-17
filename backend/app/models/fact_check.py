@@ -1,6 +1,7 @@
 """
 FactCheck model for verified fact-check results
 """
+
 import json
 from typing import TYPE_CHECKING
 from uuid import UUID
