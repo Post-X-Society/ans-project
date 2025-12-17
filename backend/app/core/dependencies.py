@@ -2,14 +2,15 @@
 Authorization dependencies for role-based access control
 """
 
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from uuid import UUID
 
-from app.core.security import decode_token
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_db
+from app.core.security import decode_token
 from app.models.user import User, UserRole
 
 security = HTTPBearer()
@@ -58,16 +59,16 @@ async def get_current_user(
             )
 
         return user
-    except ValueError:
+    except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials"
-        )
+        ) from e
     except HTTPException:
         raise
-    except Exception:
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials"
-        )
+        ) from e
 
 
 def require_role(*allowed_roles: UserRole):

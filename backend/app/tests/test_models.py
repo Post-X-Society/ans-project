@@ -2,10 +2,10 @@
 Tests for database models - TDD approach: Write tests FIRST
 """
 
-import pytest
 from datetime import datetime
 from uuid import UUID
 
+import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -49,8 +49,9 @@ class TestUserModel:
     @pytest.mark.asyncio
     async def test_user_email_unique(self, db_session: AsyncSession) -> None:
         """Test that user email must be unique"""
-        from app.models.user import User
         from sqlalchemy.exc import IntegrityError
+
+        from app.models.user import User
 
         user1 = User(email="test@example.com", password_hash="hash1", role=UserRole.SUBMITTER)
         db_session.add(user1)
@@ -82,8 +83,8 @@ class TestSubmissionModel:
     @pytest.mark.asyncio
     async def test_create_submission(self, db_session: AsyncSession) -> None:
         """Test creating a submission"""
-        from app.models.user import User
         from app.models.submission import Submission
+        from app.models.user import User
 
         # Create a user first
         user = User(email="user@example.com", password_hash="hash", role=UserRole.SUBMITTER)
@@ -112,8 +113,8 @@ class TestSubmissionModel:
     @pytest.mark.asyncio
     async def test_submission_user_relationship(self, db_session: AsyncSession) -> None:
         """Test that submission has relationship to user"""
-        from app.models.user import User
         from app.models.submission import Submission
+        from app.models.user import User
 
         user = User(email="user@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)

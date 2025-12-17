@@ -2,7 +2,7 @@
 Authentication endpoints for user registration, login, and token management
 """
 
-from typing import Any, Dict
+from typing import Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -22,7 +22,6 @@ from app.schemas.auth import (
     Token,
     UserLogin,
     UserRegister,
-    UserResponse,
 )
 
 router = APIRouter()

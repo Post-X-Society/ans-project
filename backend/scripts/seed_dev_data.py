@@ -3,16 +3,14 @@ Seed script for populating development database with sample data
 """
 
 import asyncio
-from datetime import datetime
 
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from app.core.config import settings
-from app.models.base import Base
-from app.models.user import User
-from app.models.submission import Submission
 from app.models.claim import Claim
 from app.models.fact_check import FactCheck
+from app.models.submission import Submission
+from app.models.user import User
 from app.models.volunteer import Volunteer
 
 
@@ -129,11 +127,11 @@ async def seed_data():
 
         await session.commit()
         print("✅ Development data seeded successfully!")
-        print(f"   - 3 users (user, volunteer, admin)")
-        print(f"   - 1 volunteer profile")
-        print(f"   - 3 submissions")
-        print(f"   - 3 claims")
-        print(f"   - 3 fact checks")
+        print("   - 3 users (user, volunteer, admin)")
+        print("   - 1 volunteer profile")
+        print("   - 3 submissions")
+        print("   - 3 claims")
+        print("   - 3 fact checks")
 
 
 async def main():

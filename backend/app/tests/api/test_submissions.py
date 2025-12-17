@@ -2,13 +2,14 @@
 Tests for Submissions API - TDD Approach (Tests written FIRST)
 """
 
-import pytest
 from uuid import UUID
+
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User, UserRole
 from app.models.submission import Submission
+from app.models.user import User, UserRole
 
 
 class TestCreateSubmission:

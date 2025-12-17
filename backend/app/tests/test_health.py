@@ -4,7 +4,6 @@ Tests for health check endpoint
 Following TDD: These tests are written FIRST, before implementation
 """
 
-import pytest
 from fastapi.testclient import TestClient
 
 
