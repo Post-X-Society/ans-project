@@ -11,41 +11,87 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.submission import Submission
 from app.models.user import User
 from app.schemas.submission import SubmissionCreate, SubmissionListResponse, SubmissionResponse
+from app.services import claim_service
 
 
-async def create_submission(db: AsyncSession, data: SubmissionCreate) -> Submission:
+async def create_submission(
+    db: AsyncSession, data: SubmissionCreate, user_id: Optional[UUID] = None
+) -> Submission:
     """
-    Create a new submission
+    Create a new submission with claim extraction
 
     Args:
         db: Database session
         data: Submission creation data
+        user_id: Optional authenticated user ID
 
     Returns:
-        Created submission
+        Created submission with extracted claims
     """
-    # For now, create a test user if none exists (auth will be added later)
-    # In production, this will come from the authenticated user
-    result = await db.execute(select(User).limit(1))
-    user = result.scalar_one_or_none()
+    # If no user_id provided, use default for backward compatibility
+    if user_id is None:
+        result = await db.execute(select(User).limit(1))
+        user = result.scalar_one_or_none()
 
-    if not user:
-        # Create a default user for testing
-        from app.models.user import UserRole
+        if not user:
+            # Create a default user for testing
+            from app.models.user import UserRole
 
-        user = User(email="default@example.com", password_hash="hash", role=UserRole.SUBMITTER)
-        db.add(user)
-        await db.flush()
+            user = User(email="default@example.com", password_hash="hash", role=UserRole.SUBMITTER)
+            db.add(user)
+            await db.flush()
+        user_id = user.id
 
+    # Create submission with status "processing" (will extract claims)
     submission = Submission(
-        user_id=user.id,
+        user_id=user_id,
         content=data.content,
         submission_type=data.type,
-        status="pending",
+        status="processing",
     )
     db.add(submission)
+    await db.flush()  # Flush to get ID
+
+    # Extract claims from content
+    extracted_claims = await claim_service.extract_claims_from_text(data.content)
+
+    # Create claim objects
+    claims = []
+    for claim_data in extracted_claims:
+        claim = await claim_service.create_claim(
+            db=db,
+            content=claim_data["content"],
+            source=f"submission:{submission.id}",
+            confidence=claim_data.get("confidence", 0.90),
+        )
+        claims.append(claim)
+
+    # Link claims to submission using association table insert
+    from app.models.base import submission_claims
+    from sqlalchemy import insert
+
+    if claims:
+        values = [
+            {"submission_id": submission.id, "claim_id": claim.id} for claim in claims
+        ]
+        await db.execute(insert(submission_claims).values(values))
+
     await db.commit()
+
+    # Manually refresh with claims loaded
     await db.refresh(submission)
+    # Load claims eagerly
+    from sqlalchemy import select
+    from app.models.claim import Claim
+
+    stmt = (
+        select(Claim)
+        .join(submission_claims)
+        .where(submission_claims.c.submission_id == submission.id)
+    )
+    result = await db.execute(stmt)
+    submission.claims = list(result.scalars().all())
+
     return submission
 
 

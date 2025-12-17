@@ -8,6 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.security import create_access_token
 from app.models.submission import Submission
 from app.models.user import User, UserRole
 
@@ -15,11 +16,17 @@ from app.models.user import User, UserRole
 class TestCreateSubmission:
     """Tests for POST /api/v1/submissions"""
 
-    def test_create_submission_success(self, client: TestClient, db_session: AsyncSession) -> None:
+    @pytest.mark.asyncio
+    async def test_create_submission_success(
+        self, client: TestClient, db_session: AsyncSession, auth_user
+    ) -> None:
         """Test creating a submission successfully"""
+        user, token = auth_user
         payload = {"content": "Is climate change real?", "type": "text"}
 
-        response = client.post("/api/v1/submissions", json=payload)
+        response = client.post(
+            "/api/v1/submissions", json=payload, headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 201
         data = response.json()
@@ -27,40 +34,60 @@ class TestCreateSubmission:
         assert UUID(data["id"])  # Valid UUID
         assert data["content"] == "Is climate change real?"
         assert data["submission_type"] == "text"
-        assert data["status"] == "pending"
+        assert data["status"] == "processing"  # Should be processing after claim extraction
         assert "created_at" in data
         assert "updated_at" in data
+        assert "claims" in data
+        assert "extracted_claims_count" in data
 
-    def test_create_submission_content_too_short(self, client: TestClient) -> None:
+    @pytest.mark.asyncio
+    async def test_create_submission_content_too_short(
+        self, client: TestClient, auth_user
+    ) -> None:
         """Test creating submission with content too short"""
+        user, token = auth_user
         payload = {"content": "Short", "type": "text"}  # Less than 10 chars
 
-        response = client.post("/api/v1/submissions", json=payload)
+        response = client.post(
+            "/api/v1/submissions", json=payload, headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 422
         assert "detail" in response.json()
 
-    def test_create_submission_content_empty(self, client: TestClient) -> None:
+    @pytest.mark.asyncio
+    async def test_create_submission_content_empty(self, client: TestClient, auth_user) -> None:
         """Test creating submission with empty content"""
+        user, token = auth_user
         payload = {"content": "          ", "type": "text"}  # Only whitespace
 
-        response = client.post("/api/v1/submissions", json=payload)
+        response = client.post(
+            "/api/v1/submissions", json=payload, headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 422
 
-    def test_create_submission_invalid_type(self, client: TestClient) -> None:
+    @pytest.mark.asyncio
+    async def test_create_submission_invalid_type(self, client: TestClient, auth_user) -> None:
         """Test creating submission with invalid type"""
+        user, token = auth_user
         payload = {"content": "Valid content here", "type": "invalid"}
 
-        response = client.post("/api/v1/submissions", json=payload)
+        response = client.post(
+            "/api/v1/submissions", json=payload, headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 422
 
-    def test_create_submission_missing_fields(self, client: TestClient) -> None:
+    @pytest.mark.asyncio
+    async def test_create_submission_missing_fields(self, client: TestClient, auth_user) -> None:
         """Test creating submission with missing required fields"""
+        user, token = auth_user
         payload = {"content": "Missing type field"}
 
-        response = client.post("/api/v1/submissions", json=payload)
+        response = client.post(
+            "/api/v1/submissions", json=payload, headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 422
 
@@ -70,14 +97,11 @@ class TestGetSubmission:
 
     @pytest.mark.asyncio
     async def test_get_submission_success(
-        self, client: TestClient, db_session: AsyncSession
+        self, client: TestClient, db_session: AsyncSession, auth_user
     ) -> None:
         """Test getting a submission by ID"""
-        # Create a user first
-        user = User(email="test@example.com", password_hash="hash", role=UserRole.SUBMITTER)
-        db_session.add(user)
-        await db_session.commit()
-        await db_session.refresh(user)
+        # Use authenticated user
+        user, token = auth_user
 
         # Create a submission
         submission = Submission(
@@ -91,7 +115,9 @@ class TestGetSubmission:
         await db_session.refresh(submission)
 
         # Get the submission
-        response = client.get(f"/api/v1/submissions/{submission.id}")
+        response = client.get(
+            f"/api/v1/submissions/{submission.id}", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -100,18 +126,26 @@ class TestGetSubmission:
         assert data["submission_type"] == "text"
         assert data["status"] == "pending"
 
-    def test_get_submission_not_found(self, client: TestClient) -> None:
+    @pytest.mark.asyncio
+    async def test_get_submission_not_found(self, client: TestClient, auth_user) -> None:
         """Test getting non-existent submission"""
+        user, token = auth_user
         fake_uuid = "00000000-0000-0000-0000-000000000000"
 
-        response = client.get(f"/api/v1/submissions/{fake_uuid}")
+        response = client.get(
+            f"/api/v1/submissions/{fake_uuid}", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 404
         assert "detail" in response.json()
 
-    def test_get_submission_invalid_uuid(self, client: TestClient) -> None:
+    @pytest.mark.asyncio
+    async def test_get_submission_invalid_uuid(self, client: TestClient, auth_user) -> None:
         """Test getting submission with invalid UUID"""
-        response = client.get("/api/v1/submissions/not-a-uuid")
+        user, token = auth_user
+        response = client.get(
+            "/api/v1/submissions/not-a-uuid", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 422
 
@@ -217,3 +251,176 @@ class TestListSubmissions:
         response = client.get("/api/v1/submissions?page_size=101")  # Max is 100
 
         assert response.status_code == 422
+
+
+class TestSubmissionWithAuthentication:
+    """Tests for authenticated submission endpoints (Phase 3)"""
+
+    @pytest.mark.asyncio
+    async def test_create_submission_requires_auth(self, client: TestClient) -> None:
+        """Test that creating submission requires authentication"""
+        payload = {"content": "Is climate change real?", "type": "text"}
+
+        # Try without auth token
+        response = client.post("/api/v1/submissions", json=payload)
+
+        assert response.status_code == 401  # Unauthorized without auth
+
+    @pytest.mark.asyncio
+    async def test_create_submission_with_authenticated_user(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test creating submission with authenticated user"""
+        # Create a user
+        user = User(
+            email="testuser@example.com",
+            password_hash="hashed_password",
+            role=UserRole.SUBMITTER,
+            is_active=True,
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+
+        # Create access token
+        token = create_access_token(data={"sub": str(user.id)})
+
+        # Create submission with auth
+        payload = {"content": "Is climate change real?", "type": "text"}
+        response = client.post(
+            "/api/v1/submissions",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert "id" in data
+        assert data["user_id"] == str(user.id)
+        assert data["content"] == "Is climate change real?"
+        assert data["status"] == "processing"  # Should be processing after claim extraction
+
+    @pytest.mark.asyncio
+    async def test_create_submission_extracts_claims(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test that submission extracts claims automatically"""
+        # Create a user
+        user = User(
+            email="testuser@example.com",
+            password_hash="hashed_password",
+            role=UserRole.SUBMITTER,
+            is_active=True,
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+
+        # Create access token
+        token = create_access_token(data={"sub": str(user.id)})
+
+        # Create submission with multiple claims
+        payload = {
+            "content": "The earth is flat. Vaccines cause autism. Climate change is a hoax.",
+            "type": "text",
+        }
+        response = client.post(
+            "/api/v1/submissions",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response.status_code == 201
+        data = response.json()
+        assert "claims" in data
+        assert "extracted_claims_count" in data
+        assert data["extracted_claims_count"] > 0
+        assert len(data["claims"]) == data["extracted_claims_count"]
+
+        # Verify claim structure
+        if data["claims"]:
+            claim = data["claims"][0]
+            assert "id" in claim
+            assert "content" in claim
+            assert "created_at" in claim
+
+    @pytest.mark.asyncio
+    async def test_create_submission_with_invalid_token(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test that invalid token is rejected"""
+        payload = {"content": "Is climate change real?", "type": "text"}
+        response = client.post(
+            "/api/v1/submissions",
+            json=payload,
+            headers={"Authorization": "Bearer invalid_token_here"},
+        )
+
+        assert response.status_code == 401  # Unauthorized
+
+    @pytest.mark.asyncio
+    async def test_get_submission_only_owner_or_admin(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test that only owner or admin can view submission"""
+        # Create two users
+        owner = User(
+            email="owner@example.com",
+            password_hash="hashed_password",
+            role=UserRole.SUBMITTER,
+            is_active=True,
+        )
+        other_user = User(
+            email="other@example.com",
+            password_hash="hashed_password",
+            role=UserRole.SUBMITTER,
+            is_active=True,
+        )
+        admin_user = User(
+            email="admin@example.com",
+            password_hash="hashed_password",
+            role=UserRole.ADMIN,
+            is_active=True,
+        )
+        db_session.add(owner)
+        db_session.add(other_user)
+        db_session.add(admin_user)
+        await db_session.commit()
+        await db_session.refresh(owner)
+        await db_session.refresh(other_user)
+        await db_session.refresh(admin_user)
+
+        # Create submission as owner
+        submission = Submission(
+            user_id=owner.id,
+            content="Test claim content",
+            submission_type="text",
+            status="pending",
+        )
+        db_session.add(submission)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Owner can view their own submission
+        owner_token = create_access_token(data={"sub": str(owner.id)})
+        response = client.get(
+            f"/api/v1/submissions/{submission.id}",
+            headers={"Authorization": f"Bearer {owner_token}"},
+        )
+        assert response.status_code == 200
+
+        # Other user cannot view
+        other_token = create_access_token(data={"sub": str(other_user.id)})
+        response = client.get(
+            f"/api/v1/submissions/{submission.id}",
+            headers={"Authorization": f"Bearer {other_token}"},
+        )
+        assert response.status_code == 403  # Forbidden
+
+        # Admin can view any submission
+        admin_token = create_access_token(data={"sub": str(admin_user.id)})
+        response = client.get(
+            f"/api/v1/submissions/{submission.id}",
+            headers={"Authorization": f"Bearer {admin_token}"},
+        )
+        assert response.status_code == 200
