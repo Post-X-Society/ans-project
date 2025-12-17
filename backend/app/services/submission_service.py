@@ -30,7 +30,8 @@ async def create_submission(db: AsyncSession, data: SubmissionCreate) -> Submiss
 
     if not user:
         # Create a default user for testing
-        user = User(email="default@example.com", password_hash="hash", role="user")
+        from app.models.user import UserRole
+        user = User(email="default@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db.add(user)
         await db.flush()
 

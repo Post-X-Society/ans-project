@@ -6,7 +6,7 @@ from uuid import UUID
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.submission import Submission
 
 
@@ -72,7 +72,7 @@ class TestGetSubmission:
     ) -> None:
         """Test getting a submission by ID"""
         # Create a user first
-        user = User(email="test@example.com", password_hash="hash", role="user")
+        user = User(email="test@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
@@ -136,7 +136,7 @@ class TestListSubmissions:
     ) -> None:
         """Test listing submissions with data"""
         # Create a user
-        user = User(email="test@example.com", password_hash="hash", role="user")
+        user = User(email="test@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
@@ -167,7 +167,7 @@ class TestListSubmissions:
     ) -> None:
         """Test pagination of submissions list"""
         # Create a user
-        user = User(email="test@example.com", password_hash="hash", role="user")
+        user = User(email="test@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)

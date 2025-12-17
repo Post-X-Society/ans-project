@@ -8,6 +8,8 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.user import UserRole
+
 # Models will be imported once they're created
 # from app.models.user import User
 # from app.models.submission import Submission
@@ -27,7 +29,7 @@ class TestUserModel:
         user = User(
             email="test@example.com",
             password_hash="hashed_password_here",
-            role="user",
+            role=UserRole.SUBMITTER,
         )
 
         db_session.add(user)
@@ -48,11 +50,11 @@ class TestUserModel:
         from app.models.user import User
         from sqlalchemy.exc import IntegrityError
 
-        user1 = User(email="test@example.com", password_hash="hash1", role="user")
+        user1 = User(email="test@example.com", password_hash="hash1", role=UserRole.SUBMITTER)
         db_session.add(user1)
         await db_session.commit()
 
-        user2 = User(email="test@example.com", password_hash="hash2", role="user")
+        user2 = User(email="test@example.com", password_hash="hash2", role=UserRole.SUBMITTER)
         db_session.add(user2)
 
         with pytest.raises(IntegrityError):
@@ -82,7 +84,7 @@ class TestSubmissionModel:
         from app.models.submission import Submission
 
         # Create a user first
-        user = User(email="user@example.com", password_hash="hash", role="user")
+        user = User(email="user@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
@@ -111,7 +113,7 @@ class TestSubmissionModel:
         from app.models.user import User
         from app.models.submission import Submission
 
-        user = User(email="user@example.com", password_hash="hash", role="user")
+        user = User(email="user@example.com", password_hash="hash", role=UserRole.SUBMITTER)
         db_session.add(user)
         await db_session.commit()
         await db_session.refresh(user)
