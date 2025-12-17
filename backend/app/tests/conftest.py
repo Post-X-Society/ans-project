@@ -3,7 +3,7 @@ Pytest configuration and shared fixtures for backend tests
 """
 
 import asyncio
-from typing import AsyncGenerator, Generator
+from typing import AsyncGenerator, Generator, Tuple
 
 import pytest
 import pytest_asyncio
@@ -12,8 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import StaticPool
 
 from app.core.database import get_db
+from app.core.security import create_access_token
 from app.main import app
 from app.models.base import Base
+from app.models.user import User, UserRole
 
 
 @pytest.fixture(scope="session")
@@ -70,3 +72,27 @@ def client(db_session: AsyncSession) -> TestClient:
         yield test_client
 
     app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def auth_user(db_session: AsyncSession) -> Tuple[User, str]:
+    """
+    Create an authenticated test user and return the user and their JWT token.
+
+    Returns:
+        Tuple of (User object, JWT token string)
+    """
+    user = User(
+        email="testuser@example.com",
+        password_hash="hashed_password",
+        role=UserRole.SUBMITTER,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    # Generate JWT token for this user
+    token = create_access_token(data={"sub": str(user.id)})
+
+    return user, token

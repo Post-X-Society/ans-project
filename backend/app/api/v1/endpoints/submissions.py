@@ -8,7 +8,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.schemas.submission import SubmissionCreate, SubmissionListResponse, SubmissionResponse
+from app.core.dependencies import get_current_user
+from app.models.user import User, UserRole
+from app.schemas.claim import ClaimResponse
+from app.schemas.submission import (
+    SubmissionCreate,
+    SubmissionListResponse,
+    SubmissionResponse,
+    SubmissionWithClaimsResponse,
+)
 from app.services import submission_service
 
 router = APIRouter()
@@ -16,7 +24,7 @@ router = APIRouter()
 
 @router.post(
     "",
-    response_model=SubmissionResponse,
+    response_model=SubmissionWithClaimsResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new submission",
     description="Submit content for fact-checking. The submission will be queued for processing.",
@@ -24,17 +32,25 @@ router = APIRouter()
 async def create_submission(
     submission: SubmissionCreate,
     db: AsyncSession = Depends(get_db),
-) -> SubmissionResponse:
+    current_user: User = Depends(get_current_user),
+) -> SubmissionWithClaimsResponse:
     """
-    Create a new fact-check submission.
+    Create a new fact-check submission (requires authentication).
 
     - **content**: The text, image URL, or link to fact-check (10-5000 characters)
     - **type**: Type of submission (text, image, or url)
 
-    Returns the created submission with status "pending"
+    Returns the created submission with extracted claims
     """
-    created = await submission_service.create_submission(db, submission)
-    return SubmissionResponse.model_validate(created)
+    created = await submission_service.create_submission(db, submission, user_id=current_user.id)
+
+    # Build response with claims
+    response_data = SubmissionResponse.model_validate(created)
+    return SubmissionWithClaimsResponse(
+        **response_data.model_dump(),
+        claims=[ClaimResponse.model_validate(claim) for claim in created.claims],
+        extracted_claims_count=len(created.claims),
+    )
 
 
 @router.get(
@@ -46,13 +62,15 @@ async def create_submission(
 async def get_submission(
     submission_id: UUID,
     db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> SubmissionResponse:
     """
-    Get a submission by ID.
+    Get a submission by ID (requires authentication).
 
     - **submission_id**: UUID of the submission to retrieve
 
-    Returns 404 if submission not found.
+    Only the submission owner or admin+ can view a submission.
+    Returns 404 if submission not found, 403 if access denied.
     """
     submission = await submission_service.get_submission(db, submission_id)
     if not submission:
@@ -60,6 +78,17 @@ async def get_submission(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Submission {submission_id} not found",
         )
+
+    # Check permission: owner or admin+
+    is_owner = submission.user_id == current_user.id
+    is_admin = current_user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN]
+
+    if not (is_owner or is_admin):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to view this submission",
+        )
+
     return SubmissionResponse.model_validate(submission)
 
 

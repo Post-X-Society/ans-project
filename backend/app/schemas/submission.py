@@ -8,6 +8,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.schemas.claim import ClaimResponse
+
 
 class SubmissionCreate(BaseModel):
     """Schema for creating a new submission"""
@@ -36,6 +38,15 @@ class SubmissionResponse(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}  # Allow ORM models
+
+
+class SubmissionWithClaimsResponse(SubmissionResponse):
+    """Schema for submission response with extracted claims"""
+
+    claims: List[ClaimResponse] = Field(default_factory=list)
+    extracted_claims_count: int = Field(default=0)
+
+    model_config = {"from_attributes": True}
 
 
 class SubmissionListResponse(BaseModel):

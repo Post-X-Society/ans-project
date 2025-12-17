@@ -8,10 +8,11 @@ from pgvector.sqlalchemy import Vector
 from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import TimeStampedModel
+from app.models.base import TimeStampedModel, submission_claims
 
 if TYPE_CHECKING:
     from app.models.fact_check import FactCheck
+    from app.models.submission import Submission
 
 
 class Claim(TimeStampedModel):
@@ -28,6 +29,12 @@ class Claim(TimeStampedModel):
     # Relationships
     fact_checks: Mapped[List["FactCheck"]] = relationship(
         "FactCheck", back_populates="claim", lazy="selectin"
+    )
+    submissions: Mapped[List["Submission"]] = relationship(
+        "Submission",
+        secondary=submission_claims,
+        back_populates="claims",
+        lazy="selectin",
     )
 
     def __repr__(self) -> str:

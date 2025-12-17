@@ -1,0 +1,92 @@
+"""
+Service layer for claim operations
+"""
+
+from typing import Any, Dict, List, Optional
+from uuid import UUID
+
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.claim import Claim
+
+
+async def extract_claims_from_text(content: str) -> List[Dict[str, Any]]:
+    """
+    Extract claims from text using AI.
+    For now, returns mock data. Real OpenAI integration will be added later.
+
+    Args:
+        content: Text content to extract claims from
+
+    Returns:
+        List of dictionaries with claim content and confidence scores
+    """
+    # TODO: Implement OpenAI integration for claim extraction
+    # For now, return mock data that splits on sentences
+    sentences = [s.strip() for s in content.split(".") if s.strip()]
+
+    # Return at most 3 claims from the content
+    claims = []
+    for i, sentence in enumerate(sentences[:3]):
+        if len(sentence) > 10:  # Only include substantial sentences
+            claims.append({"content": sentence, "confidence": 0.95 - (i * 0.05)})
+
+    # If no valid sentences, create one claim from the full content
+    if not claims:
+        claims.append({"content": content, "confidence": 0.90})
+
+    return claims
+
+
+async def create_claim(
+    db: AsyncSession, content: str, source: str, confidence: float = 0.95
+) -> Claim:
+    """
+    Create a new claim in the database.
+
+    Args:
+        db: Database session
+        content: Claim content text
+        source: Source identifier (e.g., submission ID)
+        confidence: Confidence score (0.0-1.0)
+
+    Returns:
+        Created Claim object
+    """
+    claim = Claim(content=content, source=source)
+    db.add(claim)
+    await db.flush()  # Flush to get the ID without committing
+    return claim
+
+
+async def get_claim(db: AsyncSession, claim_id: UUID) -> Optional[Claim]:
+    """
+    Get a claim by ID.
+
+    Args:
+        db: Database session
+        claim_id: Claim UUID
+
+    Returns:
+        Claim if found, None otherwise
+    """
+    result = await db.execute(select(Claim).where(Claim.id == claim_id))
+    return result.scalar_one_or_none()
+
+
+async def link_claim_to_submission(
+    db: AsyncSession, claim_id: UUID, submission_id: UUID
+) -> None:
+    """
+    Link a claim to a submission via the junction table.
+
+    Args:
+        db: Database session
+        claim_id: Claim UUID
+        submission_id: Submission UUID
+    """
+    # The relationship is handled by SQLAlchemy's relationship()
+    # We just need to add the claim to the submission's claims list
+    # This is done in the submission_service
+    pass

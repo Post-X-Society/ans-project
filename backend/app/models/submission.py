@@ -2,15 +2,16 @@
 Submission model for user-submitted content
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 from uuid import UUID
 
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import TimeStampedModel
+from app.models.base import TimeStampedModel, submission_claims
 
 if TYPE_CHECKING:
+    from app.models.claim import Claim
     from app.models.user import User
 
 
@@ -28,6 +29,12 @@ class Submission(TimeStampedModel):
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="submissions", lazy="selectin")
+    claims: Mapped[List["Claim"]] = relationship(
+        "Claim",
+        secondary=submission_claims,
+        back_populates="submissions",
+        lazy="selectin",
+    )
 
     def __repr__(self) -> str:
         return f"<Submission(id={self.id}, type={self.submission_type}, status={self.status})>"
