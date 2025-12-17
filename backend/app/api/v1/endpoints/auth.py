@@ -24,7 +24,7 @@ from app.schemas.auth import (
     UserResponse,
 )
 
-router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
+router = APIRouter()
 
 
 @router.post("/register", response_model=Token, status_code=status.HTTP_200_OK)
