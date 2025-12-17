@@ -2,7 +2,7 @@
 User model for authentication and authorization
 """
 import enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
 from sqlalchemy import Boolean, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -38,10 +38,10 @@ class User(TimeStampedModel):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     # Relationships
-    submissions: Mapped[list["Submission"]] = relationship(
+    submissions: Mapped[List["Submission"]] = relationship(
         "Submission", back_populates="user", lazy="selectin"
     )
-    volunteer: Mapped["Volunteer | None"] = relationship(
+    volunteer: Mapped[Optional["Volunteer"]] = relationship(
         "Volunteer", back_populates="user", uselist=False, lazy="selectin"
     )
 
