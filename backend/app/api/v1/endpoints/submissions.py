@@ -15,7 +15,7 @@ router = APIRouter()
 
 
 @router.post(
-    "/submissions",
+    "",
     response_model=SubmissionResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Create a new submission",
@@ -38,7 +38,7 @@ async def create_submission(
 
 
 @router.get(
-    "/submissions/{submission_id}",
+    "/{submission_id}",
     response_model=SubmissionResponse,
     summary="Get a submission by ID",
     description="Retrieve a specific submission by its UUID",
@@ -64,7 +64,7 @@ async def get_submission(
 
 
 @router.get(
-    "/submissions",
+    "",
     response_model=SubmissionListResponse,
     summary="List submissions",
     description="Get a paginated list of submissions, ordered by creation date (newest first)",
