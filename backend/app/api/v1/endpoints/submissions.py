@@ -9,8 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
+from app.models.submission import Submission
+from app.models.spotlight import SpotlightContent
 from app.models.user import User, UserRole
 from app.schemas.claim import ClaimResponse
+from app.schemas.spotlight import SpotlightContentResponse, SpotlightSubmissionCreate
 from app.schemas.submission import (
     SubmissionCreate,
     SubmissionListResponse,
@@ -18,6 +21,7 @@ from app.schemas.submission import (
     SubmissionWithClaimsResponse,
 )
 from app.services import submission_service
+from app.services.snapchat import snapchat_service
 
 router = APIRouter()
 
@@ -129,3 +133,82 @@ async def list_submissions(
         user_id=current_user.id,
         user_role=current_user.role,
     )
+
+
+@router.post(
+    "/spotlight",
+    response_model=SpotlightContentResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Submit Snapchat Spotlight content",
+    description="Submit a Snapchat Spotlight link for fact-checking. Fetches metadata and downloads video.",
+)
+async def create_spotlight_submission(
+    spotlight_submission: SpotlightSubmissionCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> SpotlightContentResponse:
+    """
+    Create a new Spotlight submission (requires authentication).
+
+    - **spotlight_link**: Full Snapchat Spotlight URL
+
+    This endpoint will:
+    1. Fetch metadata from Snapchat API via RapidAPI
+    2. Create a submission record
+    3. Download the video to local storage
+    4. Store all metadata in the database
+
+    Returns the created Spotlight content with all metadata
+    """
+    # Fetch Spotlight data from API
+    spotlight_data = await snapchat_service.fetch_spotlight_data(spotlight_submission.spotlight_link)
+
+    # Parse metadata
+    parsed_metadata = snapchat_service.parse_spotlight_metadata(spotlight_data)
+
+    # Create submission record
+    submission = Submission(
+        user_id=current_user.id,
+        content=f"Snapchat Spotlight: {parsed_metadata.get('creator_name', 'Unknown')} - {spotlight_submission.spotlight_link}",
+        submission_type="spotlight",
+        status="processing",
+    )
+    db.add(submission)
+    await db.flush()  # Get submission ID
+
+    # Download video
+    video_local_path = await snapchat_service.download_video(
+        parsed_metadata["video_url"], parsed_metadata["spotlight_id"]
+    )
+
+    # Create Spotlight content record
+    spotlight_content = SpotlightContent(
+        submission_id=submission.id,
+        spotlight_link=spotlight_submission.spotlight_link,
+        spotlight_id=parsed_metadata["spotlight_id"],
+        video_url=parsed_metadata["video_url"],
+        video_local_path=video_local_path,
+        thumbnail_url=parsed_metadata["thumbnail_url"],
+        duration_ms=parsed_metadata.get("duration_ms"),
+        width=parsed_metadata.get("width"),
+        height=parsed_metadata.get("height"),
+        creator_username=parsed_metadata.get("creator_username"),
+        creator_name=parsed_metadata.get("creator_name"),
+        creator_url=parsed_metadata.get("creator_url"),
+        view_count=parsed_metadata.get("view_count"),
+        share_count=parsed_metadata.get("share_count"),
+        comment_count=parsed_metadata.get("comment_count"),
+        boost_count=parsed_metadata.get("boost_count"),
+        recommend_count=parsed_metadata.get("recommend_count"),
+        upload_timestamp=parsed_metadata.get("upload_timestamp"),
+        raw_metadata=spotlight_data,
+    )
+    db.add(spotlight_content)
+
+    # Update submission status
+    submission.status = "completed"
+
+    await db.commit()
+    await db.refresh(spotlight_content)
+
+    return SpotlightContentResponse.model_validate(spotlight_content)

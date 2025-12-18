@@ -1,0 +1,44 @@
+"""
+Schemas for Spotlight content
+"""
+
+from datetime import datetime
+from typing import Dict, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+
+
+class SpotlightSubmissionCreate(BaseModel):
+    """Schema for creating a Spotlight submission"""
+
+    spotlight_link: str = Field(..., description="Full Snapchat Spotlight URL")
+
+
+class SpotlightContentResponse(BaseModel):
+    """Schema for Spotlight content response"""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    submission_id: UUID
+    spotlight_link: str
+    spotlight_id: str
+    video_url: str
+    video_local_path: Optional[str] = None
+    thumbnail_url: str
+    duration_ms: Optional[int] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    creator_username: Optional[str] = None
+    creator_name: Optional[str] = None
+    creator_url: Optional[str] = None
+    view_count: Optional[int] = None
+    share_count: Optional[int] = None
+    comment_count: Optional[int] = None
+    boost_count: Optional[int] = None
+    recommend_count: Optional[int] = None
+    upload_timestamp: Optional[int] = None
+    raw_metadata: Dict
+    created_at: datetime
+    updated_at: datetime

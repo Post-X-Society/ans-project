@@ -15,6 +15,35 @@ export interface SubmissionCreate {
 	type: 'text' | 'image' | 'url';
 }
 
+export interface SpotlightSubmissionCreate {
+	spotlight_link: string;
+}
+
+export interface SpotlightContent {
+	id: string;
+	submission_id: string;
+	spotlight_link: string;
+	spotlight_id: string;
+	video_url: string;
+	video_local_path: string | null;
+	thumbnail_url: string;
+	duration_ms: number | null;
+	width: number | null;
+	height: number | null;
+	creator_username: string | null;
+	creator_name: string | null;
+	creator_url: string | null;
+	view_count: number | null;
+	share_count: number | null;
+	comment_count: number | null;
+	boost_count: number | null;
+	recommend_count: number | null;
+	upload_timestamp: number | null;
+	raw_metadata: Record<string, any>;
+	created_at: string;
+	updated_at: string;
+}
+
 export interface SubmissionListResponse {
 	items: Submission[];
 	total: number;

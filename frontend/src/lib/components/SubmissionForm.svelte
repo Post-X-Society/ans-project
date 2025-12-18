@@ -1,41 +1,35 @@
 <script lang="ts">
-	import { createMutation, useQueryClient } from '@tanstack/svelte-query';
-	import { createSubmissionMutationOptions } from '$lib/api/queries';
-	import type { SubmissionCreate } from '$lib/api/types';
+	import { createSpotlightSubmission } from '$lib/api/submissions';
 	import { authStore } from '$lib/stores/auth';
+	import type { SpotlightContent } from '$lib/api/types';
 
 	// Svelte 5 runes for reactive state
-	let content = $state('');
-	let submissionType = $state<'text' | 'image' | 'url'>('text');
-	let errors = $state<{ content?: string }>({});
+	let spotlightLink = $state('');
+	let errors = $state<{ link?: string; submit?: string }>({});
+	let isSubmitting = $state(false);
+	let submissionResult = $state<SpotlightContent | null>(null);
 
-	const queryClient = useQueryClient();
-	const mutation = createMutation(createSubmissionMutationOptions());
-
-	// Check authentication
-	let auth = $derived($authStore);
-	let isAuthenticated = $derived(auth.isAuthenticated);
-
-	// Computed values using $derived
-	let characterCount = $derived(content.length);
-	let isValid = $derived(content.length >= 10 && content.length <= 5000);
+	const auth = $derived($authStore);
+	const isAuthenticated = $derived(auth.isAuthenticated);
 
 	// Validation function
 	function validateForm(): boolean {
 		errors = {};
 
-		if (!content || content.trim().length === 0) {
-			errors.content = 'Content is required and cannot be empty';
+		if (!spotlightLink || spotlightLink.trim().length === 0) {
+			errors.link = 'Spotlight link is required';
 			return false;
 		}
 
-		if (content.length < 10) {
-			errors.content = 'Content must be at least 10 characters';
-			return false;
-		}
-
-		if (content.length > 5000) {
-			errors.content = 'Content must be maximum 5000 characters';
+		// Basic URL validation
+		try {
+			const url = new URL(spotlightLink);
+			if (!url.hostname.includes('snapchat.com') || !url.pathname.includes('spotlight')) {
+				errors.link = 'Please enter a valid Snapchat Spotlight link';
+				return false;
+			}
+		} catch {
+			errors.link = 'Please enter a valid URL';
 			return false;
 		}
 
@@ -50,84 +44,97 @@
 			return;
 		}
 
-		const data: SubmissionCreate = {
-			content: content.trim(),
-			type: submissionType
-		};
+		isSubmitting = true;
+		errors = {};
+		submissionResult = null;
 
-		$mutation.mutate(data, {
-			onSuccess: () => {
-				// Reset form on success
-				content = '';
-				submissionType = 'text';
-				errors = {};
-				// Invalidate submissions query to refetch
-				queryClient.invalidateQueries({ queryKey: ['submissions'] });
+		try {
+			const result = await createSpotlightSubmission({
+				spotlight_link: spotlightLink.trim()
+			});
+
+			submissionResult = result;
+			spotlightLink = ''; // Reset form
+		} catch (error: any) {
+			console.error('Submission error:', error);
+			if (error.response?.data?.detail) {
+				errors.submit = error.response.data.detail;
+			} else {
+				errors.submit = 'Failed to submit Spotlight content. Please try again.';
 			}
-		});
+		} finally {
+			isSubmitting = false;
+		}
 	}
 </script>
 
 <form onsubmit={handleSubmit} class="space-y-6">
-	<!-- Content Textarea -->
+	<!-- Spotlight Link Input -->
 	<div>
-		<label for="content" class="block text-sm font-medium text-gray-700 mb-2">
-			Claim Content
+		<label for="spotlight-link" class="block text-sm font-medium text-gray-700 mb-2">
+			Snapchat Spotlight Link
 		</label>
-		<textarea
-			id="content"
-			bind:value={content}
-			rows="6"
-			class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
-			class:border-red-500={errors.content}
-			placeholder="Enter the claim or statement you want fact-checked..."
-		></textarea>
+		<input
+			id="spotlight-link"
+			type="url"
+			bind:value={spotlightLink}
+			class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
+			class:border-red-500={errors.link}
+			placeholder="https://www.snapchat.com/spotlight/..."
+			disabled={isSubmitting || !isAuthenticated}
+		/>
 
-		<!-- Character count -->
-		<div class="flex justify-between items-center mt-1">
-			<div>
-				{#if errors.content}
-					<p class="text-sm text-red-600">{errors.content}</p>
-				{/if}
-			</div>
-			<p class="text-sm text-gray-500">{characterCount} / 5000</p>
-		</div>
-	</div>
+		{#if errors.link}
+			<p class="text-sm text-red-600 mt-1">{errors.link}</p>
+		{/if}
 
-	<!-- Submission Type Select -->
-	<div>
-		<label for="type" class="block text-sm font-medium text-gray-700 mb-2">
-			Submission Type
-		</label>
-		<select
-			id="type"
-			bind:value={submissionType}
-			class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
-		>
-			<option value="text">Text</option>
-			<option value="image">Image</option>
-			<option value="url">URL</option>
-		</select>
+		<p class="text-sm text-gray-500 mt-2">
+			Paste a Snapchat Spotlight link to submit for fact-checking. The video and metadata will be
+			automatically fetched.
+		</p>
 	</div>
 
 	<!-- Submit Button -->
 	<div>
 		<button
 			type="submit"
-			disabled={$mutation.isPending || !isAuthenticated}
+			disabled={isSubmitting || !isAuthenticated}
 			class="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
 		>
-			{#if $mutation.isPending}
-				Submitting...
+			{#if isSubmitting}
+				<span class="flex items-center justify-center">
+					<svg
+						class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+					>
+						<circle
+							class="opacity-25"
+							cx="12"
+							cy="12"
+							r="10"
+							stroke="currentColor"
+							stroke-width="4"
+						></circle>
+						<path
+							class="opacity-75"
+							fill="currentColor"
+							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+						></path>
+					</svg>
+					Fetching Spotlight content...
+				</span>
 			{:else if !isAuthenticated}
 				Please login to submit
 			{:else}
-				Submit for Fact-Checking
+				Submit Spotlight for Fact-Checking
 			{/if}
 		</button>
+
 		{#if !isAuthenticated}
 			<p class="mt-2 text-sm text-gray-600 text-center">
-				You must be logged in to submit claims.
+				You must be logged in to submit Spotlight content.
 				<a href="/login" class="text-primary-600 hover:text-primary-700 font-medium">
 					Login here
 				</a>
@@ -136,27 +143,47 @@
 	</div>
 
 	<!-- Success Message -->
-	{#if $mutation.isSuccess}
-		<div class="bg-green-50 border border-green-200 rounded-lg p-4">
-			<p class="text-green-800 font-medium">✓ Submission successful!</p>
-			<p class="text-green-700 text-sm mt-1">
-				Your claim has been submitted and will be fact-checked shortly.
+	{#if submissionResult}
+		<div class="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+			<p class="text-green-800 font-medium">✓ Spotlight submitted successfully!</p>
+
+			<div class="space-y-2 text-sm">
+				{#if submissionResult.creator_name}
+					<p class="text-green-700">
+						<span class="font-medium">Creator:</span>
+						{submissionResult.creator_name}
+						{#if submissionResult.creator_username}
+							(@{submissionResult.creator_username})
+						{/if}
+					</p>
+				{/if}
+
+				{#if submissionResult.view_count}
+					<p class="text-green-700">
+						<span class="font-medium">Views:</span>
+						{submissionResult.view_count.toLocaleString()}
+					</p>
+				{/if}
+
+				{#if submissionResult.duration_ms}
+					<p class="text-green-700">
+						<span class="font-medium">Duration:</span>
+						{Math.round(submissionResult.duration_ms / 1000)}s
+					</p>
+				{/if}
+			</div>
+
+			<p class="text-green-700 text-sm">
+				The video has been downloaded and will be fact-checked shortly.
 			</p>
 		</div>
 	{/if}
 
 	<!-- Error Message -->
-	{#if $mutation.isError}
+	{#if errors.submit}
 		<div class="bg-red-50 border border-red-200 rounded-lg p-4">
 			<p class="text-red-800 font-medium">✗ Submission failed</p>
-			<p class="text-red-700 text-sm mt-1">
-				{#if $mutation.error?.response?.status === 401}
-					You are not authenticated. Please
-					<a href="/login" class="underline font-medium">login</a> to submit claims.
-				{:else}
-					{$mutation.error?.message || 'An error occurred. Please try again.'}
-				{/if}
-			</p>
+			<p class="text-red-700 text-sm mt-1">{errors.submit}</p>
 		</div>
 	{/if}
 </form>
