@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_user
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -192,3 +193,16 @@ async def logout(
     # The client should delete the tokens from storage
 
     return {"message": "Successfully logged out"}
+
+
+@router.get("/me", response_model=UserResponse, status_code=status.HTTP_200_OK)
+async def get_current_user_profile(
+    current_user: User = Depends(get_current_user),
+) -> UserResponse:
+    """
+    Get current authenticated user's profile.
+
+    Returns the user's information including email, role, and active status.
+    Requires a valid JWT access token.
+    """
+    return UserResponse.model_validate(current_user)

@@ -23,6 +23,9 @@ AsyncSessionLocal = async_sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False, autoflush=False
 )
 
+# Alias for backward compatibility and scripts
+async_session = AsyncSessionLocal
+
 
 class Base(DeclarativeBase):
     """Base class for all database models"""

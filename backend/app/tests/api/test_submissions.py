@@ -155,10 +155,11 @@ class TestListSubmissions:
 
     @pytest.mark.asyncio
     async def test_list_submissions_empty(
-        self, client: TestClient, db_session: AsyncSession
+        self, client: TestClient, db_session: AsyncSession, auth_user
     ) -> None:
         """Test listing submissions when none exist"""
-        response = client.get("/api/v1/submissions")
+        user, token = auth_user
+        response = client.get("/api/v1/submissions", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code == 200
         data = response.json()
@@ -170,16 +171,12 @@ class TestListSubmissions:
 
     @pytest.mark.asyncio
     async def test_list_submissions_with_data(
-        self, client: TestClient, db_session: AsyncSession
+        self, client: TestClient, db_session: AsyncSession, auth_user
     ) -> None:
-        """Test listing submissions with data"""
-        # Create a user
-        user = User(email="test@example.com", password_hash="hash", role=UserRole.SUBMITTER)
-        db_session.add(user)
-        await db_session.commit()
-        await db_session.refresh(user)
+        """Test listing submissions with data (submitter sees only their own)"""
+        user, token = auth_user
 
-        # Create multiple submissions
+        # Create multiple submissions for authenticated user
         for i in range(3):
             submission = Submission(
                 user_id=user.id,
@@ -190,7 +187,7 @@ class TestListSubmissions:
             db_session.add(submission)
         await db_session.commit()
 
-        response = client.get("/api/v1/submissions")
+        response = client.get("/api/v1/submissions", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code == 200
         data = response.json()
@@ -201,16 +198,12 @@ class TestListSubmissions:
 
     @pytest.mark.asyncio
     async def test_list_submissions_pagination(
-        self, client: TestClient, db_session: AsyncSession
+        self, client: TestClient, db_session: AsyncSession, auth_user
     ) -> None:
         """Test pagination of submissions list"""
-        # Create a user
-        user = User(email="test@example.com", password_hash="hash", role=UserRole.SUBMITTER)
-        db_session.add(user)
-        await db_session.commit()
-        await db_session.refresh(user)
+        user, token = auth_user
 
-        # Create 25 submissions
+        # Create 25 submissions for authenticated user
         for i in range(25):
             submission = Submission(
                 user_id=user.id,
@@ -222,7 +215,10 @@ class TestListSubmissions:
         await db_session.commit()
 
         # Get first page (10 items)
-        response = client.get("/api/v1/submissions?page=1&page_size=10")
+        response = client.get(
+            "/api/v1/submissions?page=1&page_size=10",
+            headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -233,22 +229,33 @@ class TestListSubmissions:
         assert data["total_pages"] == 3
 
         # Get second page
-        response = client.get("/api/v1/submissions?page=2&page_size=10")
+        response = client.get(
+            "/api/v1/submissions?page=2&page_size=10",
+            headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 200
         data = response.json()
         assert len(data["items"]) == 10
         assert data["page"] == 2
 
-    def test_list_submissions_invalid_page(self, client: TestClient) -> None:
+    def test_list_submissions_invalid_page(self, client: TestClient, auth_user) -> None:
         """Test listing with invalid page parameter"""
-        response = client.get("/api/v1/submissions?page=0")
+        user, token = auth_user
+        response = client.get(
+            "/api/v1/submissions?page=0",
+            headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 422
 
-    def test_list_submissions_invalid_page_size(self, client: TestClient) -> None:
+    def test_list_submissions_invalid_page_size(self, client: TestClient, auth_user) -> None:
         """Test listing with invalid page_size parameter"""
-        response = client.get("/api/v1/submissions?page_size=101")  # Max is 100
+        user, token = auth_user
+        response = client.get(
+            "/api/v1/submissions?page_size=101",  # Max is 100
+            headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code == 422
 
@@ -424,3 +431,84 @@ class TestSubmissionWithAuthentication:
             headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert response.status_code == 200
+
+    @pytest.mark.asyncio
+    async def test_list_submissions_role_based_filtering(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test that submitters only see their own submissions, admins see all"""
+        # Create two submitters and one admin
+        submitter1 = User(
+            email="submitter1@example.com",
+            password_hash="hashed_password",
+            role=UserRole.SUBMITTER,
+            is_active=True,
+        )
+        submitter2 = User(
+            email="submitter2@example.com",
+            password_hash="hashed_password",
+            role=UserRole.SUBMITTER,
+            is_active=True,
+        )
+        admin = User(
+            email="admin@example.com",
+            password_hash="hashed_password",
+            role=UserRole.ADMIN,
+            is_active=True,
+        )
+        db_session.add_all([submitter1, submitter2, admin])
+        await db_session.commit()
+        await db_session.refresh(submitter1)
+        await db_session.refresh(submitter2)
+        await db_session.refresh(admin)
+
+        # Create submissions for both submitters
+        for i in range(3):
+            submission1 = Submission(
+                user_id=submitter1.id,
+                content=f"Submitter 1 submission {i}",
+                submission_type="text",
+                status="pending",
+            )
+            submission2 = Submission(
+                user_id=submitter2.id,
+                content=f"Submitter 2 submission {i}",
+                submission_type="text",
+                status="pending",
+            )
+            db_session.add(submission1)
+            db_session.add(submission2)
+        await db_session.commit()
+
+        # Submitter 1 sees only their own 3 submissions
+        token1 = create_access_token(data={"sub": str(submitter1.id)})
+        response1 = client.get(
+            "/api/v1/submissions",
+            headers={"Authorization": f"Bearer {token1}"}
+        )
+        assert response1.status_code == 200
+        data1 = response1.json()
+        assert data1["total"] == 3
+        assert len(data1["items"]) == 3
+
+        # Submitter 2 sees only their own 3 submissions
+        token2 = create_access_token(data={"sub": str(submitter2.id)})
+        response2 = client.get(
+            "/api/v1/submissions",
+            headers={"Authorization": f"Bearer {token2}"}
+        )
+        assert response2.status_code == 200
+        data2 = response2.json()
+        assert data2["total"] == 3
+        assert len(data2["items"]) == 3
+
+        # Admin sees all 6 submissions
+        admin_token = create_access_token(data={"sub": str(admin.id)})
+        admin_response = client.get(
+            "/api/v1/submissions",
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+        assert admin_response.status_code == 200
+        admin_data = admin_response.json()
+        assert admin_data["total"] == 6
+        assert len(admin_data["items"]) == 6

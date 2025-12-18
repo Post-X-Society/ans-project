@@ -297,3 +297,59 @@ class TestTokenStructure:
 
         assert response.status_code == 200
         # Token structure will be validated through successful API calls
+
+
+class TestGetCurrentUser:
+    """Test /auth/me endpoint"""
+
+    @pytest.mark.asyncio
+    async def test_get_current_user_profile(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test getting current user profile"""
+        # Create a test user
+        user = User(
+            email="metest@example.com",
+            password_hash=hash_password("password123"),
+            role=UserRole.REVIEWER,
+            is_active=True,
+        )
+        db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
+
+        # Login to get token
+        login_response = client.post(
+            "/api/v1/auth/login",
+            json={"email": "metest@example.com", "password": "password123"},
+        )
+        assert login_response.status_code == 200
+        access_token = login_response.json()["access_token"]
+
+        # Get current user profile
+        response = client.get(
+            "/api/v1/auth/me",
+            headers={"Authorization": f"Bearer {access_token}"}
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["email"] == "metest@example.com"
+        assert data["role"] == "reviewer"
+        assert data["is_active"] is True
+        assert "id" in data
+        assert "created_at" in data
+        assert "updated_at" in data
+
+    def test_get_current_user_without_token(self, client: TestClient) -> None:
+        """Test that /auth/me requires authentication"""
+        response = client.get("/api/v1/auth/me")
+        assert response.status_code == 401
+
+    def test_get_current_user_invalid_token(self, client: TestClient) -> None:
+        """Test that /auth/me rejects invalid tokens"""
+        response = client.get(
+            "/api/v1/auth/me",
+            headers={"Authorization": "Bearer invalid.token.here"}
+        )
+        assert response.status_code == 401

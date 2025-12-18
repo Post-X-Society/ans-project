@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.submission import Submission
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.submission import SubmissionCreate, SubmissionListResponse, SubmissionResponse
 from app.services import claim_service
 
@@ -111,15 +111,21 @@ async def get_submission(db: AsyncSession, submission_id: UUID) -> Optional[Subm
 
 
 async def list_submissions(
-    db: AsyncSession, page: int = 1, page_size: int = 50
+    db: AsyncSession,
+    page: int = 1,
+    page_size: int = 50,
+    user_id: Optional[UUID] = None,
+    user_role: Optional[UserRole] = None,
 ) -> SubmissionListResponse:
     """
-    List submissions with pagination
+    List submissions with pagination and role-based filtering
 
     Args:
         db: Database session
         page: Page number (1-indexed)
         page_size: Number of items per page
+        user_id: Optional user ID for filtering (submitters see only their own)
+        user_role: Optional user role for access control
 
     Returns:
         Paginated list of submissions
@@ -127,14 +133,23 @@ async def list_submissions(
     # Calculate offset
     offset = (page - 1) * page_size
 
-    # Get total count
-    count_result = await db.execute(select(func.count()).select_from(Submission))
+    # Build base query
+    stmt = select(Submission)
+
+    # Apply role-based filtering
+    if user_role == UserRole.SUBMITTER and user_id:
+        # Submitters only see their own submissions
+        stmt = stmt.where(Submission.user_id == user_id)
+    # REVIEWER, ADMIN, SUPER_ADMIN see all submissions (no filter)
+
+    # Get total count with filters
+    count_stmt = select(func.count()).select_from(stmt.subquery())
+    count_result = await db.execute(count_stmt)
     total = count_result.scalar_one()
 
-    # Get submissions
-    result = await db.execute(
-        select(Submission).order_by(Submission.created_at.desc()).offset(offset).limit(page_size)
-    )
+    # Get submissions with pagination
+    stmt = stmt.order_by(Submission.created_at.desc()).offset(offset).limit(page_size)
+    result = await db.execute(stmt)
     submissions = result.scalars().all()
 
     # Calculate total pages

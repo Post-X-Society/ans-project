@@ -71,6 +71,9 @@ db-migrate: ## Run database migrations
 db-rollback: ## Rollback last migration
 	docker compose -f infrastructure/docker-compose.dev.yml exec backend alembic downgrade -1
 
+seed-admin: ## Create initial super admin user
+	docker compose -f infrastructure/docker-compose.dev.yml exec backend python -m scripts.seed_admin
+
 db-shell: ## Open PostgreSQL shell
 	docker compose -f infrastructure/docker-compose.dev.yml exec postgres psql -U postgres -d ans_dev
 
