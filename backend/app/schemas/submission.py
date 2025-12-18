@@ -11,6 +11,16 @@ from pydantic import BaseModel, Field, field_validator
 from app.schemas.claim import ClaimResponse
 
 
+class SubmissionReviewerInfo(BaseModel):
+    """Schema for reviewer information in submission response"""
+
+    id: UUID
+    email: str
+    role: str
+
+    model_config = {"from_attributes": True}
+
+
 class SubmissionCreate(BaseModel):
     """Schema for creating a new submission"""
 
@@ -36,6 +46,8 @@ class SubmissionResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
+    reviewers: List[SubmissionReviewerInfo] = Field(default_factory=list)
+    is_assigned_to_me: bool = False  # For reviewers to know if they're assigned
 
     model_config = {"from_attributes": True}  # Allow ORM models
 

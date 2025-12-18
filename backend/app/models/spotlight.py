@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlalchemy import BigInteger, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import TimeStampedModel
@@ -49,8 +50,8 @@ class SpotlightContent(TimeStampedModel):
     # Upload timestamp
     upload_timestamp: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
 
-    # Raw API response
-    raw_metadata: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    # Raw API response (use JSONB for PostgreSQL, JSON for SQLite)
+    raw_metadata: Mapped[dict] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
 
     # Relationships
     submission: Mapped["Submission"] = relationship(

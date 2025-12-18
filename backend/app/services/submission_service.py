@@ -116,6 +116,8 @@ async def list_submissions(
     page_size: int = 50,
     user_id: Optional[UUID] = None,
     user_role: Optional[UserRole] = None,
+    assigned_to_me: Optional[bool] = None,
+    status: Optional[str] = None,
 ) -> SubmissionListResponse:
     """
     List submissions with pagination and role-based filtering
@@ -126,21 +128,36 @@ async def list_submissions(
         page_size: Number of items per page
         user_id: Optional user ID for filtering (submitters see only their own)
         user_role: Optional user role for access control
+        assigned_to_me: Optional filter for reviewers to see only assigned submissions
+        status: Optional filter by submission status
 
     Returns:
         Paginated list of submissions
     """
+    from app.models.submission_reviewer import SubmissionReviewer
+    from sqlalchemy.orm import selectinload
+
     # Calculate offset
     offset = (page - 1) * page_size
 
-    # Build base query
-    stmt = select(Submission)
+    # Build base query with eager loading of reviewer assignments
+    stmt = select(Submission).options(selectinload(Submission.reviewer_assignments))
 
     # Apply role-based filtering
     if user_role == UserRole.SUBMITTER and user_id:
         # Submitters only see their own submissions
         stmt = stmt.where(Submission.user_id == user_id)
-    # REVIEWER, ADMIN, SUPER_ADMIN see all submissions (no filter)
+    # REVIEWER, ADMIN, SUPER_ADMIN see all submissions (no filter by default)
+
+    # Apply assigned_to_me filter for REVIEWERS only
+    # Admins and super_admins ignore this filter (they always see all)
+    if assigned_to_me is True and user_role == UserRole.REVIEWER and user_id:
+        # Join with submission_reviewers to filter by assignment
+        stmt = stmt.join(SubmissionReviewer).where(SubmissionReviewer.reviewer_id == user_id)
+
+    # Apply status filter if provided
+    if status:
+        stmt = stmt.where(Submission.status == status)
 
     # Get total count with filters
     count_stmt = select(func.count()).select_from(stmt.subquery())
@@ -155,8 +172,39 @@ async def list_submissions(
     # Calculate total pages
     total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
+    # Build response items with reviewer info and is_assigned_to_me flag
+    items = []
+    for submission in submissions:
+        # Build reviewer list from reviewer_assignments
+        reviewers = []
+        is_assigned = False
+        for assignment in submission.reviewer_assignments:
+            reviewer_info = {
+                "id": assignment.reviewer.id,
+                "email": assignment.reviewer.email,
+                "role": assignment.reviewer.role.value,
+            }
+            reviewers.append(reviewer_info)
+            # Check if current user is assigned
+            if user_id and assignment.reviewer_id == user_id:
+                is_assigned = True
+
+        # Create response dict
+        submission_dict = {
+            "id": submission.id,
+            "user_id": submission.user_id,
+            "content": submission.content,
+            "submission_type": submission.submission_type,
+            "status": submission.status,
+            "created_at": submission.created_at,
+            "updated_at": submission.updated_at,
+            "reviewers": reviewers,
+            "is_assigned_to_me": is_assigned,
+        }
+        items.append(SubmissionResponse(**submission_dict))
+
     return SubmissionListResponse(
-        items=[SubmissionResponse.model_validate(s) for s in submissions],
+        items=items,
         total=total,
         page=page,
         page_size=page_size,
