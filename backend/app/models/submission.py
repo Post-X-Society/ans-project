@@ -2,7 +2,7 @@
 Submission model for user-submitted content
 """
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 from uuid import UUID
 
 from sqlalchemy import ForeignKey, String, Text
@@ -12,6 +12,8 @@ from app.models.base import TimeStampedModel, submission_claims
 
 if TYPE_CHECKING:
     from app.models.claim import Claim
+    from app.models.spotlight import SpotlightContent
+    from app.models.submission_reviewer import SubmissionReviewer
     from app.models.user import User
 
 
@@ -33,6 +35,15 @@ class Submission(TimeStampedModel):
         "Claim",
         secondary=submission_claims,
         back_populates="submissions",
+        lazy="selectin",
+    )
+    spotlight_content: Mapped[Optional["SpotlightContent"]] = relationship(
+        "SpotlightContent", back_populates="submission", lazy="selectin", uselist=False
+    )
+    reviewer_assignments: Mapped[List["SubmissionReviewer"]] = relationship(
+        "SubmissionReviewer",
+        foreign_keys="SubmissionReviewer.submission_id",
+        back_populates="submission",
         lazy="selectin",
     )
 

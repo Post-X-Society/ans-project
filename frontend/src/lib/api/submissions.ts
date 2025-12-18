@@ -1,11 +1,27 @@
 import { apiClient } from './client';
-import type { Submission, SubmissionCreate, SubmissionListResponse } from './types';
+import type {
+	Submission,
+	SubmissionCreate,
+	SubmissionListResponse,
+	SpotlightSubmissionCreate,
+	SpotlightContent
+} from './types';
 
 /**
  * Create a new submission
  */
 export async function createSubmission(data: SubmissionCreate): Promise<Submission> {
 	const response = await apiClient.post<Submission>('/api/v1/submissions', data);
+	return response.data;
+}
+
+/**
+ * Create a new Spotlight submission
+ */
+export async function createSpotlightSubmission(
+	data: SpotlightSubmissionCreate
+): Promise<SpotlightContent> {
+	const response = await apiClient.post<SpotlightContent>('/api/v1/submissions/spotlight', data);
 	return response.data;
 }
 

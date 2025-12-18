@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_admin, require_super_admin
 from app.models.user import User, UserRole
-from app.schemas.user import UserResponse, UserRoleUpdate
+from app.schemas.user import UserResponse, UserRoleUpdate, UserUpdate
 
 router = APIRouter()
 
@@ -148,6 +148,64 @@ async def update_user_role(
 
     # Super admins can change any role
     target_user.role = role_update.role
+    await db.commit()
+    await db.refresh(target_user)
+
+    return target_user
+
+
+@router.patch("/{user_id}", response_model=UserResponse)
+async def update_user(
+    user_id: UUID,
+    user_update: UserUpdate,
+    current_user: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Update user information (admin+ only).
+
+    Permission rules:
+    - Admins can update submitters and reviewers only
+    - Admins cannot update other admins or super admins
+    - Super admins can update any user
+
+    Requires:
+        - Admin or Super Admin role
+
+    Args:
+        user_id: UUID of the user to update
+        user_update: Fields to update (email, is_active)
+
+    Returns:
+        UserResponse: Updated user information
+
+    Raises:
+        HTTPException: 404 if user not found
+        HTTPException: 403 if insufficient permissions
+    """
+    # Get target user
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    target_user = result.scalar_one_or_none()
+
+    if not target_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    # Permission checks
+    if current_user.role == UserRole.ADMIN:
+        # Admins cannot modify other admins or super admins
+        if target_user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot modify admin or super admin users",
+            )
+
+    # Update fields if provided
+    if user_update.email is not None:
+        target_user.email = user_update.email
+    if user_update.is_active is not None:
+        target_user.is_active = user_update.is_active
+
     await db.commit()
     await db.refresh(target_user)
 

@@ -12,6 +12,7 @@ from app.models.base import TimeStampedModel
 
 if TYPE_CHECKING:
     from app.models.submission import Submission
+    from app.models.submission_reviewer import SubmissionReviewer
     from app.models.volunteer import Volunteer
 
 
@@ -44,6 +45,18 @@ class User(TimeStampedModel):
     )
     volunteer: Mapped[Optional["Volunteer"]] = relationship(
         "Volunteer", back_populates="user", uselist=False, lazy="selectin"
+    )
+    reviewer_assignments: Mapped[List["SubmissionReviewer"]] = relationship(
+        "SubmissionReviewer",
+        foreign_keys="SubmissionReviewer.reviewer_id",
+        back_populates="reviewer",
+        lazy="selectin",
+    )
+    assigned_reviews: Mapped[List["SubmissionReviewer"]] = relationship(
+        "SubmissionReviewer",
+        foreign_keys="SubmissionReviewer.assigned_by_id",
+        back_populates="assigned_by",
+        lazy="selectin",
     )
 
     def __repr__(self) -> str:

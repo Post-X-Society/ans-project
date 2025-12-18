@@ -50,11 +50,13 @@ services:
       - DEBUG=true
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - BENEDMO_API_KEY=${BENEDMO_API_KEY:-}
+      - RAPIDAPI_KEY=${RAPIDAPI_KEY:-dfe09ef614mshfd3f4115d69ba3dp1f43f2jsn9697540f75f0}
     ports:
       - "8000:8000"
     volumes:
       - ../backend:/app
       - backend_cache:/app/__pycache__
+      - media_storage:/app/media
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     depends_on:
       postgres:
@@ -104,6 +106,8 @@ volumes:
   redis_data:
     driver: local
   backend_cache:
+    driver: local
+  media_storage:
     driver: local
 
 networks:
