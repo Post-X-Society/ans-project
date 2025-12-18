@@ -20,19 +20,21 @@ from app.models.user import User, UserRole
 from app.schemas.auth import (
     RefreshTokenRequest,
     Token,
+    TokenWithUser,
     UserLogin,
     UserRegister,
+    UserResponse,
 )
 
 router = APIRouter()
 
 
-@router.post("/register", response_model=Token, status_code=status.HTTP_200_OK)
-async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)) -> Token:
+@router.post("/register", response_model=TokenWithUser, status_code=status.HTTP_200_OK)
+async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)) -> TokenWithUser:
     """
     Register a new user with email and password.
 
-    Default role is 'submitter'. Returns access and refresh tokens.
+    Default role is 'submitter'. Returns access and refresh tokens with user data.
     """
     # Check if email already exists
     stmt = select(User).where(User.email == user_data.email)
@@ -70,15 +72,19 @@ async def register(user_data: UserRegister, db: AsyncSession = Depends(get_db)) 
     access_token = create_access_token(token_data)
     refresh_token = create_refresh_token(token_data)
 
-    return Token(access_token=access_token, refresh_token=refresh_token)
+    return TokenWithUser(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=UserResponse.model_validate(new_user),
+    )
 
 
-@router.post("/login", response_model=Token, status_code=status.HTTP_200_OK)
-async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)) -> Token:
+@router.post("/login", response_model=TokenWithUser, status_code=status.HTTP_200_OK)
+async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)) -> TokenWithUser:
     """
     Login with email and password.
 
-    Returns access and refresh tokens on success.
+    Returns access and refresh tokens with user data on success.
     """
     # Find user by email
     stmt = select(User).where(User.email == credentials.email)
@@ -111,7 +117,11 @@ async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)) -> T
     access_token = create_access_token(token_data)
     refresh_token = create_refresh_token(token_data)
 
-    return Token(access_token=access_token, refresh_token=refresh_token)
+    return TokenWithUser(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        user=UserResponse.model_validate(user),
+    )
 
 
 @router.post("/refresh", response_model=Token, status_code=status.HTTP_200_OK)

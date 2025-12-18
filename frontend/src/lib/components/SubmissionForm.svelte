@@ -2,6 +2,7 @@
 	import { createMutation, useQueryClient } from '@tanstack/svelte-query';
 	import { createSubmissionMutationOptions } from '$lib/api/queries';
 	import type { SubmissionCreate } from '$lib/api/types';
+	import { authStore } from '$lib/stores/auth';
 
 	// Svelte 5 runes for reactive state
 	let content = $state('');
@@ -10,6 +11,10 @@
 
 	const queryClient = useQueryClient();
 	const mutation = createMutation(createSubmissionMutationOptions());
+
+	// Check authentication
+	let auth = $derived($authStore);
+	let isAuthenticated = $derived(auth.isAuthenticated);
 
 	// Computed values using $derived
 	let characterCount = $derived(content.length);
@@ -109,15 +114,25 @@
 	<div>
 		<button
 			type="submit"
-			disabled={$mutation.isPending}
+			disabled={$mutation.isPending || !isAuthenticated}
 			class="w-full bg-primary-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-primary-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
 		>
 			{#if $mutation.isPending}
 				Submitting...
+			{:else if !isAuthenticated}
+				Please login to submit
 			{:else}
 				Submit for Fact-Checking
 			{/if}
 		</button>
+		{#if !isAuthenticated}
+			<p class="mt-2 text-sm text-gray-600 text-center">
+				You must be logged in to submit claims.
+				<a href="/login" class="text-primary-600 hover:text-primary-700 font-medium">
+					Login here
+				</a>
+			</p>
+		{/if}
 	</div>
 
 	<!-- Success Message -->
@@ -135,7 +150,12 @@
 		<div class="bg-red-50 border border-red-200 rounded-lg p-4">
 			<p class="text-red-800 font-medium">✗ Submission failed</p>
 			<p class="text-red-700 text-sm mt-1">
-				{$mutation.error?.message || 'An error occurred. Please try again.'}
+				{#if $mutation.error?.response?.status === 401}
+					You are not authenticated. Please
+					<a href="/login" class="underline font-medium">login</a> to submit claims.
+				{:else}
+					{$mutation.error?.message || 'An error occurred. Please try again.'}
+				{/if}
 			</p>
 		</div>
 	{/if}

@@ -1,7 +1,7 @@
 """add submission claims junction table
 
 Revision ID: 361544390a58
-Revises: e015fdaaaad0
+Revises: 001
 Create Date: 2025-12-17 09:57:46.936460
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '361544390a58'
-down_revision: Union[str, None] = 'e015fdaaaad0'
+down_revision: Union[str, None] = '001'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

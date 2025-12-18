@@ -1,7 +1,7 @@
 """add_user_authentication
 
 Revision ID: 001
-Revises:
+Revises: 74a3438eeb0f
 Create Date: 2025-12-15 12:57:44.000000
 
 """
@@ -14,58 +14,41 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "001"
-down_revision: Union[str, None] = None
+down_revision: Union[str, None] = "74a3438eeb0f"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    """Add users table with authentication fields"""
-    # Create user_role enum only for PostgreSQL
-    # SQLite doesn't support custom types, so we'll use String
+    """Add RBAC role enum and is_active field to existing users table"""
     bind = op.get_bind()
     dialect_name = bind.dialect.name
 
     if dialect_name == "postgresql":
+        # Create user_role enum
         op.execute("CREATE TYPE userrole AS ENUM ('super_admin', 'admin', 'reviewer', 'submitter')")
-        role_type = sa.Enum("super_admin", "admin", "reviewer", "submitter", name="userrole")
-        # PostgreSQL uses UUID type
-        from sqlalchemy.dialects.postgresql import UUID
 
-        id_type = UUID(as_uuid=True)
+        # Change role column from String to Enum
+        op.execute("ALTER TABLE users ALTER COLUMN role TYPE userrole USING role::userrole")
+
+        # Add is_active column
+        op.add_column("users", sa.Column("is_active", sa.Boolean(), nullable=False, server_default="true"))
     else:
-        # For SQLite, use String instead of enum
-        role_type = sa.String(length=20)
-        # SQLite doesn't have native UUID, use String
-        id_type = sa.String(length=36)
-
-    # Create users table
-    op.create_table(
-        "users",
-        sa.Column("id", id_type, nullable=False),
-        sa.Column("email", sa.String(length=255), nullable=False),
-        sa.Column("password_hash", sa.Text(), nullable=False),
-        sa.Column("role", role_type, nullable=False),
-        sa.Column("is_active", sa.Boolean(), nullable=False, server_default="true"),
-        sa.Column(
-            "created_at", sa.DateTime(), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")
-        ),
-        sa.Column(
-            "updated_at", sa.DateTime(), nullable=False, server_default=sa.text("CURRENT_TIMESTAMP")
-        ),
-        sa.PrimaryKeyConstraint("id"),
-    )
-
-    # Create indexes
-    op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
+        # For SQLite, role is already String, just add is_active
+        op.add_column("users", sa.Column("is_active", sa.Boolean(), nullable=False, server_default="true"))
 
 
 def downgrade() -> None:
-    """Remove users table and enum"""
-    op.drop_index(op.f("ix_users_email"), table_name="users")
-    op.drop_table("users")
-
-    # Drop enum type only for PostgreSQL
+    """Remove RBAC changes from users table"""
     bind = op.get_bind()
-    if bind.dialect.name == "postgresql":
+    dialect_name = bind.dialect.name
+
+    # Remove is_active column
+    op.drop_column("users", "is_active")
+
+    if dialect_name == "postgresql":
+        # Change role column back from Enum to String
+        op.execute("ALTER TABLE users ALTER COLUMN role TYPE VARCHAR(50)")
+
+        # Drop enum type
         op.execute("DROP TYPE userrole")
