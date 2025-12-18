@@ -1,13 +1,11 @@
 import { apiClient } from './client';
-import type { User, UserCreate, UserUpdate, UserListResponse, UserRole } from './types';
+import type { User, UserCreate, UserUpdate, UserRole } from './types';
 
 /**
  * Get list of users (admin only)
  */
-export async function getUsers(page: number = 1, page_size: number = 50): Promise<UserListResponse> {
-	const response = await apiClient.get<UserListResponse>('/api/v1/users', {
-		params: { page, page_size }
-	});
+export async function getUsers(): Promise<User[]> {
+	const response = await apiClient.get<User[]>('/api/v1/users');
 	return response.data;
 }
 

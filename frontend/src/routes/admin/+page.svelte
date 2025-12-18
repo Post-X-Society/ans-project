@@ -13,13 +13,13 @@
 	// Create user form
 	let newUserEmail = $state('');
 	let newUserPassword = $state('');
-	let newUserRole = $state<UserRole>('SUBMITTER');
+	let newUserRole = $state<UserRole>('submitter');
 	let createError = $state<string | null>(null);
 	let isCreating = $state(false);
 
 	// Edit user state
 	let editingUserId = $state<string | null>(null);
-	let editUserRole = $state<UserRole>('SUBMITTER');
+	let editUserRole = $state<UserRole>('submitter');
 	let editUserActive = $state(true);
 
 	onMount(() => {
@@ -30,8 +30,7 @@
 		isLoading = true;
 		error = null;
 		try {
-			const response = await getUsers(1, 100);
-			users = response.items;
+			users = await getUsers();
 		} catch (err: any) {
 			console.error('Error loading users:', err);
 			error = err.response?.data?.detail || 'Failed to load users';
@@ -56,7 +55,7 @@
 			showCreateModal = false;
 			newUserEmail = '';
 			newUserPassword = '';
-			newUserRole = 'SUBMITTER';
+			newUserRole = 'submitter';
 			await loadUsers();
 		} catch (err: any) {
 			console.error('Error creating user:', err);
@@ -100,13 +99,13 @@
 	function getRoleBadgeClass(role: UserRole): string {
 		const baseClass = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium';
 		switch (role) {
-			case 'SUPER_ADMIN':
+			case 'super_admin':
 				return `${baseClass} bg-purple-100 text-purple-800`;
-			case 'ADMIN':
+			case 'admin':
 				return `${baseClass} bg-blue-100 text-blue-800`;
-			case 'REVIEWER':
+			case 'reviewer':
 				return `${baseClass} bg-green-100 text-green-800`;
-			case 'SUBMITTER':
+			case 'submitter':
 				return `${baseClass} bg-gray-100 text-gray-800`;
 			default:
 				return baseClass;
@@ -190,11 +189,11 @@
 											bind:value={editUserRole}
 											class="border border-gray-300 rounded px-2 py-1 text-sm"
 										>
-											<option value="SUBMITTER">SUBMITTER</option>
-											<option value="REVIEWER">REVIEWER</option>
-											<option value="ADMIN">ADMIN</option>
+											<option value="submitter">submitter</option>
+											<option value="reviewer">reviewer</option>
+											<option value="admin">admin</option>
 											{#if isSuperAdminUser}
-												<option value="SUPER_ADMIN">SUPER_ADMIN</option>
+												<option value="super_admin">super_admin</option>
 											{/if}
 										</select>
 									{:else}
@@ -309,11 +308,11 @@
 						bind:value={newUserRole}
 						class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
 					>
-						<option value="SUBMITTER">SUBMITTER</option>
-						<option value="REVIEWER">REVIEWER</option>
-						<option value="ADMIN">ADMIN</option>
+						<option value="submitter">submitter</option>
+						<option value="reviewer">reviewer</option>
+						<option value="admin">admin</option>
 						{#if isSuperAdminUser}
-							<option value="SUPER_ADMIN">SUPER_ADMIN</option>
+							<option value="super_admin">super_admin</option>
 						{/if}
 					</select>
 				</div>
