@@ -13,7 +13,8 @@ export const load: PageLoad = async () => {
 
 		if (userStr) {
 			const user = JSON.parse(userStr);
-			if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+			// Backend returns lowercase role values
+			if (user.role !== 'admin' && user.role !== 'super_admin') {
 				throw redirect(307, '/');
 			}
 		}

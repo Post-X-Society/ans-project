@@ -64,14 +64,14 @@
 						{auth.user.email}
 						<span
 							class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-							class:bg-purple-100={auth.user.role === 'SUPER_ADMIN'}
-							class:text-purple-800={auth.user.role === 'SUPER_ADMIN'}
-							class:bg-blue-100={auth.user.role === 'ADMIN'}
-							class:text-blue-800={auth.user.role === 'ADMIN'}
-							class:bg-green-100={auth.user.role === 'REVIEWER'}
-							class:text-green-800={auth.user.role === 'REVIEWER'}
-							class:bg-gray-100={auth.user.role === 'SUBMITTER'}
-							class:text-gray-800={auth.user.role === 'SUBMITTER'}
+							class:bg-purple-100={auth.user.role === 'super_admin'}
+							class:text-purple-800={auth.user.role === 'super_admin'}
+							class:bg-blue-100={auth.user.role === 'admin'}
+							class:text-blue-800={auth.user.role === 'admin'}
+							class:bg-green-100={auth.user.role === 'reviewer'}
+							class:text-green-800={auth.user.role === 'reviewer'}
+							class:bg-gray-100={auth.user.role === 'submitter'}
+							class:text-gray-800={auth.user.role === 'submitter'}
 						>
 							{auth.user.role}
 						</span>

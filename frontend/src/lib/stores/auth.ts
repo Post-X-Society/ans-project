@@ -129,6 +129,6 @@ export const currentUser = derived(authStore, ($auth) => $auth.user);
 export const isAuthenticated = derived(authStore, ($auth) => $auth.isAuthenticated);
 export const isAdmin = derived(
 	authStore,
-	($auth) => $auth.user?.role === 'ADMIN' || $auth.user?.role === 'SUPER_ADMIN'
+	($auth) => $auth.user?.role === 'admin' || $auth.user?.role === 'super_admin'
 );
-export const isSuperAdmin = derived(authStore, ($auth) => $auth.user?.role === 'SUPER_ADMIN');
+export const isSuperAdmin = derived(authStore, ($auth) => $auth.user?.role === 'super_admin');
