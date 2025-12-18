@@ -16,7 +16,7 @@ from app.models.user import User, UserRole
 async def create_super_admin():
     """Create initial super admin if not exists"""
     # Default credentials (should be changed in production)
-    email = "admin@ans.local"
+    email = "admin@ans.com"
     password = "Admin123!"
 
     engine = create_async_engine(settings.DATABASE_URL)

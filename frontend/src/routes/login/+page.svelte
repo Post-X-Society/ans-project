@@ -58,7 +58,15 @@
 			if (error.response?.status === 401) {
 				errors.general = 'Invalid email or password';
 			} else if (error.response?.data?.detail) {
-				errors.general = error.response.data.detail;
+				// Handle detail as string or array
+				const detail = error.response.data.detail;
+				if (typeof detail === 'string') {
+					errors.general = detail;
+				} else if (Array.isArray(detail)) {
+					errors.general = detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+				} else {
+					errors.general = JSON.stringify(detail);
+				}
 			} else {
 				errors.general = 'An error occurred during login. Please try again.';
 			}
