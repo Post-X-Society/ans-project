@@ -1341,23 +1341,39 @@ class TestHelperFunctions:
         assert exc_info.value.status_code == 404
         assert "not found" in str(exc_info.value.detail).lower()
 
-    def test_format_reviewer_info(self, reviewer_user) -> None:
+    @pytest.mark.asyncio
+    async def test_format_reviewer_info(
+        self, db_session: AsyncSession, reviewer_user, admin_user, test_submission
+    ) -> None:
         """Test _format_reviewer_info formats data correctly"""
-        from datetime import datetime
-
         reviewer, _ = reviewer_user
+        admin, _ = admin_user
 
-        # Create a mock assignment
-        class MockAssignment:
-            def __init__(self):
-                self.reviewer = reviewer
-                self.created_at = datetime.now()
+        # Create a real assignment
+        assignment = SubmissionReviewer(
+            submission_id=test_submission.id,
+            reviewer_id=reviewer.id,
+            assigned_by_id=admin.id,
+        )
+        db_session.add(assignment)
+        await db_session.commit()
+        await db_session.refresh(assignment)
 
-        assignment = MockAssignment()
-        info = _format_reviewer_info(assignment)
+        # Load the reviewer relationship
+        from sqlalchemy import select
+        from sqlalchemy.orm import selectinload
+
+        result = await db_session.execute(
+            select(SubmissionReviewer)
+            .where(SubmissionReviewer.id == assignment.id)
+            .options(selectinload(SubmissionReviewer.reviewer))
+        )
+        loaded_assignment = result.scalar_one()
+
+        info = _format_reviewer_info(loaded_assignment)
 
         assert info.id == reviewer.id
         assert info.email == reviewer.email
         assert info.role == "reviewer"
         assert info.full_name is None
-        assert info.assigned_at == assignment.created_at
+        assert info.assigned_at == loaded_assignment.created_at
