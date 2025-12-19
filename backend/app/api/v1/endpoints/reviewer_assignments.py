@@ -67,16 +67,11 @@ async def _get_user_or_404(db: AsyncSession, user_id: UUID) -> User:
 
 def _format_reviewer_info(assignment: SubmissionReviewer) -> ReviewerInfo:
     """Format reviewer assignment into ReviewerInfo"""
-    # Get full_name from volunteer profile if available
-    full_name = None
-    if assignment.reviewer.volunteer:
-        full_name = assignment.reviewer.volunteer.full_name
-
     return ReviewerInfo(
         id=assignment.reviewer.id,
         email=assignment.reviewer.email,
         role=assignment.reviewer.role.value,  # Convert enum to string
-        full_name=full_name,
+        full_name=None,  # TODO: Add when volunteer profile has full_name field
         assigned_at=assignment.created_at,
     )
 

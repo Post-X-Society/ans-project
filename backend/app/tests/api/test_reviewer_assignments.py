@@ -5,10 +5,19 @@ These tests are written BEFORE implementation and should FAIL initially (RED pha
 Once implementation is complete, these tests should pass (GREEN phase).
 """
 
+from uuid import uuid4
+
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.endpoints.reviewer_assignments import (
+    _format_reviewer_info,
+    _get_submission_or_404,
+    _get_user_or_404,
+    _user_has_permission,
+)
 from app.core.security import create_access_token
 from app.models.submission import Submission
 from app.models.submission_reviewer import SubmissionReviewer
@@ -1228,3 +1237,127 @@ class TestReviewerAssignmentEdgeCases:
         returned_emails = [r["email"] for r in data]
         for reviewer in reviewers:
             assert reviewer.email in returned_emails
+
+
+# ============================================================================
+# Unit Tests for Helper Functions (for coverage)
+# ============================================================================
+
+
+class TestHelperFunctions:
+    """Unit tests for internal helper functions"""
+
+    def test_user_has_permission_assign_action(self) -> None:
+        """Test permission check for assign action"""
+        # Admin can assign
+        admin = User(email="admin@example.com", role=UserRole.ADMIN, is_active=True)
+        assert _user_has_permission(admin, "assign") is True
+
+        # Super admin can assign
+        super_admin = User(
+            email="superadmin@example.com", role=UserRole.SUPER_ADMIN, is_active=True
+        )
+        assert _user_has_permission(super_admin, "assign") is True
+
+        # Reviewer cannot assign
+        reviewer = User(email="reviewer@example.com", role=UserRole.REVIEWER, is_active=True)
+        assert _user_has_permission(reviewer, "assign") is False
+
+        # Submitter cannot assign
+        submitter = User(email="submitter@example.com", role=UserRole.SUBMITTER, is_active=True)
+        assert _user_has_permission(submitter, "assign") is False
+
+    def test_user_has_permission_remove_action(self) -> None:
+        """Test permission check for remove action"""
+        # Admin can remove
+        admin = User(email="admin@example.com", role=UserRole.ADMIN, is_active=True)
+        assert _user_has_permission(admin, "remove") is True
+
+        # Super admin can remove
+        super_admin = User(
+            email="superadmin@example.com", role=UserRole.SUPER_ADMIN, is_active=True
+        )
+        assert _user_has_permission(super_admin, "remove") is True
+
+        # Reviewer cannot remove
+        reviewer = User(email="reviewer@example.com", role=UserRole.REVIEWER, is_active=True)
+        assert _user_has_permission(reviewer, "remove") is False
+
+    def test_user_has_permission_view_action(self) -> None:
+        """Test permission check for view action"""
+        # Admin can view
+        admin = User(email="admin@example.com", role=UserRole.ADMIN, is_active=True)
+        assert _user_has_permission(admin, "view") is True
+
+        # Super admin can view
+        super_admin = User(
+            email="superadmin@example.com", role=UserRole.SUPER_ADMIN, is_active=True
+        )
+        assert _user_has_permission(super_admin, "view") is True
+
+        # Reviewer can view
+        reviewer = User(email="reviewer@example.com", role=UserRole.REVIEWER, is_active=True)
+        assert _user_has_permission(reviewer, "view") is True
+
+        # Submitter can view
+        submitter = User(email="submitter@example.com", role=UserRole.SUBMITTER, is_active=True)
+        assert _user_has_permission(submitter, "view") is True
+
+    def test_user_has_permission_unknown_action(self) -> None:
+        """Test permission check for unknown action returns False"""
+        admin = User(email="admin@example.com", role=UserRole.ADMIN, is_active=True)
+        assert _user_has_permission(admin, "unknown_action") is False
+
+    @pytest.mark.asyncio
+    async def test_get_submission_or_404_found(
+        self, db_session: AsyncSession, submitter_user, test_submission
+    ) -> None:
+        """Test _get_submission_or_404 when submission exists"""
+        submission = await _get_submission_or_404(db_session, test_submission.id)
+        assert submission.id == test_submission.id
+
+    @pytest.mark.asyncio
+    async def test_get_submission_or_404_not_found(self, db_session: AsyncSession) -> None:
+        """Test _get_submission_or_404 raises 404 when submission not found"""
+        fake_uuid = uuid4()
+        with pytest.raises(HTTPException) as exc_info:
+            await _get_submission_or_404(db_session, fake_uuid)
+        assert exc_info.value.status_code == 404
+        assert "not found" in str(exc_info.value.detail).lower()
+
+    @pytest.mark.asyncio
+    async def test_get_user_or_404_found(self, db_session: AsyncSession, reviewer_user) -> None:
+        """Test _get_user_or_404 when user exists"""
+        reviewer, _ = reviewer_user
+        user = await _get_user_or_404(db_session, reviewer.id)
+        assert user.id == reviewer.id
+
+    @pytest.mark.asyncio
+    async def test_get_user_or_404_not_found(self, db_session: AsyncSession) -> None:
+        """Test _get_user_or_404 raises 404 when user not found"""
+        fake_uuid = uuid4()
+        with pytest.raises(HTTPException) as exc_info:
+            await _get_user_or_404(db_session, fake_uuid)
+        assert exc_info.value.status_code == 404
+        assert "not found" in str(exc_info.value.detail).lower()
+
+    def test_format_reviewer_info(self, reviewer_user) -> None:
+        """Test _format_reviewer_info formats data correctly"""
+        from datetime import datetime
+
+        reviewer, _ = reviewer_user
+
+        # Create a mock assignment
+        class MockAssignment:
+            def __init__(self):
+                self.reviewer = reviewer
+                self.created_at = datetime.now()
+
+        assignment = MockAssignment()
+        info = _format_reviewer_info(assignment)
+
+        assert info.id == reviewer.id
+        assert info.email == reviewer.email
+        assert info.role == "reviewer"
+        assert info.full_name is None
+        assert info.assigned_at == assignment.created_at
