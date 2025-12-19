@@ -126,13 +126,13 @@ async def assign_reviewers(
         if not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"User is inactive and cannot be assigned as reviewer",
+                detail="User is inactive and cannot be assigned as reviewer",
             )
 
         # Check if user has reviewer role (ONLY reviewer, not admin/super_admin)
         if user.role != UserRole.REVIEWER:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail=f"User does not have reviewer role"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="User does not have reviewer role"
             )
 
         reviewers_to_assign.append(user)
@@ -183,7 +183,7 @@ async def remove_reviewer(
         )
 
     # Get submission
-    submission = await _get_submission_or_404(db, submission_id)
+    await _get_submission_or_404(db, submission_id)
 
     # Find the assignment
     result = await db.execute(
@@ -198,7 +198,7 @@ async def remove_reviewer(
 
     if not assignment:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=f"Reviewer assignment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Reviewer assignment not found"
         )
 
     # Delete the assignment

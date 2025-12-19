@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Dict, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SpotlightSubmissionCreate(BaseModel):

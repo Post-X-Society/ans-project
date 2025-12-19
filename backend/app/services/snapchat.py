@@ -4,13 +4,11 @@ Snapchat Spotlight API service
 
 import os
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
 import aiofiles
 import httpx
 from fastapi import HTTPException, status
-
-from app.core.config import settings
 
 
 class SnapchatService:
@@ -64,12 +62,12 @@ class SnapchatService:
                 raise HTTPException(
                     status_code=e.response.status_code,
                     detail=f"Snapchat API error: {e.response.text}",
-                )
+                ) from e
             except httpx.RequestError as e:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail=f"Failed to connect to Snapchat API: {str(e)}",
-                )
+                ) from e
 
     async def download_video(self, video_url: str, spotlight_id: str) -> str:
         """
@@ -105,12 +103,12 @@ class SnapchatService:
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
                     detail=f"Failed to download video: {e.response.status_code}",
-                )
+                ) from e
             except httpx.RequestError as e:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail=f"Failed to connect to video server: {str(e)}",
-                )
+                ) from e
             except Exception as e:
                 # Clean up partial file if exists
                 if file_path.exists():
@@ -118,7 +116,7 @@ class SnapchatService:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=f"Failed to save video: {str(e)}",
-                )
+                ) from e
 
     def parse_spotlight_metadata(self, data: Dict) -> Dict:
         """
