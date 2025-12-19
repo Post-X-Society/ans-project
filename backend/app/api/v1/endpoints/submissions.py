@@ -290,8 +290,8 @@ async def assign_reviewer_to_submission(
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Reviewer is already assigned to this submission",
-            )
-        raise
+            ) from e
+        raise from e
 
     return {
         "message": "Reviewer assigned successfully",
