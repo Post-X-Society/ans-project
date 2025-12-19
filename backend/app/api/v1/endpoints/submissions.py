@@ -112,7 +112,9 @@ async def get_submission(
 async def list_submissions(
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(50, ge=1, le=100, description="Number of items per page (max 100)"),
-    assigned_to_me: Optional[bool] = Query(None, description="Filter by assignments (reviewers only)"),
+    assigned_to_me: Optional[bool] = Query(
+        None, description="Filter by assignments (reviewers only)"
+    ),
     status: Optional[str] = Query(None, description="Filter by submission status"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -169,7 +171,9 @@ async def create_spotlight_submission(
     Returns the created Spotlight content with all metadata
     """
     # Fetch Spotlight data from API
-    spotlight_data = await snapchat_service.fetch_spotlight_data(spotlight_submission.spotlight_link)
+    spotlight_data = await snapchat_service.fetch_spotlight_data(
+        spotlight_submission.spotlight_link
+    )
 
     # Parse metadata
     parsed_metadata = snapchat_service.parse_spotlight_metadata(spotlight_data)

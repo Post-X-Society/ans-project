@@ -34,9 +34,7 @@ class SubmissionReviewer(TimeStampedModel):
     submission: Mapped["Submission"] = relationship(
         "Submission", foreign_keys=[submission_id], lazy="selectin"
     )
-    reviewer: Mapped["User"] = relationship(
-        "User", foreign_keys=[reviewer_id], lazy="selectin"
-    )
+    reviewer: Mapped["User"] = relationship("User", foreign_keys=[reviewer_id], lazy="selectin")
     assigned_by: Mapped["User"] = relationship(
         "User", foreign_keys=[assigned_by_id], lazy="selectin"
     )

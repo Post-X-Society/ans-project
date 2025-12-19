@@ -51,7 +51,9 @@ class SpotlightContent(TimeStampedModel):
     upload_timestamp: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
 
     # Raw API response (use JSONB for PostgreSQL, JSON for SQLite)
-    raw_metadata: Mapped[dict] = mapped_column(JSON().with_variant(JSONB, "postgresql"), nullable=False)
+    raw_metadata: Mapped[dict] = mapped_column(
+        JSON().with_variant(JSONB, "postgresql"), nullable=False
+    )
 
     # Relationships
     submission: Mapped["Submission"] = relationship(
