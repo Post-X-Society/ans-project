@@ -71,9 +71,7 @@ async def create_submission(
     from sqlalchemy import insert
 
     if claims:
-        values = [
-            {"submission_id": submission.id, "claim_id": claim.id} for claim in claims
-        ]
+        values = [{"submission_id": submission.id, "claim_id": claim.id} for claim in claims]
         await db.execute(insert(submission_claims).values(values))
 
     await db.commit()
@@ -169,7 +167,7 @@ async def list_submissions(
 
         # Create response with all data
         submission_dict = SubmissionResponse.model_validate(submission).model_dump()
-        submission_dict['reviewers'] = reviewers
+        submission_dict["reviewers"] = reviewers
         items.append(SubmissionResponse(**submission_dict))
 
     return SubmissionListResponse(
