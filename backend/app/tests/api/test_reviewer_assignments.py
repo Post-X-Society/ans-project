@@ -396,10 +396,11 @@ class TestAssignReviewers:
 
         # Verify in database that assigned_by_id is set correctly
         from sqlalchemy import select
+
         result = await db_session.execute(
             select(SubmissionReviewer).where(
                 SubmissionReviewer.submission_id == test_submission.id,
-                SubmissionReviewer.reviewer_id == reviewer.id
+                SubmissionReviewer.reviewer_id == reviewer.id,
             )
         )
         assignment = result.scalar_one_or_none()
@@ -509,10 +510,11 @@ class TestRemoveReviewer:
 
         # Verify assignment is removed from database
         from sqlalchemy import select
+
         result = await db_session.execute(
             select(SubmissionReviewer).where(
                 SubmissionReviewer.submission_id == test_submission.id,
-                SubmissionReviewer.reviewer_id == reviewer.id
+                SubmissionReviewer.reviewer_id == reviewer.id,
             )
         )
         assignment_check = result.scalar_one_or_none()

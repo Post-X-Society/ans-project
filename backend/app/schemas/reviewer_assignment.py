@@ -17,7 +17,9 @@ class ReviewerAssignmentBase(BaseModel):
 class ReviewerAssignmentCreate(BaseModel):
     """Schema for assigning reviewers to a submission"""
 
-    reviewer_ids: list[UUID] = Field(..., min_length=1, description="List of reviewer user IDs to assign")
+    reviewer_ids: list[UUID] = Field(
+        ..., min_length=1, description="List of reviewer user IDs to assign"
+    )
 
 
 class ReviewerInfo(BaseModel):

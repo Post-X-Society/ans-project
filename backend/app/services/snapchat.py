@@ -137,7 +137,9 @@ class SnapchatService:
 
         # Get creator info
         creator = video_metadata.get("creator", {})
-        creator_info = creator.get("personCreator", {}) if creator.get("$case") == "personCreator" else {}
+        creator_info = (
+            creator.get("personCreator", {}) if creator.get("$case") == "personCreator" else {}
+        )
 
         # Get snap list (should have one item for Spotlight)
         snap_list = story.get("snapList", [])
@@ -148,18 +150,46 @@ class SnapchatService:
             "spotlight_id": story.get("storyId", {}).get("value", ""),
             "video_url": snap_urls.get("mediaUrl", ""),
             "thumbnail_url": story.get("thumbnailUrl", {}).get("value", ""),
-            "duration_ms": int(video_metadata.get("durationMs", 0)) if video_metadata.get("durationMs") else None,
+            "duration_ms": (
+                int(video_metadata.get("durationMs", 0))
+                if video_metadata.get("durationMs")
+                else None
+            ),
             "width": video_metadata.get("width"),
             "height": video_metadata.get("height"),
             "creator_username": creator_info.get("username"),
             "creator_name": creator_info.get("name"),
             "creator_url": creator_info.get("url"),
-            "view_count": int(engagement_stats.get("viewCount", 0)) if engagement_stats.get("viewCount") else None,
-            "share_count": int(engagement_stats.get("shareCount", 0)) if engagement_stats.get("shareCount") else None,
-            "comment_count": int(engagement_stats.get("commentCount", 0)) if engagement_stats.get("commentCount") else None,
-            "boost_count": int(engagement_stats.get("boostCount", 0)) if engagement_stats.get("boostCount") else None,
-            "recommend_count": int(engagement_stats.get("recommendCount", 0)) if engagement_stats.get("recommendCount") else None,
-            "upload_timestamp": int(snap.get("timestampInSec", {}).get("value", 0)) if snap.get("timestampInSec") else None,
+            "view_count": (
+                int(engagement_stats.get("viewCount", 0))
+                if engagement_stats.get("viewCount")
+                else None
+            ),
+            "share_count": (
+                int(engagement_stats.get("shareCount", 0))
+                if engagement_stats.get("shareCount")
+                else None
+            ),
+            "comment_count": (
+                int(engagement_stats.get("commentCount", 0))
+                if engagement_stats.get("commentCount")
+                else None
+            ),
+            "boost_count": (
+                int(engagement_stats.get("boostCount", 0))
+                if engagement_stats.get("boostCount")
+                else None
+            ),
+            "recommend_count": (
+                int(engagement_stats.get("recommendCount", 0))
+                if engagement_stats.get("recommendCount")
+                else None
+            ),
+            "upload_timestamp": (
+                int(snap.get("timestampInSec", {}).get("value", 0))
+                if snap.get("timestampInSec")
+                else None
+            ),
         }
 
 

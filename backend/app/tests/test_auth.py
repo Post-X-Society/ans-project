@@ -328,8 +328,7 @@ class TestGetCurrentUser:
 
         # Get current user profile
         response = client.get(
-            "/api/v1/auth/me",
-            headers={"Authorization": f"Bearer {access_token}"}
+            "/api/v1/auth/me", headers={"Authorization": f"Bearer {access_token}"}
         )
 
         assert response.status_code == 200
@@ -349,7 +348,6 @@ class TestGetCurrentUser:
     def test_get_current_user_invalid_token(self, client: TestClient) -> None:
         """Test that /auth/me rejects invalid tokens"""
         response = client.get(
-            "/api/v1/auth/me",
-            headers={"Authorization": "Bearer invalid.token.here"}
+            "/api/v1/auth/me", headers={"Authorization": "Bearer invalid.token.here"}
         )
         assert response.status_code == 401

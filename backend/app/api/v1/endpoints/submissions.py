@@ -161,7 +161,9 @@ async def create_spotlight_submission(
     Returns the created Spotlight content with all metadata
     """
     # Fetch Spotlight data from API
-    spotlight_data = await snapchat_service.fetch_spotlight_data(spotlight_submission.spotlight_link)
+    spotlight_data = await snapchat_service.fetch_spotlight_data(
+        spotlight_submission.spotlight_link
+    )
 
     # Parse metadata
     parsed_metadata = snapchat_service.parse_spotlight_metadata(spotlight_data)

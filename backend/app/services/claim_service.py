@@ -75,9 +75,7 @@ async def get_claim(db: AsyncSession, claim_id: UUID) -> Optional[Claim]:
     return result.scalar_one_or_none()
 
 
-async def link_claim_to_submission(
-    db: AsyncSession, claim_id: UUID, submission_id: UUID
-) -> None:
+async def link_claim_to_submission(db: AsyncSession, claim_id: UUID, submission_id: UUID) -> None:
     """
     Link a claim to a submission via the junction table.
 

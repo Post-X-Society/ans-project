@@ -71,9 +71,7 @@ async def create_submission(
     from sqlalchemy import insert
 
     if claims:
-        values = [
-            {"submission_id": submission.id, "claim_id": claim.id} for claim in claims
-        ]
+        values = [{"submission_id": submission.id, "claim_id": claim.id} for claim in claims]
         await db.execute(insert(submission_claims).values(values))
 
     await db.commit()

@@ -30,7 +30,12 @@ def _user_has_permission(user: User, action: str) -> bool:
         return user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN]
     # Admins, reviewers, and the submission owner can view reviewers
     elif action == "view":
-        return user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.REVIEWER, UserRole.SUBMITTER]
+        return user.role in [
+            UserRole.ADMIN,
+            UserRole.SUPER_ADMIN,
+            UserRole.REVIEWER,
+            UserRole.SUBMITTER,
+        ]
     return False
 
 
@@ -44,8 +49,7 @@ async def _get_submission_or_404(db: AsyncSession, submission_id: UUID) -> Submi
     submission = result.scalar_one_or_none()
     if not submission:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Submission {submission_id} not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Submission {submission_id} not found"
         )
     return submission
 
@@ -56,8 +60,7 @@ async def _get_user_or_404(db: AsyncSession, user_id: UUID) -> User:
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User {user_id} not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"User {user_id} not found"
         )
     return user
 
@@ -74,7 +77,7 @@ def _format_reviewer_info(assignment: SubmissionReviewer) -> ReviewerInfo:
         email=assignment.reviewer.email,
         role=assignment.reviewer.role.value,  # Convert enum to string
         full_name=full_name,
-        assigned_at=assignment.created_at
+        assigned_at=assignment.created_at,
     )
 
 
@@ -92,7 +95,7 @@ async def assign_reviewers(
     if not _user_has_permission(current_user, "assign"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to assign reviewers"
+            detail="You do not have permission to assign reviewers",
         )
 
     # Get submission
@@ -100,8 +103,9 @@ async def assign_reviewers(
 
     # Get existing reviewer IDs from database (fresh query)
     result = await db.execute(
-        select(SubmissionReviewer.reviewer_id)
-        .where(SubmissionReviewer.submission_id == submission_id)
+        select(SubmissionReviewer.reviewer_id).where(
+            SubmissionReviewer.submission_id == submission_id
+        )
     )
     existing_reviewer_ids = {row[0] for row in result.all()}
 
@@ -112,7 +116,7 @@ async def assign_reviewers(
         if reviewer_id in existing_reviewer_ids:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
-                detail=f"Reviewer {reviewer_id} is already assigned to this submission"
+                detail=f"Reviewer {reviewer_id} is already assigned to this submission",
             )
 
         # Get user and validate
@@ -122,14 +126,13 @@ async def assign_reviewers(
         if not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"User is inactive and cannot be assigned as reviewer"
+                detail=f"User is inactive and cannot be assigned as reviewer",
             )
 
         # Check if user has reviewer role (ONLY reviewer, not admin/super_admin)
         if user.role != UserRole.REVIEWER:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"User does not have reviewer role"
+                status_code=status.HTTP_400_BAD_REQUEST, detail=f"User does not have reviewer role"
             )
 
         reviewers_to_assign.append(user)
@@ -137,9 +140,7 @@ async def assign_reviewers(
     # Create assignments
     for reviewer in reviewers_to_assign:
         assignment = SubmissionReviewer(
-            submission_id=submission_id,
-            reviewer_id=reviewer.id,
-            assigned_by_id=current_user.id
+            submission_id=submission_id, reviewer_id=reviewer.id, assigned_by_id=current_user.id
         )
         db.add(assignment)
 
@@ -150,17 +151,18 @@ async def assign_reviewers(
     result = await db.execute(
         select(Submission)
         .where(Submission.id == submission_id)
-        .options(selectinload(Submission.reviewer_assignments).selectinload(SubmissionReviewer.reviewer))
+        .options(
+            selectinload(Submission.reviewer_assignments).selectinload(SubmissionReviewer.reviewer)
+        )
     )
     submission = result.scalar_one()
 
     # Format response
-    reviewers = [_format_reviewer_info(assignment) for assignment in submission.reviewer_assignments]
+    reviewers = [
+        _format_reviewer_info(assignment) for assignment in submission.reviewer_assignments
+    ]
 
-    return ReviewerAssignmentResponse(
-        id=submission.id,
-        reviewers=reviewers
-    )
+    return ReviewerAssignmentResponse(id=submission.id, reviewers=reviewers)
 
 
 @router.delete("/{submission_id}/reviewers/{reviewer_id}", response_model=ReviewerRemoveResponse)
@@ -177,7 +179,7 @@ async def remove_reviewer(
     if not _user_has_permission(current_user, "remove"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to remove reviewers"
+            detail="You do not have permission to remove reviewers",
         )
 
     # Get submission
@@ -188,7 +190,7 @@ async def remove_reviewer(
         select(SubmissionReviewer)
         .where(
             SubmissionReviewer.submission_id == submission_id,
-            SubmissionReviewer.reviewer_id == reviewer_id
+            SubmissionReviewer.reviewer_id == reviewer_id,
         )
         .options(selectinload(SubmissionReviewer.reviewer))
     )
@@ -196,8 +198,7 @@ async def remove_reviewer(
 
     if not assignment:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Reviewer assignment not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Reviewer assignment not found"
         )
 
     # Delete the assignment
@@ -211,13 +212,15 @@ async def remove_reviewer(
         .options(selectinload(SubmissionReviewer.reviewer))
     )
     remaining_assignments = result.scalars().all()
-    remaining_reviewers = [_format_reviewer_info(assignment) for assignment in remaining_assignments]
+    remaining_reviewers = [
+        _format_reviewer_info(assignment) for assignment in remaining_assignments
+    ]
 
     return ReviewerRemoveResponse(
         message="Reviewer removed successfully",
         submission_id=submission_id,
         reviewer_id=reviewer_id,
-        remaining_reviewers=remaining_reviewers
+        remaining_reviewers=remaining_reviewers,
     )
 
 
@@ -245,10 +248,9 @@ async def get_reviewers(
     is_assigned_reviewer = False
     if current_user.role == UserRole.REVIEWER:
         result = await db.execute(
-            select(SubmissionReviewer)
-            .where(
+            select(SubmissionReviewer).where(
                 SubmissionReviewer.submission_id == submission_id,
-                SubmissionReviewer.reviewer_id == current_user.id
+                SubmissionReviewer.reviewer_id == current_user.id,
             )
         )
         is_assigned_reviewer = result.scalar_one_or_none() is not None
@@ -257,7 +259,7 @@ async def get_reviewers(
     if not (is_admin or is_owner or is_assigned_reviewer):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to view reviewer assignments"
+            detail="You do not have permission to view reviewer assignments",
         )
 
     # Get all assignments with reviewer info
