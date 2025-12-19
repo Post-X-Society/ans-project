@@ -4,13 +4,11 @@ Snapchat Spotlight API service
 
 import os
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
 import aiofiles
 import httpx
 from fastapi import HTTPException, status
-
-from app.core.config import settings
 
 
 class SnapchatService:
