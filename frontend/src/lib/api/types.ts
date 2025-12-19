@@ -1,13 +1,30 @@
 // API Types matching backend schemas
 
+export interface UserBasic {
+	id: string;
+	email: string;
+}
+
+export interface SpotlightContentBasic {
+	spotlight_id: string;
+	thumbnail_url: string;
+	creator_name?: string;
+	creator_username?: string;
+	view_count?: number;
+	duration_ms?: number;
+}
+
 export interface Submission {
 	id: string;
 	content: string;
-	submission_type: 'text' | 'image' | 'url';
+	submission_type: 'text' | 'image' | 'url' | 'spotlight';
 	status: 'pending' | 'processing' | 'completed';
 	user_id: string | null;
 	created_at: string;
 	updated_at: string;
+	user?: UserBasic;
+	spotlight_content?: SpotlightContentBasic;
+	reviewers: UserBasic[];
 }
 
 export interface SubmissionCreate {

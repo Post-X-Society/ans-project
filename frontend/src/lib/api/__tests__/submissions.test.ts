@@ -25,7 +25,8 @@ describe('Submissions API', () => {
 				status: 'pending',
 				user_id: null,
 				created_at: '2025-01-01T00:00:00Z',
-				updated_at: '2025-01-01T00:00:00Z'
+				updated_at: '2025-01-01T00:00:00Z',
+				reviewers: []
 			};
 
 			const mockResponse = { data: mockSubmission };
@@ -91,7 +92,8 @@ describe('Submissions API', () => {
 				status: 'pending',
 				user_id: null,
 				created_at: '2025-01-01T00:00:00Z',
-				updated_at: '2025-01-01T00:00:00Z'
+				updated_at: '2025-01-01T00:00:00Z',
+				reviewers: []
 			};
 
 			vi.mocked(apiClient.get).mockResolvedValue({ data: mockSubmission });

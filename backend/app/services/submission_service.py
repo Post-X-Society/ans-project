@@ -116,6 +116,7 @@ async def list_submissions(
     page_size: int = 50,
     user_id: Optional[UUID] = None,
     user_role: Optional[UserRole] = None,
+    status: Optional[str] = None,
 ) -> SubmissionListResponse:
     """
     List submissions with pagination and role-based filtering
@@ -126,6 +127,7 @@ async def list_submissions(
         page_size: Number of items per page
         user_id: Optional user ID for filtering (submitters see only their own)
         user_role: Optional user role for access control
+        status: Optional status filter
 
     Returns:
         Paginated list of submissions
@@ -142,6 +144,10 @@ async def list_submissions(
         stmt = stmt.where(Submission.user_id == user_id)
     # REVIEWER, ADMIN, SUPER_ADMIN see all submissions (no filter)
 
+    # Apply status filter if provided
+    if status:
+        stmt = stmt.where(Submission.status == status)
+
     # Get total count with filters
     count_stmt = select(func.count()).select_from(stmt.subquery())
     count_result = await db.execute(count_stmt)
@@ -155,8 +161,19 @@ async def list_submissions(
     # Calculate total pages
     total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
+    # Build response items with reviewer information
+    items = []
+    for submission in submissions:
+        # Extract reviewers from reviewer_assignments
+        reviewers = [assignment.reviewer for assignment in submission.reviewer_assignments]
+
+        # Create response with all data
+        submission_dict = SubmissionResponse.model_validate(submission).model_dump()
+        submission_dict['reviewers'] = reviewers
+        items.append(SubmissionResponse(**submission_dict))
+
     return SubmissionListResponse(
-        items=[SubmissionResponse.model_validate(s) for s in submissions],
+        items=items,
         total=total,
         page=page,
         page_size=page_size,

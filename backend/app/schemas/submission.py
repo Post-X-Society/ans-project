@@ -11,6 +11,28 @@ from pydantic import BaseModel, Field, field_validator
 from app.schemas.claim import ClaimResponse
 
 
+class UserBasic(BaseModel):
+    """Basic user information for embedding in responses"""
+
+    id: UUID
+    email: str
+
+    model_config = {"from_attributes": True}
+
+
+class SpotlightContentBasic(BaseModel):
+    """Basic spotlight content information for embedding in responses"""
+
+    spotlight_id: str
+    thumbnail_url: str
+    creator_name: Optional[str] = None
+    creator_username: Optional[str] = None
+    view_count: Optional[int] = None
+    duration_ms: Optional[int] = None
+
+    model_config = {"from_attributes": True}
+
+
 class SubmissionCreate(BaseModel):
     """Schema for creating a new submission"""
 
@@ -36,6 +58,9 @@ class SubmissionResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
+    user: Optional[UserBasic] = None
+    spotlight_content: Optional[SpotlightContentBasic] = None
+    reviewers: List[UserBasic] = Field(default_factory=list)
 
     model_config = {"from_attributes": True}  # Allow ORM models
 

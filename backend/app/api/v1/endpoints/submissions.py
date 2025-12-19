@@ -2,6 +2,7 @@
 Submissions API endpoints
 """
 
+from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -111,6 +112,7 @@ async def get_submission(
 async def list_submissions(
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(50, ge=1, le=100, description="Number of items per page (max 100)"),
+    status: Optional[str] = Query(None, description="Filter by status (pending, processing, completed)"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> SubmissionListResponse:
@@ -119,6 +121,7 @@ async def list_submissions(
 
     - **page**: Page number (starts at 1)
     - **page_size**: Number of items per page (1-100, default 50)
+    - **status**: Optional status filter (pending, processing, completed)
 
     Role-based access:
     - SUBMITTER: Only sees their own submissions
@@ -132,6 +135,7 @@ async def list_submissions(
         page_size=page_size,
         user_id=current_user.id,
         user_role=current_user.role,
+        status=status,
     )
 
 
