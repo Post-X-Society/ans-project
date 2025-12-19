@@ -1,13 +1,18 @@
 <script lang="ts">
 	import type { Submission } from '$lib/api/types';
-	import { currentUser } from '$lib/stores/auth';
+	import { currentUser, isAdmin } from '$lib/stores/auth';
 	import StatusBadge from './StatusBadge.svelte';
+	import AssignReviewersModal from './AssignReviewersModal.svelte';
 
 	interface Props {
 		submission: Submission;
+		onUpdate?: () => void;
 	}
 
-	let { submission }: Props = $props();
+	let { submission, onUpdate }: Props = $props();
+
+	// Modal state
+	let isAssignModalOpen = $state(false);
 
 	/**
 	 * Format date to readable string
@@ -81,6 +86,23 @@
 	 */
 	function isCurrentUserReviewer(reviewerId: string): boolean {
 		return $currentUser?.id === reviewerId;
+	}
+
+	/**
+	 * Open assign reviewers modal
+	 */
+	function openAssignModal(e: Event) {
+		e.stopPropagation(); // Prevent card click
+		isAssignModalOpen = true;
+	}
+
+	/**
+	 * Handle modal update - refresh parent data
+	 */
+	function handleModalUpdate() {
+		if (onUpdate) {
+			onUpdate();
+		}
 	}
 </script>
 
@@ -198,9 +220,20 @@
 		{/if}
 
 		<!-- Assigned Reviewers -->
-		{#if submission.reviewers && submission.reviewers.length > 0}
-			<div class="mb-3">
-				<div class="text-xs text-gray-500 mb-1">Assigned Reviewers:</div>
+		<div class="mb-3">
+			<div class="flex items-center justify-between mb-1">
+				<div class="text-xs text-gray-500">Assigned Reviewers:</div>
+				{#if $isAdmin}
+					<button
+						onclick={openAssignModal}
+						class="text-xs text-primary-600 hover:text-primary-700 font-medium"
+					>
+						Manage
+					</button>
+				{/if}
+			</div>
+
+			{#if submission.reviewers && submission.reviewers.length > 0}
 				<div class="flex flex-wrap gap-1">
 					{#each submission.reviewers.slice(0, 3) as reviewer}
 						<span
@@ -219,8 +252,10 @@
 						</span>
 					{/if}
 				</div>
-			</div>
-		{/if}
+			{:else}
+				<p class="text-xs text-gray-400 italic">No reviewers assigned</p>
+			{/if}
+		</div>
 
 		<!-- Footer: Date -->
 		<div class="flex items-center text-sm text-gray-500">
@@ -242,3 +277,11 @@
 		</div>
 	</div>
 </div>
+
+<!-- Assign Reviewers Modal -->
+<AssignReviewersModal
+	{submission}
+	isOpen={isAssignModalOpen}
+	onClose={() => (isAssignModalOpen = false)}
+	onUpdate={handleModalUpdate}
+/>

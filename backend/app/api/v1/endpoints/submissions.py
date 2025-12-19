@@ -216,3 +216,182 @@ async def create_spotlight_submission(
     await db.refresh(spotlight_content)
 
     return SpotlightContentResponse.model_validate(spotlight_content)
+
+
+@router.post(
+    "/{submission_id}/reviewers/{reviewer_id}",
+    status_code=status.HTTP_201_CREATED,
+    summary="Assign a reviewer to a submission",
+    description="Assign a reviewer to review a submission (Admin/Super Admin only)",
+)
+async def assign_reviewer_to_submission(
+    submission_id: UUID,
+    reviewer_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """
+    Assign a reviewer to a submission (requires Admin or Super Admin role).
+
+    - **submission_id**: UUID of the submission
+    - **reviewer_id**: UUID of the user to assign as reviewer
+
+    Returns success message with assignment details
+    """
+    # Check permission: only admins and super admins can assign reviewers
+    if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can assign reviewers",
+        )
+
+    # Verify submission exists
+    submission = await submission_service.get_submission(db, submission_id)
+    if not submission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Submission {submission_id} not found",
+        )
+
+    # Verify reviewer exists and has appropriate role
+    from sqlalchemy import select
+
+    reviewer_stmt = select(User).where(User.id == reviewer_id)
+    reviewer_result = await db.execute(reviewer_stmt)
+    reviewer = reviewer_result.scalar_one_or_none()
+
+    if not reviewer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {reviewer_id} not found",
+        )
+
+    if reviewer.role not in [UserRole.REVIEWER, UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only users with reviewer role or higher can be assigned",
+        )
+
+    # Assign reviewer
+    try:
+        await submission_service.assign_reviewer(
+            db=db,
+            submission_id=submission_id,
+            reviewer_id=reviewer_id,
+            assigned_by_id=current_user.id,
+        )
+    except Exception as e:
+        # Handle duplicate assignment (IntegrityError from unique constraint)
+        if "uq_submission_reviewer" in str(e):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Reviewer is already assigned to this submission",
+            )
+        raise
+
+    return {
+        "message": "Reviewer assigned successfully",
+        "submission_id": str(submission_id),
+        "reviewer_id": str(reviewer_id),
+    }
+
+
+@router.delete(
+    "/{submission_id}/reviewers/{reviewer_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Remove a reviewer from a submission",
+    description="Remove a reviewer assignment from a submission (Admin/Super Admin only)",
+)
+async def remove_reviewer_from_submission(
+    submission_id: UUID,
+    reviewer_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """
+    Remove a reviewer from a submission (requires Admin or Super Admin role).
+
+    - **submission_id**: UUID of the submission
+    - **reviewer_id**: UUID of the reviewer to remove
+
+    Returns success message
+    """
+    # Check permission: only admins and super admins can remove reviewers
+    if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can remove reviewers",
+        )
+
+    # Verify submission exists
+    submission = await submission_service.get_submission(db, submission_id)
+    if not submission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Submission {submission_id} not found",
+        )
+
+    # Remove reviewer
+    removed = await submission_service.remove_reviewer(
+        db=db, submission_id=submission_id, reviewer_id=reviewer_id
+    )
+
+    if not removed:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Reviewer assignment not found",
+        )
+
+    return {
+        "message": "Reviewer removed successfully",
+        "submission_id": str(submission_id),
+        "reviewer_id": str(reviewer_id),
+    }
+
+
+@router.get(
+    "/{submission_id}/reviewers",
+    response_model=list[User],
+    summary="Get reviewers assigned to a submission",
+    description="Get all reviewers assigned to a specific submission",
+)
+async def get_submission_reviewers(
+    submission_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> list[User]:
+    """
+    Get all reviewers assigned to a submission (requires authentication).
+
+    - **submission_id**: UUID of the submission
+
+    Returns list of User objects representing assigned reviewers
+
+    Access control:
+    - Submission owner can view their submission's reviewers
+    - REVIEWER, ADMIN, SUPER_ADMIN can view any submission's reviewers
+    """
+    # Verify submission exists
+    submission = await submission_service.get_submission(db, submission_id)
+    if not submission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Submission {submission_id} not found",
+        )
+
+    # Check permission: owner OR reviewer/admin/super_admin
+    is_owner = submission.user_id == current_user.id
+    is_privileged = current_user.role in [
+        UserRole.REVIEWER,
+        UserRole.ADMIN,
+        UserRole.SUPER_ADMIN,
+    ]
+
+    if not (is_owner or is_privileged):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have permission to view this submission's reviewers",
+        )
+
+    reviewers = await submission_service.get_submission_reviewers(db, submission_id)
+    return reviewers
