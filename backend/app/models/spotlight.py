@@ -5,9 +5,8 @@ Spotlight model for Snapchat Spotlight content metadata
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID
 
-from sqlalchemy import BigInteger, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, BigInteger, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy import JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import TimeStampedModel

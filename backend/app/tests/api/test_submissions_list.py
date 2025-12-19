@@ -5,8 +5,6 @@ These tests are written BEFORE implementation and should FAIL initially (RED pha
 Once implementation is complete, these tests should pass (GREEN phase).
 """
 
-from uuid import UUID
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +13,6 @@ from app.core.security import create_access_token
 from app.models.submission import Submission
 from app.models.submission_reviewer import SubmissionReviewer
 from app.models.user import User, UserRole
-
 
 # ============================================================================
 # Fixtures for test users and submissions
