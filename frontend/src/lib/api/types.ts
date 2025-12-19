@@ -57,7 +57,7 @@ export interface ApiError {
 }
 
 // Auth Types
-export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'REVIEWER' | 'SUBMITTER';
+export type UserRole = 'super_admin' | 'admin' | 'reviewer' | 'submitter';
 
 export interface User {
 	id: string;
