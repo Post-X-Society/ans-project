@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
-from app.models.submission import Submission
 from app.models.spotlight import SpotlightContent
+from app.models.submission import Submission
 from app.models.user import User, UserRole
 from app.schemas.claim import ClaimResponse
 from app.schemas.spotlight import SpotlightContentResponse, SpotlightSubmissionCreate

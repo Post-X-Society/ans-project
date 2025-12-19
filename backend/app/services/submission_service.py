@@ -67,8 +67,9 @@ async def create_submission(
         claims.append(claim)
 
     # Link claims to submission using association table insert
-    from app.models.base import submission_claims
     from sqlalchemy import insert
+
+    from app.models.base import submission_claims
 
     if claims:
         values = [{"submission_id": submission.id, "claim_id": claim.id} for claim in claims]
@@ -79,7 +80,6 @@ async def create_submission(
     # Manually refresh with claims loaded
     await db.refresh(submission)
     # Load claims eagerly
-    from sqlalchemy import select
     from app.models.claim import Claim
 
     stmt = (
