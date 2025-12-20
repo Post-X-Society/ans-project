@@ -32,10 +32,14 @@ def upgrade() -> None:
         op.execute("ALTER TABLE users ALTER COLUMN role TYPE userrole USING role::userrole")
 
         # Add is_active column
-        op.add_column("users", sa.Column("is_active", sa.Boolean(), nullable=False, server_default="true"))
+        op.add_column(
+            "users", sa.Column("is_active", sa.Boolean(), nullable=False, server_default="true")
+        )
     else:
         # For SQLite, role is already String, just add is_active
-        op.add_column("users", sa.Column("is_active", sa.Boolean(), nullable=False, server_default="true"))
+        op.add_column(
+            "users", sa.Column("is_active", sa.Boolean(), nullable=False, server_default="true")
+        )
 
 
 def downgrade() -> None:

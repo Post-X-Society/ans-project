@@ -41,9 +41,7 @@ class TestCreateSubmission:
         assert "extracted_claims_count" in data
 
     @pytest.mark.asyncio
-    async def test_create_submission_content_too_short(
-        self, client: TestClient, auth_user
-    ) -> None:
+    async def test_create_submission_content_too_short(self, client: TestClient, auth_user) -> None:
         """Test creating submission with content too short"""
         user, token = auth_user
         payload = {"content": "Short", "type": "text"}  # Less than 10 chars
@@ -216,8 +214,7 @@ class TestListSubmissions:
 
         # Get first page (10 items)
         response = client.get(
-            "/api/v1/submissions?page=1&page_size=10",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/v1/submissions?page=1&page_size=10", headers={"Authorization": f"Bearer {token}"}
         )
 
         assert response.status_code == 200
@@ -230,8 +227,7 @@ class TestListSubmissions:
 
         # Get second page
         response = client.get(
-            "/api/v1/submissions?page=2&page_size=10",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/v1/submissions?page=2&page_size=10", headers={"Authorization": f"Bearer {token}"}
         )
 
         assert response.status_code == 200
@@ -243,8 +239,7 @@ class TestListSubmissions:
         """Test listing with invalid page parameter"""
         user, token = auth_user
         response = client.get(
-            "/api/v1/submissions?page=0",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/v1/submissions?page=0", headers={"Authorization": f"Bearer {token}"}
         )
 
         assert response.status_code == 422
@@ -254,7 +249,7 @@ class TestListSubmissions:
         user, token = auth_user
         response = client.get(
             "/api/v1/submissions?page_size=101",  # Max is 100
-            headers={"Authorization": f"Bearer {token}"}
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         assert response.status_code == 422
@@ -482,10 +477,7 @@ class TestSubmissionWithAuthentication:
 
         # Submitter 1 sees only their own 3 submissions
         token1 = create_access_token(data={"sub": str(submitter1.id)})
-        response1 = client.get(
-            "/api/v1/submissions",
-            headers={"Authorization": f"Bearer {token1}"}
-        )
+        response1 = client.get("/api/v1/submissions", headers={"Authorization": f"Bearer {token1}"})
         assert response1.status_code == 200
         data1 = response1.json()
         assert data1["total"] == 3
@@ -493,10 +485,7 @@ class TestSubmissionWithAuthentication:
 
         # Submitter 2 sees only their own 3 submissions
         token2 = create_access_token(data={"sub": str(submitter2.id)})
-        response2 = client.get(
-            "/api/v1/submissions",
-            headers={"Authorization": f"Bearer {token2}"}
-        )
+        response2 = client.get("/api/v1/submissions", headers={"Authorization": f"Bearer {token2}"})
         assert response2.status_code == 200
         data2 = response2.json()
         assert data2["total"] == 3
@@ -505,8 +494,7 @@ class TestSubmissionWithAuthentication:
         # Admin sees all 6 submissions
         admin_token = create_access_token(data={"sub": str(admin.id)})
         admin_response = client.get(
-            "/api/v1/submissions",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            "/api/v1/submissions", headers={"Authorization": f"Bearer {admin_token}"}
         )
         assert admin_response.status_code == 200
         admin_data = admin_response.json()
