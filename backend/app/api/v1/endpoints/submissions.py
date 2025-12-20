@@ -6,12 +6,14 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.spotlight import SpotlightContent
 from app.models.submission import Submission
+from app.models.submission_reviewer import SubmissionReviewer
 from app.models.user import User, UserRole
 from app.schemas.claim import ClaimResponse
 from app.schemas.spotlight import SpotlightContentResponse, SpotlightSubmissionCreate
@@ -21,6 +23,7 @@ from app.schemas.submission import (
     SubmissionResponse,
     SubmissionWithClaimsResponse,
 )
+from app.schemas.user import UserResponse
 from app.services import submission_service
 from app.services.snapchat import snapchat_service
 
@@ -237,7 +240,7 @@ async def assign_reviewer_to_submission(
     reviewer_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> dict:
+) -> dict[str, str]:
     """
     Assign a reviewer to a submission (requires Admin or Super Admin role).
 
@@ -262,8 +265,6 @@ async def assign_reviewer_to_submission(
         )
 
     # Verify reviewer exists and has appropriate role
-    from sqlalchemy import select
-
     reviewer_stmt = select(User).where(User.id == reviewer_id)
     reviewer_result = await db.execute(reviewer_stmt)
     reviewer = reviewer_result.scalar_one_or_none()
@@ -315,7 +316,7 @@ async def remove_reviewer_from_submission(
     reviewer_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> dict:
+) -> dict[str, str]:
     """
     Remove a reviewer from a submission (requires Admin or Super Admin role).
 
@@ -328,7 +329,7 @@ async def remove_reviewer_from_submission(
     if current_user.role not in [UserRole.ADMIN, UserRole.SUPER_ADMIN]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only admins can remove reviewers",
+            detail="You don't have permission to remove reviewers",
         )
 
     # Verify submission exists
@@ -359,7 +360,7 @@ async def remove_reviewer_from_submission(
 
 @router.get(
     "/{submission_id}/reviewers",
-    response_model=list[User],
+    response_model=list[UserResponse],
     summary="Get reviewers assigned to a submission",
     description="Get all reviewers assigned to a specific submission",
 )
@@ -367,7 +368,7 @@ async def get_submission_reviewers(
     submission_id: UUID,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> list[User]:
+) -> list[UserResponse]:
     """
     Get all reviewers assigned to a submission (requires authentication).
 
@@ -377,7 +378,8 @@ async def get_submission_reviewers(
 
     Access control:
     - Submission owner can view their submission's reviewers
-    - REVIEWER, ADMIN, SUPER_ADMIN can view any submission's reviewers
+    - Assigned reviewers can view the reviewer list
+    - ADMIN, SUPER_ADMIN can view any submission's reviewers
     """
     # Verify submission exists
     submission = await submission_service.get_submission(db, submission_id)
@@ -387,19 +389,26 @@ async def get_submission_reviewers(
             detail=f"Submission {submission_id} not found",
         )
 
-    # Check permission: owner OR reviewer/admin/super_admin
+    # Check permission: owner OR assigned reviewer OR admin/super_admin
     is_owner = submission.user_id == current_user.id
-    is_privileged = current_user.role in [
-        UserRole.REVIEWER,
-        UserRole.ADMIN,
-        UserRole.SUPER_ADMIN,
-    ]
+    is_admin = current_user.role in [UserRole.ADMIN, UserRole.SUPER_ADMIN]
 
-    if not (is_owner or is_privileged):
+    # Check if current user is an assigned reviewer
+    is_assigned_reviewer = False
+    if current_user.role == UserRole.REVIEWER:
+        stmt = select(SubmissionReviewer).where(
+            SubmissionReviewer.submission_id == submission_id,
+            SubmissionReviewer.reviewer_id == current_user.id,
+        )
+        result = await db.execute(stmt)
+        assignment = result.scalar_one_or_none()
+        is_assigned_reviewer = assignment is not None
+
+    if not (is_owner or is_assigned_reviewer or is_admin):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You don't have permission to view this submission's reviewers",
         )
 
     reviewers = await submission_service.get_submission_reviewers(db, submission_id)
-    return reviewers
+    return [UserResponse.model_validate(reviewer) for reviewer in reviewers]
