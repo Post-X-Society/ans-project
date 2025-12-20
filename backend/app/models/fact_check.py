@@ -3,11 +3,12 @@ FactCheck model for verified fact-check results
 """
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID
 
 from sqlalchemy import Float, ForeignKey, String, Text, TypeDecorator
 from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.engine import Dialect
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import TimeStampedModel
@@ -16,30 +17,31 @@ if TYPE_CHECKING:
     from app.models.claim import Claim
 
 
-class StringList(TypeDecorator):
+class StringList(TypeDecorator[list[str]]):
     """Custom type that stores list of strings as JSON in SQLite, ARRAY in PostgreSQL"""
 
     impl = Text
     cache_ok = True
 
-    def load_dialect_impl(self, dialect):
+    def load_dialect_impl(self, dialect: Dialect) -> Any:
         if dialect.name == "postgresql":
             return dialect.type_descriptor(ARRAY(String))
         else:
             return dialect.type_descriptor(Text())
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(self, value: Optional[list[str]], dialect: Dialect) -> Optional[str]:
         if dialect.name == "postgresql":
-            return value
+            return value  # type: ignore[return-value]
         elif value is not None:
             return json.dumps(value)
         return None
 
-    def process_result_value(self, value, dialect):
+    def process_result_value(self, value: Optional[str], dialect: Dialect) -> Optional[list[str]]:
         if dialect.name == "postgresql":
-            return value
+            return value  # type: ignore[return-value]
         elif value is not None:
-            return json.loads(value)
+            result: list[str] = json.loads(value)
+            return result
         return None
 
 

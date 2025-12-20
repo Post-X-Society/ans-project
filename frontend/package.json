@@ -9,9 +9,11 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "test:coverage": "vitest run",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "format:check": "echo 'Format check placeholder - prettier not configured yet'"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^3.2.5",

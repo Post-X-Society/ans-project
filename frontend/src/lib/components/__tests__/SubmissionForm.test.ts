@@ -4,12 +4,14 @@ import SubmissionFormTest from './SubmissionFormTest.svelte';
 
 // Mock the API
 vi.mock('$lib/api/submissions', () => ({
-	createSubmission: vi.fn().mockResolvedValue({
+	createSpotlightSubmission: vi.fn().mockResolvedValue({
 		id: '123',
-		content: 'Test',
-		submission_type: 'text',
+		spotlight_link: 'https://www.snapchat.com/spotlight/test',
+		creator_name: 'Test Creator',
+		creator_username: 'testuser',
+		view_count: 1000,
+		duration_ms: 30000,
 		status: 'pending',
-		user_id: null,
 		created_at: '2025-01-01',
 		updated_at: '2025-01-01'
 	})
@@ -20,78 +22,41 @@ describe('SubmissionForm', () => {
 		vi.clearAllMocks();
 	});
 
-	it('should render form with textarea and submit type selector', () => {
+	it('should render form with Spotlight link input and submit button', () => {
 		render(SubmissionFormTest);
 
-		expect(screen.getByLabelText(/claim.*content/i)).toBeInTheDocument();
-		expect(screen.getByLabelText(/submission type/i)).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
+		expect(screen.getByLabelText(/snapchat.*spotlight.*link/i)).toBeInTheDocument();
+		// Button shows "Please login to submit" when not authenticated
+		expect(screen.getByRole('button', { name: /please login to submit/i })).toBeInTheDocument();
 	});
 
-	it('should have text, image, and url options in type selector', () => {
+	it('should have URL input type for Spotlight link', () => {
 		render(SubmissionFormTest);
 
-		const select = screen.getByLabelText(/submission type/i) as HTMLSelectElement;
-		const options = Array.from(select.options).map((opt) => opt.value);
-
-		expect(options).toContain('text');
-		expect(options).toContain('image');
-		expect(options).toContain('url');
+		const input = screen.getByLabelText(/snapchat.*spotlight.*link/i);
+		expect(input).toHaveAttribute('type', 'url');
 	});
 
-	it('should show validation error for content less than 10 characters', async () => {
+	it('should disable form when not authenticated', () => {
 		render(SubmissionFormTest);
 
-		const textarea = screen.getByLabelText(/claim.*content/i);
-		const submitBtn = screen.getByRole('button', { name: /submit/i });
+		const input = screen.getByLabelText(/snapchat.*spotlight.*link/i);
+		const submitBtn = screen.getByRole('button', { name: /please login to submit/i });
 
-		await fireEvent.input(textarea, { target: { value: 'short' } });
-		await fireEvent.click(submitBtn);
-
-		await waitFor(() => {
-			expect(screen.getByText(/at least 10 characters/i)).toBeInTheDocument();
-		});
+		expect(input).toBeDisabled();
+		expect(submitBtn).toBeDisabled();
 	});
 
-	it('should show validation error for content more than 5000 characters', async () => {
+	it('should display help text about Spotlight link', () => {
 		render(SubmissionFormTest);
 
-		const textarea = screen.getByLabelText(/claim.*content/i);
-		const submitBtn = screen.getByRole('button', { name: /submit/i });
-
-		const longText = 'a'.repeat(5001);
-		await fireEvent.input(textarea, { target: { value: longText } });
-		await fireEvent.click(submitBtn);
-
-		await waitFor(() => {
-			expect(screen.getByText(/maximum.*5000 characters/i)).toBeInTheDocument();
-		});
+		expect(screen.getByText(/paste a snapchat spotlight link.*automatically fetched/i)).toBeInTheDocument();
 	});
 
-	it('should show validation error for empty content', async () => {
+	it('should show login prompt when not authenticated', () => {
 		render(SubmissionFormTest);
 
-		const submitBtn = screen.getByRole('button', { name: /submit/i });
-		await fireEvent.click(submitBtn);
-
-		await waitFor(() => {
-			expect(screen.getByText(/required|cannot be empty/i)).toBeInTheDocument();
-		});
-	});
-
-	it('should display character count', async () => {
-		render(SubmissionFormTest);
-
-		const textarea = screen.getByLabelText(/claim.*content/i);
-		await fireEvent.input(textarea, { target: { value: 'Test content' } });
-
-		expect(screen.getByText(/12.*5000/)).toBeInTheDocument();
-	});
-
-	it('should have text as default submission type', () => {
-		render(SubmissionFormTest);
-
-		const select = screen.getByLabelText(/submission type/i) as HTMLSelectElement;
-		expect(select.value).toBe('text');
+		expect(screen.getByText(/please login to submit/i)).toBeInTheDocument();
+		expect(screen.getByText(/you must be logged in.*spotlight content/i)).toBeInTheDocument();
 	});
 });

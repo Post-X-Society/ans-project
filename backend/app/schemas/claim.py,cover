@@ -1,0 +1,40 @@
+> """
+> Pydantic schemas for Claim API
+> """
+  
+> from datetime import datetime
+> from typing import Optional
+> from uuid import UUID
+  
+> from pydantic import BaseModel, Field
+  
+  
+> class ClaimCreate(BaseModel):
+>     """Schema for creating a new claim"""
+  
+>     content: str = Field(..., min_length=1, max_length=1000, description="Claim content")
+>     source: str = Field(..., min_length=1, max_length=255, description="Source of the claim")
+>     confidence: Optional[float] = Field(
+>         None, ge=0.0, le=1.0, description="Confidence score (0.0-1.0)"
+>     )
+  
+  
+> class ClaimResponse(BaseModel):
+>     """Schema for claim response"""
+  
+>     id: UUID
+>     content: str
+>     source: str
+>     created_at: datetime
+  
+>     model_config = {"from_attributes": True}
+  
+  
+> class ClaimExtractResponse(BaseModel):
+>     """Schema for extracted claim with confidence"""
+  
+>     claim_id: UUID
+>     content: str
+>     confidence: float = Field(..., ge=0.0, le=1.0)
+  
+>     model_config = {"from_attributes": True}

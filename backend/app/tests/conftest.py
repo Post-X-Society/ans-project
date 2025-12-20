@@ -3,7 +3,7 @@ Pytest configuration and shared fixtures for backend tests
 """
 
 import asyncio
-from typing import AsyncGenerator, Generator, Tuple
+from typing import Any, AsyncGenerator, Generator
 
 import pytest
 import pytest_asyncio
@@ -19,7 +19,7 @@ from app.models.user import User, UserRole
 
 
 @pytest.fixture(scope="session")
-def event_loop() -> Generator:
+def event_loop() -> Generator[Any, None, None]:
     """Create an instance of the default event loop for the test session."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
@@ -57,7 +57,7 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture
-def client(db_session: AsyncSession) -> TestClient:
+def client(db_session: AsyncSession) -> Generator[TestClient, None, None]:
     """
     Provide a test client with database session override.
     """
@@ -75,7 +75,7 @@ def client(db_session: AsyncSession) -> TestClient:
 
 
 @pytest_asyncio.fixture
-async def auth_user(db_session: AsyncSession) -> Tuple[User, str]:
+async def auth_user(db_session: AsyncSession) -> tuple[User, str]:
     """
     Create an authenticated test user and return the user and their JWT token.
 
