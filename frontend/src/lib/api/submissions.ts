@@ -4,7 +4,8 @@ import type {
 	SubmissionCreate,
 	SubmissionListResponse,
 	SpotlightSubmissionCreate,
-	SpotlightContent
+	SpotlightContent,
+	UserBasic
 } from './types';
 
 /**
@@ -48,5 +49,41 @@ export async function getSubmissions(
  */
 export async function getSubmission(id: string): Promise<Submission> {
 	const response = await apiClient.get<Submission>(`/api/v1/submissions/${id}`);
+	return response.data;
+}
+
+/**
+ * Assign a reviewer to a submission
+ */
+export async function assignReviewer(
+	submissionId: string,
+	reviewerId: string
+): Promise<{ message: string }> {
+	const response = await apiClient.post<{ message: string }>(
+		`/api/v1/submissions/${submissionId}/reviewers/${reviewerId}`
+	);
+	return response.data;
+}
+
+/**
+ * Remove a reviewer from a submission
+ */
+export async function removeReviewer(
+	submissionId: string,
+	reviewerId: string
+): Promise<{ message: string }> {
+	const response = await apiClient.delete<{ message: string }>(
+		`/api/v1/submissions/${submissionId}/reviewers/${reviewerId}`
+	);
+	return response.data;
+}
+
+/**
+ * Get all reviewers assigned to a submission
+ */
+export async function getSubmissionReviewers(submissionId: string): Promise<UserBasic[]> {
+	const response = await apiClient.get<UserBasic[]>(
+		`/api/v1/submissions/${submissionId}/reviewers`
+	);
 	return response.data;
 }

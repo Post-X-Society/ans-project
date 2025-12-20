@@ -2,7 +2,7 @@
 Service layer for submission operations
 """
 
-from typing import Optional, Sequence, cast
+from typing import List, Optional, Sequence, cast
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.claim import Claim
 from app.models.submission import Submission
+from app.models.submission_reviewer import SubmissionReviewer
 from app.models.user import User, UserRole
 from app.schemas.submission import SubmissionCreate, SubmissionListResponse, SubmissionResponse
 from app.services import claim_service
@@ -158,10 +159,6 @@ async def list_submissions(
     if status:
         stmt = stmt.where(Submission.status == status)
 
-    # Apply status filter if provided
-    if status:
-        stmt = stmt.where(Submission.status == status)
-
     # Get total count with filters
     count_stmt = select(func.count()).select_from(stmt.subquery())
     count_result = await db.execute(count_stmt)
@@ -213,3 +210,88 @@ async def list_submissions(
         page_size=page_size,
         total_pages=total_pages,
     )
+
+
+async def assign_reviewer(
+    db: AsyncSession,
+    submission_id: UUID,
+    reviewer_id: UUID,
+    assigned_by_id: UUID,
+) -> SubmissionReviewer:
+    """
+    Assign a reviewer to a submission
+
+    Args:
+        db: Database session
+        submission_id: Submission UUID
+        reviewer_id: Reviewer (user) UUID
+        assigned_by_id: User who is making the assignment (admin/super_admin)
+
+    Returns:
+        Created SubmissionReviewer assignment
+
+    Raises:
+        IntegrityError: If reviewer is already assigned to this submission
+    """
+    assignment = SubmissionReviewer(
+        submission_id=submission_id,
+        reviewer_id=reviewer_id,
+        assigned_by_id=assigned_by_id,
+    )
+    db.add(assignment)
+    await db.commit()
+    await db.refresh(assignment)
+    return assignment
+
+
+async def remove_reviewer(
+    db: AsyncSession,
+    submission_id: UUID,
+    reviewer_id: UUID,
+) -> bool:
+    """
+    Remove a reviewer from a submission
+
+    Args:
+        db: Database session
+        submission_id: Submission UUID
+        reviewer_id: Reviewer (user) UUID to remove
+
+    Returns:
+        True if reviewer was removed, False if assignment didn't exist
+    """
+    stmt = select(SubmissionReviewer).where(
+        SubmissionReviewer.submission_id == submission_id,
+        SubmissionReviewer.reviewer_id == reviewer_id,
+    )
+    result = await db.execute(stmt)
+    assignment = result.scalar_one_or_none()
+
+    if assignment:
+        await db.delete(assignment)
+        await db.commit()
+        return True
+    return False
+
+
+async def get_submission_reviewers(
+    db: AsyncSession,
+    submission_id: UUID,
+) -> List[User]:
+    """
+    Get all reviewers assigned to a submission
+
+    Args:
+        db: Database session
+        submission_id: Submission UUID
+
+    Returns:
+        List of User objects representing assigned reviewers
+    """
+    stmt = (
+        select(User)
+        .join(SubmissionReviewer, SubmissionReviewer.reviewer_id == User.id)
+        .where(SubmissionReviewer.submission_id == submission_id)
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
