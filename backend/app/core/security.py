@@ -5,8 +5,8 @@ Security utilities for password hashing and JWT token management
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
-from jose import JWTError, jwt  # type: ignore[import-untyped]
-from passlib.context import CryptContext  # type: ignore[import-untyped]
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 
 from app.core.config import settings
 

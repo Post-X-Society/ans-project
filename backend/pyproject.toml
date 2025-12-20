@@ -44,6 +44,10 @@ dev = [
     "mypy>=1.8.0",
     "httpx>=0.26.0",
     "aiosqlite>=0.19.0",
+    # Type stubs for third-party libraries
+    "types-passlib>=1.7.7",
+    "types-python-jose>=3.3.4",
+    "types-aiofiles>=23.2.0",
 ]
 
 [tool.pytest.ini_options]
@@ -87,6 +91,8 @@ include = '\.pyi?$'
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings

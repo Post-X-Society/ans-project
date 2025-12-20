@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-import aiofiles  # type: ignore[import-untyped]
+import aiofiles
 import httpx
 from fastapi import HTTPException, status
 
