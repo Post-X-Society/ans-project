@@ -2,6 +2,7 @@
 Tests for Submissions API - TDD Approach (Tests written FIRST)
 """
 
+from typing import Any
 from uuid import UUID
 
 import pytest
@@ -18,7 +19,7 @@ class TestCreateSubmission:
 
     @pytest.mark.asyncio
     async def test_create_submission_success(
-        self, client: TestClient, db_session: AsyncSession, auth_user
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
     ) -> None:
         """Test creating a submission successfully"""
         user, token = auth_user
@@ -41,7 +42,9 @@ class TestCreateSubmission:
         assert "extracted_claims_count" in data
 
     @pytest.mark.asyncio
-    async def test_create_submission_content_too_short(self, client: TestClient, auth_user) -> None:
+    async def test_create_submission_content_too_short(
+        self, client: TestClient, auth_user: Any
+    ) -> None:
         """Test creating submission with content too short"""
         user, token = auth_user
         payload = {"content": "Short", "type": "text"}  # Less than 10 chars
@@ -54,7 +57,9 @@ class TestCreateSubmission:
         assert "detail" in response.json()
 
     @pytest.mark.asyncio
-    async def test_create_submission_content_empty(self, client: TestClient, auth_user) -> None:
+    async def test_create_submission_content_empty(
+        self, client: TestClient, auth_user: Any
+    ) -> None:
         """Test creating submission with empty content"""
         user, token = auth_user
         payload = {"content": "          ", "type": "text"}  # Only whitespace
@@ -66,7 +71,7 @@ class TestCreateSubmission:
         assert response.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_create_submission_invalid_type(self, client: TestClient, auth_user) -> None:
+    async def test_create_submission_invalid_type(self, client: TestClient, auth_user: Any) -> None:
         """Test creating submission with invalid type"""
         user, token = auth_user
         payload = {"content": "Valid content here", "type": "invalid"}
@@ -78,7 +83,9 @@ class TestCreateSubmission:
         assert response.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_create_submission_missing_fields(self, client: TestClient, auth_user) -> None:
+    async def test_create_submission_missing_fields(
+        self, client: TestClient, auth_user: Any
+    ) -> None:
         """Test creating submission with missing required fields"""
         user, token = auth_user
         payload = {"content": "Missing type field"}
@@ -95,7 +102,7 @@ class TestGetSubmission:
 
     @pytest.mark.asyncio
     async def test_get_submission_success(
-        self, client: TestClient, db_session: AsyncSession, auth_user
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
     ) -> None:
         """Test getting a submission by ID"""
         # Use authenticated user
@@ -125,7 +132,7 @@ class TestGetSubmission:
         assert data["status"] == "pending"
 
     @pytest.mark.asyncio
-    async def test_get_submission_not_found(self, client: TestClient, auth_user) -> None:
+    async def test_get_submission_not_found(self, client: TestClient, auth_user: Any) -> None:
         """Test getting non-existent submission"""
         user, token = auth_user
         fake_uuid = "00000000-0000-0000-0000-000000000000"
@@ -138,7 +145,7 @@ class TestGetSubmission:
         assert "detail" in response.json()
 
     @pytest.mark.asyncio
-    async def test_get_submission_invalid_uuid(self, client: TestClient, auth_user) -> None:
+    async def test_get_submission_invalid_uuid(self, client: TestClient, auth_user: Any) -> None:
         """Test getting submission with invalid UUID"""
         user, token = auth_user
         response = client.get(
@@ -153,7 +160,7 @@ class TestListSubmissions:
 
     @pytest.mark.asyncio
     async def test_list_submissions_empty(
-        self, client: TestClient, db_session: AsyncSession, auth_user
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
     ) -> None:
         """Test listing submissions when none exist"""
         user, token = auth_user
@@ -169,7 +176,7 @@ class TestListSubmissions:
 
     @pytest.mark.asyncio
     async def test_list_submissions_with_data(
-        self, client: TestClient, db_session: AsyncSession, auth_user
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
     ) -> None:
         """Test listing submissions with data (submitter sees only their own)"""
         user, token = auth_user
@@ -196,7 +203,7 @@ class TestListSubmissions:
 
     @pytest.mark.asyncio
     async def test_list_submissions_pagination(
-        self, client: TestClient, db_session: AsyncSession, auth_user
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
     ) -> None:
         """Test pagination of submissions list"""
         user, token = auth_user
@@ -235,7 +242,7 @@ class TestListSubmissions:
         assert len(data["items"]) == 10
         assert data["page"] == 2
 
-    def test_list_submissions_invalid_page(self, client: TestClient, auth_user) -> None:
+    def test_list_submissions_invalid_page(self, client: TestClient, auth_user: Any) -> None:
         """Test listing with invalid page parameter"""
         user, token = auth_user
         response = client.get(
@@ -244,7 +251,7 @@ class TestListSubmissions:
 
         assert response.status_code == 422
 
-    def test_list_submissions_invalid_page_size(self, client: TestClient, auth_user) -> None:
+    def test_list_submissions_invalid_page_size(self, client: TestClient, auth_user: Any) -> None:
         """Test listing with invalid page_size parameter"""
         user, token = auth_user
         response = client.get(
