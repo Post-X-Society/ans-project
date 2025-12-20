@@ -27,6 +27,6 @@ describe('Header', () => {
 	it('should display the tagline', () => {
 		render(Header);
 
-		expect(screen.getByText(/AI-powered fact-checking/i)).toBeInTheDocument();
+		expect(screen.getByText(/Community based fact-checking for SnapChat/i)).toBeInTheDocument();
 	});
 });

@@ -2,12 +2,13 @@
 Service layer for submission operations
 """
 
-from typing import List, Optional
+from typing import List, Optional, Sequence, cast
 from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.claim import Claim
 from app.models.submission import Submission
 from app.models.submission_reviewer import SubmissionReviewer
 from app.models.user import User, UserRole
@@ -81,15 +82,14 @@ async def create_submission(
     # Manually refresh with claims loaded
     await db.refresh(submission)
     # Load claims eagerly
-    from app.models.claim import Claim
-
     stmt = (
         select(Claim)
         .join(submission_claims)
         .where(submission_claims.c.submission_id == submission.id)
     )
     result = await db.execute(stmt)
-    submission.claims = list(result.scalars().all())
+    claims_result: Sequence[Claim] = cast(Sequence[Claim], result.scalars().all())
+    submission.claims = list(claims_result)
 
     return submission
 
@@ -115,6 +115,7 @@ async def list_submissions(
     page_size: int = 50,
     user_id: Optional[UUID] = None,
     user_role: Optional[UserRole] = None,
+    assigned_to_me: Optional[bool] = None,
     status: Optional[str] = None,
 ) -> SubmissionListResponse:
     """
@@ -126,22 +127,33 @@ async def list_submissions(
         page_size: Number of items per page
         user_id: Optional user ID for filtering (submitters see only their own)
         user_role: Optional user role for access control
-        status: Optional status filter
+        assigned_to_me: Optional filter for reviewers to see only assigned submissions
+        status: Optional filter by submission status
 
     Returns:
         Paginated list of submissions
     """
+    from sqlalchemy.orm import selectinload
+
+    from app.models.submission_reviewer import SubmissionReviewer
+
     # Calculate offset
     offset = (page - 1) * page_size
 
-    # Build base query
-    stmt = select(Submission)
+    # Build base query with eager loading of reviewer assignments
+    stmt = select(Submission).options(selectinload(Submission.reviewer_assignments))
 
     # Apply role-based filtering
     if user_role == UserRole.SUBMITTER and user_id:
         # Submitters only see their own submissions
         stmt = stmt.where(Submission.user_id == user_id)
-    # REVIEWER, ADMIN, SUPER_ADMIN see all submissions (no filter)
+    # REVIEWER, ADMIN, SUPER_ADMIN see all submissions (no filter by default)
+
+    # Apply assigned_to_me filter for REVIEWERS only
+    # Admins and super_admins ignore this filter (they always see all)
+    if assigned_to_me is True and user_role == UserRole.REVIEWER and user_id:
+        # Join with submission_reviewers to filter by assignment
+        stmt = stmt.join(SubmissionReviewer).where(SubmissionReviewer.reviewer_id == user_id)
 
     # Apply status filter if provided
     if status:
@@ -160,15 +172,35 @@ async def list_submissions(
     # Calculate total pages
     total_pages = (total + page_size - 1) // page_size if total > 0 else 0
 
-    # Build response items with reviewer information
+    # Build response items with reviewer info and is_assigned_to_me flag
     items = []
     for submission in submissions:
-        # Extract reviewers from reviewer_assignments
-        reviewers = [assignment.reviewer for assignment in submission.reviewer_assignments]
+        # Build reviewer list from reviewer_assignments
+        reviewers = []
+        is_assigned = False
+        for assignment in submission.reviewer_assignments:
+            reviewer_info = {
+                "id": assignment.reviewer.id,
+                "email": assignment.reviewer.email,
+                "role": assignment.reviewer.role.value,
+            }
+            reviewers.append(reviewer_info)
+            # Check if current user is assigned
+            if user_id and assignment.reviewer_id == user_id:
+                is_assigned = True
 
-        # Create response with all data
-        submission_dict = SubmissionResponse.model_validate(submission).model_dump()
-        submission_dict["reviewers"] = reviewers
+        # Create response dict
+        submission_dict = {
+            "id": submission.id,
+            "user_id": submission.user_id,
+            "content": submission.content,
+            "submission_type": submission.submission_type,
+            "status": submission.status,
+            "created_at": submission.created_at,
+            "updated_at": submission.updated_at,
+            "reviewers": reviewers,
+            "is_assigned_to_me": is_assigned,
+        }
         items.append(SubmissionResponse(**submission_dict))
 
     return SubmissionListResponse(

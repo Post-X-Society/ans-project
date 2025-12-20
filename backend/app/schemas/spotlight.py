@@ -3,7 +3,7 @@ Schemas for Spotlight content
 """
 
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Any, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -39,6 +39,6 @@ class SpotlightContentResponse(BaseModel):
     boost_count: Optional[int] = None
     recommend_count: Optional[int] = None
     upload_timestamp: Optional[int] = None
-    raw_metadata: Dict
+    raw_metadata: dict[str, Any]
     created_at: datetime
     updated_at: datetime

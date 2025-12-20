@@ -4,9 +4,9 @@ Snapchat Spotlight API service
 
 import os
 from pathlib import Path
-from typing import Dict
+from typing import Any
 
-import aiofiles
+import aiofiles  # type: ignore[import-untyped]
 import httpx
 from fastapi import HTTPException, status
 
@@ -15,9 +15,9 @@ class SnapchatService:
     """Service for interacting with Snapchat Spotlight API via RapidAPI"""
 
     BASE_URL = "https://snapchat3.p.rapidapi.com"
-    MEDIA_DIR = Path("/app/media/spotlight_videos")
+    MEDIA_DIR = Path(os.getenv("MEDIA_DIR", "/app/media/spotlight_videos"))
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.api_key = os.getenv("RAPIDAPI_KEY")
         if not self.api_key:
             raise ValueError("RAPIDAPI_KEY environment variable is not set")
@@ -25,7 +25,7 @@ class SnapchatService:
         # Ensure media directory exists
         self.MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 
-    async def fetch_spotlight_data(self, spotlight_link: str) -> Dict:
+    async def fetch_spotlight_data(self, spotlight_link: str) -> dict[str, Any]:
         """
         Fetch Spotlight content metadata from RapidAPI
 
@@ -33,14 +33,14 @@ class SnapchatService:
             spotlight_link: Full Snapchat Spotlight URL
 
         Returns:
-            Dict containing the API response data
+            dict containing the API response data
 
         Raises:
             HTTPException: If API request fails
         """
         url = f"{self.BASE_URL}/getSpotlightByLink"
-        headers = {
-            "x-rapidapi-key": self.api_key,
+        headers: dict[str, str] = {
+            "x-rapidapi-key": self.api_key if self.api_key else "",
             "x-rapidapi-host": "snapchat3.p.rapidapi.com",
         }
         params = {"spotlight_link": spotlight_link}
@@ -49,7 +49,7 @@ class SnapchatService:
             try:
                 response = await client.get(url, headers=headers, params=params)
                 response.raise_for_status()
-                data = response.json()
+                data: dict[str, Any] = response.json()
 
                 if not data.get("success"):
                     raise HTTPException(
@@ -57,7 +57,8 @@ class SnapchatService:
                         detail="Failed to fetch Spotlight content from Snapchat API",
                     )
 
-                return data["data"]
+                result: dict[str, Any] = data["data"]
+                return result
             except httpx.HTTPStatusError as e:
                 raise HTTPException(
                     status_code=e.response.status_code,
@@ -118,7 +119,7 @@ class SnapchatService:
                     detail=f"Failed to save video: {str(e)}",
                 ) from e
 
-    def parse_spotlight_metadata(self, data: Dict) -> Dict:
+    def parse_spotlight_metadata(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Parse Spotlight API response and extract relevant metadata
 

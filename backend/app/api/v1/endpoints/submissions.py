@@ -112,9 +112,10 @@ async def get_submission(
 async def list_submissions(
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     page_size: int = Query(50, ge=1, le=100, description="Number of items per page (max 100)"),
-    status: Optional[str] = Query(
-        None, description="Filter by status (pending, processing, completed)"
+    assigned_to_me: Optional[bool] = Query(
+        None, description="Filter by assignments (reviewers only)"
     ),
+    status: Optional[str] = Query(None, description="Filter by submission status"),
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> SubmissionListResponse:
@@ -123,11 +124,13 @@ async def list_submissions(
 
     - **page**: Page number (starts at 1)
     - **page_size**: Number of items per page (1-100, default 50)
-    - **status**: Optional status filter (pending, processing, completed)
+    - **assigned_to_me**: Filter to show only submissions assigned to the current reviewer
+    - **status**: Filter by submission status (pending, processing, completed, rejected)
 
     Role-based access:
     - SUBMITTER: Only sees their own submissions
-    - REVIEWER/ADMIN/SUPER_ADMIN: Sees all submissions
+    - REVIEWER: Sees all submissions, or only assigned ones with assigned_to_me=true
+    - ADMIN/SUPER_ADMIN: Sees all submissions (assigned_to_me filter ignored)
 
     Returns a paginated list of submissions ordered by creation date (newest first).
     """
@@ -137,6 +140,7 @@ async def list_submissions(
         page_size=page_size,
         user_id=current_user.id,
         user_role=current_user.role,
+        assigned_to_me=assigned_to_me,
         status=status,
     )
 

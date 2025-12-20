@@ -18,7 +18,7 @@ router = APIRouter()
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_current_user_info(current_user: User = Depends(get_current_user)):
+async def get_current_user_info(current_user: User = Depends(get_current_user)) -> User:
     """
     Get current authenticated user's information.
 
@@ -34,7 +34,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 @router.get("", response_model=List[UserResponse])
 async def list_users(
     current_user: User = Depends(require_admin), db: AsyncSession = Depends(get_db)
-):
+) -> list[User]:
     """
     List all users (admin+ only).
 
@@ -47,7 +47,7 @@ async def list_users(
     stmt = select(User).order_by(User.created_at.desc())
     result = await db.execute(stmt)
     users = result.scalars().all()
-    return users
+    return list(users)
 
 
 @router.get("/{user_id}", response_model=UserResponse)
@@ -55,7 +55,7 @@ async def get_user(
     user_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
+) -> User:
     """
     Get user by ID (self or admin+).
 
@@ -100,7 +100,7 @@ async def update_user_role(
     role_update: UserRoleUpdate,
     current_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
-):
+) -> User:
     """
     Update user role (admin+ with restrictions).
 
@@ -160,7 +160,7 @@ async def update_user(
     user_update: UserUpdate,
     current_user: User = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
-):
+) -> User:
     """
     Update user information (admin+ only).
 
@@ -217,7 +217,7 @@ async def delete_user(
     user_id: UUID,
     current_user: User = Depends(require_super_admin),
     db: AsyncSession = Depends(get_db),
-):
+) -> dict[str, str]:
     """
     Delete user (super admin only).
 
