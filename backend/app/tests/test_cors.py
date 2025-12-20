@@ -7,7 +7,6 @@ not wildcard "*" which allows any origin.
 Following TDD: These tests should FAIL initially, then PASS after implementation.
 """
 
-
 import pytest
 from fastapi.testclient import TestClient
 
