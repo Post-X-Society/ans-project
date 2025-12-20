@@ -2,7 +2,6 @@
 Comprehensive tests for authorization and role-based access control
 """
 
-from typing import Any
 
 import pytest
 from fastapi import status

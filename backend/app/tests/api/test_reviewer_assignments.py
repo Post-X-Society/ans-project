@@ -5,9 +5,8 @@ These tests are written BEFORE implementation and should FAIL initially (RED pha
 Once implementation is complete, these tests should pass (GREEN phase).
 """
 
-from uuid import uuid4
-
 from typing import Any
+from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
