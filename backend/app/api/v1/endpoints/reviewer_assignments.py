@@ -2,6 +2,7 @@
 Reviewer assignment endpoints
 """
 
+from typing import cast
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -9,7 +10,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.dependencies import get_current_user, get_db
+from app.core.database import get_db
+from app.core.dependencies import get_current_user
 from app.models.submission import Submission
 from app.models.submission_reviewer import SubmissionReviewer
 from app.models.user import User, UserRole
@@ -82,7 +84,7 @@ async def assign_reviewers(
     assignment_data: ReviewerAssignmentCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
+) -> ReviewerAssignmentResponse:
     """
     Assign one or more reviewers to a submission (Admin/Super Admin only)
     """
@@ -150,14 +152,14 @@ async def assign_reviewers(
             selectinload(Submission.reviewer_assignments).selectinload(SubmissionReviewer.reviewer)
         )
     )
-    submission = result.scalar_one()
+    updated_submission = cast(Submission, result.scalar_one())
 
     # Format response
     reviewers = [
-        _format_reviewer_info(assignment) for assignment in submission.reviewer_assignments
+        _format_reviewer_info(assignment) for assignment in updated_submission.reviewer_assignments
     ]
 
-    return ReviewerAssignmentResponse(id=submission.id, reviewers=reviewers)
+    return ReviewerAssignmentResponse(id=updated_submission.id, reviewers=reviewers)
 
 
 @router.delete("/{submission_id}/reviewers/{reviewer_id}", response_model=ReviewerRemoveResponse)
@@ -166,7 +168,7 @@ async def remove_reviewer(
     reviewer_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
+) -> ReviewerRemoveResponse:
     """
     Remove a reviewer from a submission (Admin/Super Admin only)
     """
@@ -224,7 +226,7 @@ async def get_reviewers(
     submission_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
+) -> list[ReviewerInfo]:
     """
     Get list of reviewers assigned to a submission
 

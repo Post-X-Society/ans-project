@@ -80,8 +80,6 @@ async def create_submission(
     # Manually refresh with claims loaded
     await db.refresh(submission)
     # Load claims eagerly
-    from sqlalchemy import select
-
     from app.models.claim import Claim
 
     stmt = (
