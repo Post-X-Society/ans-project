@@ -11,24 +11,12 @@ from pydantic import BaseModel, Field, field_validator
 from app.schemas.claim import ClaimResponse
 
 
-class UserBasic(BaseModel):
-    """Basic user information for embedding in responses"""
+class SubmissionReviewerInfo(BaseModel):
+    """Schema for reviewer information in submission response"""
 
     id: UUID
     email: str
-
-    model_config = {"from_attributes": True}
-
-
-class SpotlightContentBasic(BaseModel):
-    """Basic spotlight content information for embedding in responses"""
-
-    spotlight_id: str
-    thumbnail_url: str
-    creator_name: Optional[str] = None
-    creator_username: Optional[str] = None
-    view_count: Optional[int] = None
-    duration_ms: Optional[int] = None
+    role: str
 
     model_config = {"from_attributes": True}
 
@@ -58,9 +46,8 @@ class SubmissionResponse(BaseModel):
     status: str
     created_at: datetime
     updated_at: datetime
-    user: Optional[UserBasic] = None
-    spotlight_content: Optional[SpotlightContentBasic] = None
-    reviewers: List[UserBasic] = Field(default_factory=list)
+    reviewers: List[SubmissionReviewerInfo] = Field(default_factory=list)
+    is_assigned_to_me: bool = False  # For reviewers to know if they're assigned
 
     model_config = {"from_attributes": True}  # Allow ORM models
 

@@ -154,7 +154,7 @@ git push origin feature-branch
 
 ## Related ADRs
 
-- ADR 0001: Docker Development Environment (infrastructure setup)
+- [ADR 0001: Docker Development Environment](./0001-docker-development-environment.md) (infrastructure setup)
 - Future ADR: CI/CD Pipeline Configuration (will use deploy keys)
 
 ## References
