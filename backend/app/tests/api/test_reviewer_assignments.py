@@ -7,6 +7,8 @@ Once implementation is complete, these tests should pass (GREEN phase).
 
 from uuid import uuid4
 
+from typing import Any
+
 import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
@@ -114,7 +116,7 @@ async def super_admin_user(db_session: AsyncSession) -> tuple[User, str]:
 
 
 @pytest.fixture
-async def test_submission(db_session: AsyncSession, submitter_user) -> Submission:
+async def test_submission(db_session: AsyncSession, submitter_user: Any) -> Submission:
     """Create a test submission"""
     user, _ = submitter_user
     submission = Submission(
@@ -142,9 +144,9 @@ class TestAssignReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
-        test_submission,
+        admin_user: Any,
+        reviewer_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that admin can assign a single reviewer to a submission"""
         admin, admin_token = admin_user
@@ -173,10 +175,10 @@ class TestAssignReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
-        reviewer_user_2,
-        test_submission,
+        admin_user: Any,
+        reviewer_user: Any,
+        reviewer_user_2: Any,
+        test_submission: Any,
     ) -> None:
         """Test that admin can assign multiple reviewers at once"""
         admin, admin_token = admin_user
@@ -203,9 +205,9 @@ class TestAssignReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        super_admin_user,
-        reviewer_user,
-        test_submission,
+        super_admin_user: Any,
+        reviewer_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that super admin can assign reviewers"""
         super_admin, super_admin_token = super_admin_user
@@ -229,9 +231,9 @@ class TestAssignReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        submitter_user,
-        reviewer_user,
-        test_submission,
+        submitter_user: Any,
+        reviewer_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that non-admin users (submitter) cannot assign reviewers"""
         submitter, submitter_token = submitter_user
@@ -254,9 +256,9 @@ class TestAssignReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        reviewer_user_2,
-        test_submission,
+        reviewer_user: Any,
+        reviewer_user_2: Any,
+        test_submission: Any,
     ) -> None:
         """Test that reviewer users cannot assign other reviewers"""
         reviewer1, reviewer1_token = reviewer_user
@@ -278,9 +280,9 @@ class TestAssignReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        submitter_user,
-        test_submission,
+        admin_user: Any,
+        submitter_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that non-reviewer role users cannot be assigned as reviewers"""
         admin, admin_token = admin_user
@@ -303,9 +305,9 @@ class TestAssignReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
-        test_submission,
+        admin_user: Any,
+        reviewer_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that the same reviewer cannot be assigned twice to same submission"""
         admin, admin_token = admin_user
@@ -335,8 +337,8 @@ class TestAssignReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
+        admin_user: Any,
+        reviewer_user: Any,
     ) -> None:
         """Test that assignment to non-existent submission returns 404"""
         admin, admin_token = admin_user
@@ -359,8 +361,8 @@ class TestAssignReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        test_submission,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that assigning non-existent user returns 404"""
         admin, admin_token = admin_user
@@ -382,9 +384,9 @@ class TestAssignReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
-        test_submission,
+        admin_user: Any,
+        reviewer_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that assignment tracks who made the assignment (assigned_by_id)"""
         admin, admin_token = admin_user
@@ -417,8 +419,8 @@ class TestAssignReviewers:
     async def test_assign_reviewers_requires_auth(
         self,
         client: TestClient,
-        reviewer_user,
-        test_submission,
+        reviewer_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that assignment requires authentication"""
         reviewer, _ = reviewer_user
@@ -436,13 +438,13 @@ class TestAssignReviewers:
     async def test_assign_reviewers_empty_list(
         self,
         client: TestClient,
-        admin_user,
-        test_submission,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that empty reviewer list returns validation error"""
         admin, admin_token = admin_user
 
-        payload = {"reviewer_ids": []}
+        payload: dict[str, list[str]] = {"reviewer_ids": []}
 
         response = client.post(
             f"/api/v1/submissions/{test_submission.id}/reviewers",
@@ -456,8 +458,8 @@ class TestAssignReviewers:
     async def test_assign_reviewers_invalid_uuid(
         self,
         client: TestClient,
-        admin_user,
-        test_submission,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that invalid UUID format returns validation error"""
         admin, admin_token = admin_user
@@ -486,9 +488,9 @@ class TestRemoveReviewer:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
-        test_submission,
+        admin_user: Any,
+        reviewer_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that admin can remove a reviewer assignment"""
         admin, admin_token = admin_user
@@ -531,10 +533,10 @@ class TestRemoveReviewer:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        super_admin_user,
-        reviewer_user,
-        admin_user,
-        test_submission,
+        super_admin_user: Any,
+        reviewer_user: Any,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that super admin can remove reviewer assignments"""
         super_admin, super_admin_token = super_admin_user
@@ -563,10 +565,10 @@ class TestRemoveReviewer:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        submitter_user,
-        reviewer_user,
-        admin_user,
-        test_submission,
+        submitter_user: Any,
+        reviewer_user: Any,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that non-admin users cannot remove reviewer assignments"""
         submitter, submitter_token = submitter_user
@@ -596,10 +598,10 @@ class TestRemoveReviewer:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        reviewer_user_2,
-        admin_user,
-        test_submission,
+        reviewer_user: Any,
+        reviewer_user_2: Any,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that reviewers cannot remove reviewer assignments"""
         reviewer1, reviewer1_token = reviewer_user
@@ -628,9 +630,9 @@ class TestRemoveReviewer:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
-        test_submission,
+        admin_user: Any,
+        reviewer_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that removing non-existent assignment returns 404"""
         admin, admin_token = admin_user
@@ -650,8 +652,8 @@ class TestRemoveReviewer:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
+        admin_user: Any,
+        reviewer_user: Any,
     ) -> None:
         """Test that removing from non-existent submission returns 404"""
         admin, admin_token = admin_user
@@ -670,8 +672,8 @@ class TestRemoveReviewer:
     async def test_remove_reviewer_requires_auth(
         self,
         client: TestClient,
-        reviewer_user,
-        test_submission,
+        reviewer_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that removing reviewer requires authentication"""
         reviewer, _ = reviewer_user
@@ -686,8 +688,8 @@ class TestRemoveReviewer:
     async def test_remove_reviewer_invalid_uuid(
         self,
         client: TestClient,
-        admin_user,
-        test_submission,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that invalid UUID format returns validation error"""
         admin, admin_token = admin_user
@@ -713,10 +715,10 @@ class TestGetAssignedReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        submitter_user,
-        reviewer_user,
-        admin_user,
-        test_submission,
+        submitter_user: Any,
+        reviewer_user: Any,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that submission owner can view assigned reviewers"""
         submitter, submitter_token = submitter_user
@@ -751,10 +753,10 @@ class TestGetAssignedReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        reviewer_user_2,
-        admin_user,
-        test_submission,
+        reviewer_user: Any,
+        reviewer_user_2: Any,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that assigned reviewer can view list of all reviewers"""
         reviewer1, reviewer1_token = reviewer_user
@@ -793,9 +795,9 @@ class TestGetAssignedReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
-        test_submission,
+        admin_user: Any,
+        reviewer_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that admin can view list of assigned reviewers"""
         admin, admin_token = admin_user
@@ -826,8 +828,8 @@ class TestGetAssignedReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        submitter_user,
-        test_submission,
+        submitter_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that endpoint returns empty list when no reviewers assigned"""
         submitter, submitter_token = submitter_user
@@ -847,10 +849,10 @@ class TestGetAssignedReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        submitter_user,
-        reviewer_user,
-        admin_user,
-        test_submission,
+        submitter_user: Any,
+        reviewer_user: Any,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that endpoint returns full user objects with id, email, role"""
         submitter, submitter_token = submitter_user
@@ -888,9 +890,9 @@ class TestGetAssignedReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        admin_user,
-        test_submission,
+        reviewer_user: Any,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that users who are not owner or assigned reviewer cannot view"""
         reviewer, _ = reviewer_user
@@ -932,10 +934,10 @@ class TestGetAssignedReviewers:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        reviewer_user_2,
-        admin_user,
-        test_submission,
+        reviewer_user: Any,
+        reviewer_user_2: Any,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that unassigned reviewer cannot view reviewer list"""
         reviewer1, _ = reviewer_user
@@ -963,7 +965,7 @@ class TestGetAssignedReviewers:
     async def test_get_reviewers_requires_auth(
         self,
         client: TestClient,
-        test_submission,
+        test_submission: Any,
     ) -> None:
         """Test that viewing reviewers requires authentication"""
         response = client.get(
@@ -976,7 +978,7 @@ class TestGetAssignedReviewers:
     async def test_get_reviewers_nonexistent_submission(
         self,
         client: TestClient,
-        admin_user,
+        admin_user: Any,
     ) -> None:
         """Test that viewing reviewers for non-existent submission returns 404"""
         admin, admin_token = admin_user
@@ -994,7 +996,7 @@ class TestGetAssignedReviewers:
     async def test_get_reviewers_invalid_uuid(
         self,
         client: TestClient,
-        admin_user,
+        admin_user: Any,
     ) -> None:
         """Test that invalid submission UUID returns validation error"""
         admin, admin_token = admin_user
@@ -1020,8 +1022,8 @@ class TestReviewerAssignmentEdgeCases:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        test_submission,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that super_admin role user cannot be assigned as reviewer"""
         admin, admin_token = admin_user
@@ -1053,8 +1055,8 @@ class TestReviewerAssignmentEdgeCases:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        test_submission,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that admin role user cannot be assigned as reviewer"""
         admin1, admin1_token = admin_user
@@ -1086,8 +1088,8 @@ class TestReviewerAssignmentEdgeCases:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        test_submission,
+        admin_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that inactive reviewer users cannot be assigned"""
         admin, admin_token = admin_user
@@ -1119,9 +1121,9 @@ class TestReviewerAssignmentEdgeCases:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
-        submitter_user,
+        admin_user: Any,
+        reviewer_user: Any,
+        submitter_user: Any,
     ) -> None:
         """Test that reviewers can be assigned even to completed submissions"""
         admin, admin_token = admin_user
@@ -1155,10 +1157,10 @@ class TestReviewerAssignmentEdgeCases:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        reviewer_user,
-        reviewer_user_2,
-        test_submission,
+        admin_user: Any,
+        reviewer_user: Any,
+        reviewer_user_2: Any,
+        test_submission: Any,
     ) -> None:
         """Test assigning multiple reviewers when one is already assigned"""
         admin, admin_token = admin_user
@@ -1191,9 +1193,9 @@ class TestReviewerAssignmentEdgeCases:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        submitter_user,
-        test_submission,
+        admin_user: Any,
+        submitter_user: Any,
+        test_submission: Any,
     ) -> None:
         """Test that list endpoint correctly shows multiple assigned reviewers"""
         admin, _ = admin_user
@@ -1310,7 +1312,7 @@ class TestHelperFunctions:
 
     @pytest.mark.asyncio
     async def test_get_submission_or_404_found(
-        self, db_session: AsyncSession, submitter_user, test_submission
+        self, db_session: AsyncSession, submitter_user: Any, test_submission: Any
     ) -> None:
         """Test _get_submission_or_404 when submission exists"""
         submission = await _get_submission_or_404(db_session, test_submission.id)
@@ -1326,7 +1328,7 @@ class TestHelperFunctions:
         assert "not found" in str(exc_info.value.detail).lower()
 
     @pytest.mark.asyncio
-    async def test_get_user_or_404_found(self, db_session: AsyncSession, reviewer_user) -> None:
+    async def test_get_user_or_404_found(self, db_session: AsyncSession, reviewer_user: Any) -> None:
         """Test _get_user_or_404 when user exists"""
         reviewer, _ = reviewer_user
         user = await _get_user_or_404(db_session, reviewer.id)
@@ -1343,7 +1345,7 @@ class TestHelperFunctions:
 
     @pytest.mark.asyncio
     async def test_format_reviewer_info(
-        self, db_session: AsyncSession, reviewer_user, admin_user, test_submission
+        self, db_session: AsyncSession, reviewer_user: Any, admin_user: Any, test_submission: Any
     ) -> None:
         """Test _format_reviewer_info formats data correctly"""
         reviewer, _ = reviewer_user

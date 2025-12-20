@@ -2,6 +2,8 @@
 Comprehensive tests for authorization and role-based access control
 """
 
+from typing import Any
+
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
@@ -86,7 +88,7 @@ async def inactive_user(db_session: AsyncSession) -> User:
     return user
 
 
-def get_auth_header(user: User) -> dict:
+def get_auth_header(user: User) -> dict[str, str]:
     """Helper function to create authorization header"""
     token_data = {"sub": str(user.id), "email": user.email, "role": user.role.value}
     token = create_access_token(token_data)
@@ -97,7 +99,7 @@ class TestGetCurrentUser:
     """Tests for GET /api/v1/users/me endpoint"""
 
     @pytest.mark.asyncio
-    async def test_get_current_user_success(self, client: TestClient, submitter_user: User):
+    async def test_get_current_user_success(self, client: TestClient, submitter_user: User) -> None:
         """Test getting current user information with valid token"""
         headers = get_auth_header(submitter_user)
         response = client.get("/api/v1/users/me", headers=headers)
@@ -109,20 +111,20 @@ class TestGetCurrentUser:
         assert data["is_active"] is True
 
     @pytest.mark.asyncio
-    async def test_get_current_user_no_token(self, client: TestClient):
+    async def test_get_current_user_no_token(self, client: TestClient) -> None:
         """Test getting current user without token returns 401"""
         response = client.get("/api/v1/users/me")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_get_current_user_invalid_token(self, client: TestClient):
+    async def test_get_current_user_invalid_token(self, client: TestClient) -> None:
         """Test getting current user with invalid token returns 401"""
         headers = {"Authorization": "Bearer invalid_token"}
         response = client.get("/api/v1/users/me", headers=headers)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_get_current_user_inactive(self, client: TestClient, inactive_user: User):
+    async def test_get_current_user_inactive(self, client: TestClient, inactive_user: User) -> None:
         """Test getting current user when account is inactive returns 403"""
         headers = get_auth_header(inactive_user)
         response = client.get("/api/v1/users/me", headers=headers)
@@ -136,7 +138,7 @@ class TestListUsers:
     @pytest.mark.asyncio
     async def test_list_users_as_admin(
         self, client: TestClient, admin_user: User, submitter_user: User
-    ):
+    ) -> None:
         """Test admin can list all users"""
         headers = get_auth_header(admin_user)
         response = client.get("/api/v1/users", headers=headers)
@@ -153,7 +155,7 @@ class TestListUsers:
     @pytest.mark.asyncio
     async def test_list_users_as_super_admin(
         self, client: TestClient, super_admin_user: User, submitter_user: User
-    ):
+    ) -> None:
         """Test super admin can list all users"""
         headers = get_auth_header(super_admin_user)
         response = client.get("/api/v1/users", headers=headers)
@@ -164,7 +166,7 @@ class TestListUsers:
         assert len(data) >= 2
 
     @pytest.mark.asyncio
-    async def test_list_users_as_submitter(self, client: TestClient, submitter_user: User):
+    async def test_list_users_as_submitter(self, client: TestClient, submitter_user: User) -> None:
         """Test submitter cannot list users"""
         headers = get_auth_header(submitter_user)
         response = client.get("/api/v1/users", headers=headers)
@@ -173,7 +175,7 @@ class TestListUsers:
         assert "permissions" in response.json()["detail"].lower()
 
     @pytest.mark.asyncio
-    async def test_list_users_as_reviewer(self, client: TestClient, reviewer_user: User):
+    async def test_list_users_as_reviewer(self, client: TestClient, reviewer_user: User) -> None:
         """Test reviewer cannot list users"""
         headers = get_auth_header(reviewer_user)
         response = client.get("/api/v1/users", headers=headers)
@@ -185,7 +187,7 @@ class TestGetUser:
     """Tests for GET /api/v1/users/{user_id} endpoint"""
 
     @pytest.mark.asyncio
-    async def test_get_own_profile(self, client: TestClient, submitter_user: User):
+    async def test_get_own_profile(self, client: TestClient, submitter_user: User) -> None:
         """Test user can view their own profile"""
         headers = get_auth_header(submitter_user)
         response = client.get(f"/api/v1/users/{submitter_user.id}", headers=headers)
@@ -202,7 +204,7 @@ class TestGetUser:
     @pytest.mark.asyncio
     async def test_get_other_user_as_submitter(
         self, client: TestClient, submitter_user: User, admin_user: User
-    ):
+    ) -> None:
         """Test submitter cannot view other user's profile"""
         headers = get_auth_header(submitter_user)
         response = client.get(f"/api/v1/users/{admin_user.id}", headers=headers)
@@ -212,7 +214,7 @@ class TestGetUser:
     @pytest.mark.asyncio
     async def test_get_other_user_as_admin(
         self, client: TestClient, admin_user: User, submitter_user: User
-    ):
+    ) -> None:
         """Test admin can view other user's profile"""
         headers = get_auth_header(admin_user)
         response = client.get(f"/api/v1/users/{submitter_user.id}", headers=headers)
@@ -222,7 +224,7 @@ class TestGetUser:
         assert data["email"] == submitter_user.email
 
     @pytest.mark.asyncio
-    async def test_get_nonexistent_user(self, client: TestClient, admin_user: User):
+    async def test_get_nonexistent_user(self, client: TestClient, admin_user: User) -> None:
         """Test getting non-existent user returns 404"""
         headers = get_auth_header(admin_user)
         fake_uuid = "00000000-0000-0000-0000-000000000000"
@@ -237,7 +239,7 @@ class TestUpdateUserRole:
     @pytest.mark.asyncio
     async def test_admin_promote_submitter_to_reviewer(
         self, client: TestClient, admin_user: User, submitter_user: User
-    ):
+    ) -> None:
         """Test admin can promote submitter to reviewer"""
         headers = get_auth_header(admin_user)
         response = client.patch(
@@ -253,7 +255,7 @@ class TestUpdateUserRole:
     @pytest.mark.asyncio
     async def test_admin_cannot_promote_to_admin(
         self, client: TestClient, admin_user: User, submitter_user: User
-    ):
+    ) -> None:
         """Test admin cannot promote user to admin role"""
         headers = get_auth_header(admin_user)
         response = client.patch(
@@ -268,7 +270,7 @@ class TestUpdateUserRole:
     @pytest.mark.asyncio
     async def test_admin_cannot_modify_other_admin(
         self, client: TestClient, admin_user: User, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test admin cannot modify another admin's role"""
         # Create another admin
         other_admin = User(
@@ -294,7 +296,7 @@ class TestUpdateUserRole:
     @pytest.mark.asyncio
     async def test_super_admin_can_promote_to_admin(
         self, client: TestClient, super_admin_user: User, submitter_user: User
-    ):
+    ) -> None:
         """Test super admin can promote user to admin"""
         headers = get_auth_header(super_admin_user)
         response = client.patch(
@@ -310,7 +312,7 @@ class TestUpdateUserRole:
     @pytest.mark.asyncio
     async def test_super_admin_can_modify_admin(
         self, client: TestClient, super_admin_user: User, admin_user: User
-    ):
+    ) -> None:
         """Test super admin can modify admin's role"""
         headers = get_auth_header(super_admin_user)
         response = client.patch(
@@ -326,7 +328,7 @@ class TestUpdateUserRole:
     @pytest.mark.asyncio
     async def test_submitter_cannot_update_role(
         self, client: TestClient, submitter_user: User, reviewer_user: User
-    ):
+    ) -> None:
         """Test submitter cannot update any user's role"""
         headers = get_auth_header(submitter_user)
         response = client.patch(
@@ -338,7 +340,7 @@ class TestUpdateUserRole:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @pytest.mark.asyncio
-    async def test_update_role_nonexistent_user(self, client: TestClient, admin_user: User):
+    async def test_update_role_nonexistent_user(self, client: TestClient, admin_user: User) -> None:
         """Test updating role of non-existent user returns 404"""
         headers = get_auth_header(admin_user)
         fake_uuid = "00000000-0000-0000-0000-000000000000"
@@ -357,7 +359,7 @@ class TestDeleteUser:
     @pytest.mark.asyncio
     async def test_super_admin_can_delete_user(
         self, client: TestClient, super_admin_user: User, submitter_user: User
-    ):
+    ) -> None:
         """Test super admin can delete users"""
         headers = get_auth_header(super_admin_user)
         response = client.delete(f"/api/v1/users/{submitter_user.id}", headers=headers)
@@ -366,7 +368,7 @@ class TestDeleteUser:
         assert "deleted" in response.json()["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_super_admin_cannot_delete_self(self, client: TestClient, super_admin_user: User):
+    async def test_super_admin_cannot_delete_self(self, client: TestClient, super_admin_user: User) -> None:
         """Test super admin cannot delete their own account"""
         headers = get_auth_header(super_admin_user)
         response = client.delete(f"/api/v1/users/{super_admin_user.id}", headers=headers)
@@ -377,7 +379,7 @@ class TestDeleteUser:
     @pytest.mark.asyncio
     async def test_admin_cannot_delete_user(
         self, client: TestClient, admin_user: User, submitter_user: User
-    ):
+    ) -> None:
         """Test admin cannot delete users"""
         headers = get_auth_header(admin_user)
         response = client.delete(f"/api/v1/users/{submitter_user.id}", headers=headers)
@@ -387,7 +389,7 @@ class TestDeleteUser:
     @pytest.mark.asyncio
     async def test_submitter_cannot_delete_user(
         self, client: TestClient, submitter_user: User, reviewer_user: User
-    ):
+    ) -> None:
         """Test submitter cannot delete users"""
         headers = get_auth_header(submitter_user)
         response = client.delete(f"/api/v1/users/{reviewer_user.id}", headers=headers)
@@ -395,7 +397,7 @@ class TestDeleteUser:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @pytest.mark.asyncio
-    async def test_delete_nonexistent_user(self, client: TestClient, super_admin_user: User):
+    async def test_delete_nonexistent_user(self, client: TestClient, super_admin_user: User) -> None:
         """Test deleting non-existent user returns 404"""
         headers = get_auth_header(super_admin_user)
         fake_uuid = "00000000-0000-0000-0000-000000000000"
@@ -415,7 +417,7 @@ class TestRoleHierarchy:
         reviewer_user: User,
         admin_user: User,
         super_admin_user: User,
-    ):
+    ) -> None:
         """Test role hierarchy for listing users"""
         # Submitter - should fail
         headers = get_auth_header(submitter_user)
@@ -442,14 +444,14 @@ class TestTokenValidation:
     """Tests for token validation edge cases"""
 
     @pytest.mark.asyncio
-    async def test_malformed_token(self, client: TestClient):
+    async def test_malformed_token(self, client: TestClient) -> None:
         """Test request with malformed token"""
         headers = {"Authorization": "Bearer not.a.valid.jwt"}
         response = client.get("/api/v1/users/me", headers=headers)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_missing_bearer_prefix(self, client: TestClient, submitter_user: User):
+    async def test_missing_bearer_prefix(self, client: TestClient, submitter_user: User) -> None:
         """Test request with token missing Bearer prefix"""
         token_data = {
             "sub": str(submitter_user.id),
@@ -462,7 +464,7 @@ class TestTokenValidation:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_token_with_nonexistent_user_id(self, client: TestClient):
+    async def test_token_with_nonexistent_user_id(self, client: TestClient) -> None:
         """Test token with user ID that doesn't exist in database"""
         token_data = {
             "sub": "00000000-0000-0000-0000-000000000000",
@@ -475,7 +477,7 @@ class TestTokenValidation:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_token_without_sub_claim(self, client: TestClient):
+    async def test_token_without_sub_claim(self, client: TestClient) -> None:
         """Test token without 'sub' claim returns 401"""
         # Create token without sub claim
         token_data = {"email": "test@test.com", "role": UserRole.SUBMITTER.value}
@@ -485,7 +487,7 @@ class TestTokenValidation:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @pytest.mark.asyncio
-    async def test_token_with_invalid_uuid(self, client: TestClient):
+    async def test_token_with_invalid_uuid(self, client: TestClient) -> None:
         """Test token with invalid UUID format returns 401"""
         token_data = {
             "sub": "not-a-valid-uuid",
@@ -504,7 +506,7 @@ class TestIntegrationScenarios:
     @pytest.mark.asyncio
     async def test_complete_user_management_workflow(
         self, client: TestClient, super_admin_user: User, db_session: AsyncSession
-    ):
+    ) -> None:
         """Test complete workflow: create user, promote, view, demote, delete"""
         # Create a new submitter user
         new_user = User(

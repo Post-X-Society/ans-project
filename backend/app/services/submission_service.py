@@ -87,8 +87,9 @@ async def create_submission(
         .join(submission_claims)
         .where(submission_claims.c.submission_id == submission.id)
     )
-    result = await db.execute(stmt)
-    submission.claims = list(result.scalars().all())
+    claim_result = await db.execute(stmt)
+    claims_list = list(claim_result.scalars().all())
+    submission.claims = claims_list
 
     return submission
 
