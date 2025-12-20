@@ -15,7 +15,7 @@ class SnapchatService:
     """Service for interacting with Snapchat Spotlight API via RapidAPI"""
 
     BASE_URL = "https://snapchat3.p.rapidapi.com"
-    MEDIA_DIR = Path("/app/media/spotlight_videos")
+    MEDIA_DIR = Path(os.getenv("MEDIA_DIR", "/app/media/spotlight_videos"))
 
     def __init__(self) -> None:
         self.api_key = os.getenv("RAPIDAPI_KEY")
@@ -63,12 +63,12 @@ class SnapchatService:
                 raise HTTPException(
                     status_code=e.response.status_code,
                     detail=f"Snapchat API error: {e.response.text}",
-                )
+                ) from e
             except httpx.RequestError as e:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail=f"Failed to connect to Snapchat API: {str(e)}",
-                )
+                ) from e
 
     async def download_video(self, video_url: str, spotlight_id: str) -> str:
         """
@@ -104,12 +104,12 @@ class SnapchatService:
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
                     detail=f"Failed to download video: {e.response.status_code}",
-                )
+                ) from e
             except httpx.RequestError as e:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     detail=f"Failed to connect to video server: {str(e)}",
-                )
+                ) from e
             except Exception as e:
                 # Clean up partial file if exists
                 if file_path.exists():
@@ -117,7 +117,7 @@ class SnapchatService:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=f"Failed to save video: {str(e)}",
-                )
+                ) from e
 
     def parse_spotlight_metadata(self, data: dict[str, Any]) -> dict[str, Any]:
         """

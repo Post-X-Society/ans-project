@@ -2,12 +2,13 @@
 Service layer for submission operations
 """
 
-from typing import Optional
+from typing import Optional, Sequence, cast
 from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.claim import Claim
 from app.models.submission import Submission
 from app.models.user import User, UserRole
 from app.schemas.submission import SubmissionCreate, SubmissionListResponse, SubmissionResponse
@@ -80,17 +81,14 @@ async def create_submission(
     # Manually refresh with claims loaded
     await db.refresh(submission)
     # Load claims eagerly
-    from sqlalchemy import select
-
-    from app.models.claim import Claim
-
     stmt = (
         select(Claim)
         .join(submission_claims)
         .where(submission_claims.c.submission_id == submission.id)
     )
     result = await db.execute(stmt)
-    submission.claims = list(result.scalars().all())
+    claims_result: Sequence[Claim] = cast(Sequence[Claim], result.scalars().all())
+    submission.claims = list(claims_result)
 
     return submission
 

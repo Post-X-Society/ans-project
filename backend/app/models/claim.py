@@ -4,7 +4,7 @@ Claim model for extracted claims with vector embeddings
 
 from typing import TYPE_CHECKING, List, Optional
 
-from pgvector.sqlalchemy import Vector
+from pgvector.sqlalchemy import Vector  # type: ignore[import-untyped]
 from sqlalchemy import String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
