@@ -159,6 +159,10 @@ async def list_submissions(
     if status:
         stmt = stmt.where(Submission.status == status)
 
+    # Apply status filter if provided
+    if status:
+        stmt = stmt.where(Submission.status == status)
+
     # Get total count with filters
     count_stmt = select(func.count()).select_from(stmt.subquery())
     count_result = await db.execute(count_stmt)
