@@ -15,7 +15,7 @@ class SnapchatService:
     """Service for interacting with Snapchat Spotlight API via RapidAPI"""
 
     BASE_URL = "https://snapchat3.p.rapidapi.com"
-    MEDIA_DIR = Path("/app/media/spotlight_videos")
+    MEDIA_DIR = Path(os.getenv("MEDIA_DIR", "/app/media/spotlight_videos"))
 
     def __init__(self) -> None:
         self.api_key = os.getenv("RAPIDAPI_KEY")
