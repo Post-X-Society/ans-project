@@ -34,16 +34,28 @@
 						Home
 					</a>
 				</li>
-				<li>
-					<a
-						href="/submit"
-						class="text-gray-700 hover:text-primary-600 transition"
-						class:font-bold={currentPath === '/submit'}
-						class:text-primary-600={currentPath === '/submit'}
-					>
-						Submit
-					</a>
-				</li>
+				{#if auth.isAuthenticated}
+					<li>
+						<a
+							href="/submit"
+							class="text-gray-700 hover:text-primary-600 transition"
+							class:font-bold={currentPath === '/submit'}
+							class:text-primary-600={currentPath === '/submit'}
+						>
+							Submit
+						</a>
+					</li>
+					<li>
+						<a
+							href="/submissions"
+							class="text-gray-700 hover:text-primary-600 transition"
+							class:font-bold={currentPath === '/submissions'}
+							class:text-primary-600={currentPath === '/submissions'}
+						>
+							Submissions
+						</a>
+					</li>
+				{/if}
 				{#if showAdmin}
 					<li>
 						<a

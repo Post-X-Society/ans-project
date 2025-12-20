@@ -13,7 +13,7 @@ describe('Home Page', () => {
 	it('should display the platform description', () => {
 		render(HomePage);
 
-		expect(screen.getByText(/AI-powered fact-checking platform/i)).toBeInTheDocument();
+		expect(screen.getByText(/Community based fact-checking for SnapChat/i)).toBeInTheDocument();
 	});
 
 	it('should have a call-to-action button to submit page', () => {

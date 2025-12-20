@@ -26,14 +26,19 @@ export async function createSpotlightSubmission(
 }
 
 /**
- * Get list of submissions with pagination
+ * Get list of submissions with pagination and optional status filtering
  */
 export async function getSubmissions(
 	page: number = 1,
-	page_size: number = 50
+	page_size: number = 50,
+	status?: 'pending' | 'processing' | 'completed'
 ): Promise<SubmissionListResponse> {
+	const params: Record<string, any> = { page, page_size };
+	if (status) {
+		params.status = status;
+	}
 	const response = await apiClient.get<SubmissionListResponse>('/api/v1/submissions', {
-		params: { page, page_size }
+		params
 	});
 	return response.data;
 }

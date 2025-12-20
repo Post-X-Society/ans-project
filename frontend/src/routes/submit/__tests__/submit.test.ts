@@ -19,23 +19,24 @@ describe('Submit Page', () => {
 	it('should render the page heading', () => {
 		render(SubmitPageTest);
 
-		const heading = screen.getByRole('heading', { name: /submit.*claim/i });
+		const heading = screen.getByRole('heading', { name: /submit.*snapchat.*spotlight/i });
 		expect(heading).toBeInTheDocument();
 	});
 
-	it('should display a description about submitting claims', () => {
+	it('should display a description about submitting Spotlight content', () => {
 		render(SubmitPageTest);
 
-		// Should have paragraph with AI and verified text
-		expect(screen.getByText(/AI.*analyze.*verified/i)).toBeInTheDocument();
+		// Should have paragraph mentioning automatically fetch
+		expect(screen.getByText(/automatically fetch.*video.*metadata/i)).toBeInTheDocument();
 	});
 
 	it('should render the submission form', () => {
 		render(SubmitPageTest);
 
-		// Form should be present with textarea and button
-		expect(screen.getByLabelText(/claim.*content/i)).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
+		// Form should be present with input field for Spotlight link and button
+		expect(screen.getByLabelText(/snapchat.*spotlight.*link/i)).toBeInTheDocument();
+		// When not authenticated, button shows "Please login to submit"
+		expect(screen.getByRole('button', { name: /please login to submit/i })).toBeInTheDocument();
 	});
 
 	it('should render in a container', () => {
