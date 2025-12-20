@@ -53,6 +53,7 @@ jobs:
         working-directory: ./backend
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/ans_test
+          RAPIDAPI_KEY: test-key-for-ci
         run: |
           pytest --cov=app --cov-report=xml --cov-report=term-missing --cov-fail-under=0
       
