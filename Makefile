@@ -54,11 +54,33 @@ test-backend: ## Run backend tests only
 test-frontend: ## Run frontend tests only
 	cd frontend && npm test
 
-lint: ## Run linters
-	@echo "Linting backend..."
-	cd backend && black app/ && ruff app/
-	@echo "Linting frontend..."
-	cd frontend && npm run lint
+lint: ## Format and fix linting issues (run before commit)
+	@echo "🎨 Formatting backend with Black..."
+	@docker compose -f infrastructure/docker-compose.dev.yml run --rm backend black /app
+	@echo "🔧 Auto-fixing Ruff issues..."
+	@docker compose -f infrastructure/docker-compose.dev.yml run --rm backend ruff check /app --fix
+	@echo "✅ Backend linting complete!"
+	@echo "📝 Linting frontend..."
+	@cd frontend && npm run lint
+	@echo "✅ All linting complete!"
+
+check-lint: ## Check linting without fixing
+	@echo "🎨 Checking Black formatting..."
+	@docker compose -f infrastructure/docker-compose.dev.yml run --rm backend black --check /app
+	@echo "🔍 Checking Ruff linting..."
+	@docker compose -f infrastructure/docker-compose.dev.yml run --rm backend ruff check /app
+
+check-mypy: ## Run mypy type checking
+	@echo "🔬 Running mypy type checking..."
+	@docker compose -f infrastructure/docker-compose.dev.yml run --rm backend mypy /app/app/
+
+pre-commit: lint check-mypy test-backend ## Run all pre-commit checks (REQUIRED before committing)
+	@echo ""
+	@echo "✅ All pre-commit checks passed! Safe to commit and push."
+
+ci-local: check-lint check-mypy test-backend ## Simulate CI pipeline locally
+	@echo ""
+	@echo "✅ CI simulation complete! Code is ready for GitHub CI."
 
 clean: ## Clean up containers and volumes
 	@echo "Cleaning up..."

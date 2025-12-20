@@ -2,12 +2,12 @@
 Spotlight model for Snapchat Spotlight content metadata
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID
 
-from sqlalchemy import JSON, BigInteger, ForeignKey, Integer, String, Text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import BigInteger, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import JSON
 
 from app.models.base import TimeStampedModel
 
@@ -49,10 +49,8 @@ class SpotlightContent(TimeStampedModel):
     # Upload timestamp
     upload_timestamp: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
 
-    # Raw API response (use JSONB for PostgreSQL, JSON for SQLite)
-    raw_metadata: Mapped[dict] = mapped_column(
-        JSON().with_variant(JSONB, "postgresql"), nullable=False
-    )
+    # Raw API response
+    raw_metadata: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
 
     # Relationships
     submission: Mapped["Submission"] = relationship(
