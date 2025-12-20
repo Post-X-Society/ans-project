@@ -80,6 +80,8 @@ async def create_submission(
     # Manually refresh with claims loaded
     await db.refresh(submission)
     # Load claims eagerly
+    from sqlalchemy import select
+
     from app.models.claim import Claim
 
     stmt = (
@@ -87,9 +89,8 @@ async def create_submission(
         .join(submission_claims)
         .where(submission_claims.c.submission_id == submission.id)
     )
-    claim_result = await db.execute(stmt)
-    claims_list = list(claim_result.scalars().all())
-    submission.claims = claims_list
+    result = await db.execute(stmt)
+    submission.claims = list(result.scalars().all())
 
     return submission
 
