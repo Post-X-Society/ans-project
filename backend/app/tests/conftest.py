@@ -3,6 +3,7 @@ Pytest configuration and shared fixtures for backend tests
 """
 
 import asyncio
+import os
 from typing import Any, AsyncGenerator, Generator
 
 import pytest
@@ -11,11 +12,23 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from app.core.database import get_db
-from app.core.security import create_access_token
-from app.main import app
-from app.models.base import Base
-from app.models.user import User, UserRole
+# Configure test CORS origins BEFORE importing app
+os.environ["CORS_ORIGINS"] = (
+    "http://localhost:3000,"
+    "https://app.example.com,"
+    "https://staging.ans.postxsociety.cloud,"
+    "https://ans.postxsociety.cloud"
+)
+
+from app.core.config import settings  # noqa: E402
+from app.core.database import get_db  # noqa: E402
+from app.core.security import create_access_token  # noqa: E402
+from app.main import app  # noqa: E402
+from app.models.base import Base  # noqa: E402
+from app.models.user import User, UserRole  # noqa: E402
+
+# Reload settings to pick up test environment variables
+settings.CORS_ORIGINS = os.environ["CORS_ORIGINS"]
 
 
 @pytest.fixture(scope="session")

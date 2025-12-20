@@ -40,6 +40,14 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: Optional[str] = None
     BENEDMO_API_KEY: Optional[str] = None
 
+    # CORS Configuration
+    CORS_ORIGINS: str = "http://localhost:3000,https://ans.postxsociety.cloud"
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Parse CORS_ORIGINS string into list of origins"""
+        return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
 
 # Global settings instance
 settings = Settings()
