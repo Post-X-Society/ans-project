@@ -5,6 +5,8 @@ These tests are written BEFORE implementation and should FAIL initially (RED pha
 Once implementation is complete, these tests should pass (GREEN phase).
 """
 
+from typing import Any
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -117,8 +119,8 @@ class TestSubmissionsListRoleBasedFiltering:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        submitter_user,
-        submitter_user_2,
+        submitter_user: Any,
+        submitter_user_2: Any,
     ) -> None:
         """Test that submitters only see their own submissions"""
         user1, token1 = submitter_user
@@ -165,9 +167,9 @@ class TestSubmissionsListRoleBasedFiltering:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        submitter_user,
-        submitter_user_2,
+        reviewer_user: Any,
+        submitter_user: Any,
+        submitter_user_2: Any,
     ) -> None:
         """Test that reviewers see all submissions"""
         reviewer, reviewer_token = reviewer_user
@@ -211,9 +213,9 @@ class TestSubmissionsListRoleBasedFiltering:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        submitter_user,
-        submitter_user_2,
+        admin_user: Any,
+        submitter_user: Any,
+        submitter_user_2: Any,
     ) -> None:
         """Test that admins see all submissions"""
         admin, admin_token = admin_user
@@ -266,9 +268,9 @@ class TestSubmissionsListAssignedFilter:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        submitter_user,
-        admin_user,
+        reviewer_user: Any,
+        submitter_user: Any,
+        admin_user: Any,
     ) -> None:
         """Test reviewer using assigned_to_me=true filter"""
         reviewer, reviewer_token = reviewer_user
@@ -327,8 +329,8 @@ class TestSubmissionsListAssignedFilter:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        submitter_user,
+        reviewer_user: Any,
+        submitter_user: Any,
     ) -> None:
         """Test reviewer with assigned_to_me=true but no assignments"""
         reviewer, reviewer_token = reviewer_user
@@ -361,8 +363,8 @@ class TestSubmissionsListAssignedFilter:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        submitter_user,
+        admin_user: Any,
+        submitter_user: Any,
     ) -> None:
         """Test that assigned_to_me filter is ignored for admins (they see all)"""
         admin, admin_token = admin_user
@@ -403,8 +405,8 @@ class TestSubmissionsListStatusFilter:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        submitter_user,
+        reviewer_user: Any,
+        submitter_user: Any,
     ) -> None:
         """Test filtering by status=pending"""
         reviewer, reviewer_token = reviewer_user
@@ -440,8 +442,8 @@ class TestSubmissionsListStatusFilter:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        admin_user,
-        submitter_user,
+        admin_user: Any,
+        submitter_user: Any,
     ) -> None:
         """Test filtering by status=completed"""
         admin, admin_token = admin_user
@@ -485,8 +487,8 @@ class TestSubmissionsListPagination:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        submitter_user,
+        reviewer_user: Any,
+        submitter_user: Any,
     ) -> None:
         """Test pagination with different page sizes"""
         reviewer, reviewer_token = reviewer_user
@@ -551,10 +553,10 @@ class TestSubmissionsListResponseFormat:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        reviewer_user_2,
-        submitter_user,
-        admin_user,
+        reviewer_user: Any,
+        reviewer_user_2: Any,
+        submitter_user: Any,
+        admin_user: Any,
     ) -> None:
         """Test that response includes reviewer assignment information"""
         reviewer1, _ = reviewer_user
@@ -617,9 +619,9 @@ class TestSubmissionsListResponseFormat:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        reviewer_user,
-        submitter_user,
-        admin_user,
+        reviewer_user: Any,
+        submitter_user: Any,
+        admin_user: Any,
     ) -> None:
         """Test that response shows is_assigned_to_me for reviewers"""
         reviewer, reviewer_token = reviewer_user
