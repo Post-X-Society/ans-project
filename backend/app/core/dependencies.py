@@ -2,6 +2,7 @@
 Authorization dependencies for role-based access control
 """
 
+from collections.abc import Awaitable, Callable
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
@@ -71,7 +72,7 @@ async def get_current_user(
         ) from e
 
 
-def require_role(*allowed_roles: UserRole):
+def require_role(*allowed_roles: UserRole) -> Callable[..., Awaitable[User]]:
     """
     Dependency factory to require specific roles.
 
