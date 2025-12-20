@@ -1328,7 +1328,9 @@ class TestHelperFunctions:
         assert "not found" in str(exc_info.value.detail).lower()
 
     @pytest.mark.asyncio
-    async def test_get_user_or_404_found(self, db_session: AsyncSession, reviewer_user: Any) -> None:
+    async def test_get_user_or_404_found(
+        self, db_session: AsyncSession, reviewer_user: Any
+    ) -> None:
         """Test _get_user_or_404 when user exists"""
         reviewer, _ = reviewer_user
         user = await _get_user_or_404(db_session, reviewer.id)

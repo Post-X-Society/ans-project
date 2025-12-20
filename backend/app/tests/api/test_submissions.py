@@ -42,7 +42,9 @@ class TestCreateSubmission:
         assert "extracted_claims_count" in data
 
     @pytest.mark.asyncio
-    async def test_create_submission_content_too_short(self, client: TestClient, auth_user: Any) -> None:
+    async def test_create_submission_content_too_short(
+        self, client: TestClient, auth_user: Any
+    ) -> None:
         """Test creating submission with content too short"""
         user, token = auth_user
         payload = {"content": "Short", "type": "text"}  # Less than 10 chars
@@ -55,7 +57,9 @@ class TestCreateSubmission:
         assert "detail" in response.json()
 
     @pytest.mark.asyncio
-    async def test_create_submission_content_empty(self, client: TestClient, auth_user: Any) -> None:
+    async def test_create_submission_content_empty(
+        self, client: TestClient, auth_user: Any
+    ) -> None:
         """Test creating submission with empty content"""
         user, token = auth_user
         payload = {"content": "          ", "type": "text"}  # Only whitespace
@@ -79,7 +83,9 @@ class TestCreateSubmission:
         assert response.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_create_submission_missing_fields(self, client: TestClient, auth_user: Any) -> None:
+    async def test_create_submission_missing_fields(
+        self, client: TestClient, auth_user: Any
+    ) -> None:
         """Test creating submission with missing required fields"""
         user, token = auth_user
         payload = {"content": "Missing type field"}

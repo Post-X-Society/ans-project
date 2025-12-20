@@ -368,7 +368,9 @@ class TestDeleteUser:
         assert "deleted" in response.json()["message"].lower()
 
     @pytest.mark.asyncio
-    async def test_super_admin_cannot_delete_self(self, client: TestClient, super_admin_user: User) -> None:
+    async def test_super_admin_cannot_delete_self(
+        self, client: TestClient, super_admin_user: User
+    ) -> None:
         """Test super admin cannot delete their own account"""
         headers = get_auth_header(super_admin_user)
         response = client.delete(f"/api/v1/users/{super_admin_user.id}", headers=headers)
@@ -397,7 +399,9 @@ class TestDeleteUser:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @pytest.mark.asyncio
-    async def test_delete_nonexistent_user(self, client: TestClient, super_admin_user: User) -> None:
+    async def test_delete_nonexistent_user(
+        self, client: TestClient, super_admin_user: User
+    ) -> None:
         """Test deleting non-existent user returns 404"""
         headers = get_auth_header(super_admin_user)
         fake_uuid = "00000000-0000-0000-0000-000000000000"
