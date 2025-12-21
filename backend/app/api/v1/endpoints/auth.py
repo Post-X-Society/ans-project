@@ -2,14 +2,17 @@
 Authentication endpoints for user registration, login, and token management
 """
 
-from typing import Dict
+from datetime import datetime
+from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
+from app.core.redis import get_redis
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -26,6 +29,9 @@ from app.schemas.auth import (
     UserRegister,
     UserResponse,
 )
+from app.services.token_blacklist import TokenBlacklistService
+
+security = HTTPBearer()
 
 router = APIRouter()
 
@@ -126,10 +132,15 @@ async def login(credentials: UserLogin, db: AsyncSession = Depends(get_db)) -> T
 
 
 @router.post("/refresh", response_model=Token, status_code=status.HTTP_200_OK)
-async def refresh(refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(get_db)) -> Token:
+async def refresh(
+    refresh_data: RefreshTokenRequest,
+    db: AsyncSession = Depends(get_db),
+    redis: Any = Depends(get_redis),
+) -> Token:
     """
     Refresh access token using a valid refresh token.
 
+    Security: Checks if refresh token is blacklisted before issuing new tokens.
     Returns new access and refresh tokens.
     """
     # Decode and verify refresh token
@@ -141,6 +152,18 @@ async def refresh(refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(
             detail="Invalid refresh token",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    # Check if refresh token is blacklisted
+    jti = payload.get("jti")
+    if jti:
+        blacklist_service = TokenBlacklistService(redis)
+        is_blacklisted = await blacklist_service.is_token_blacklisted(jti)
+        if is_blacklisted:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Refresh token has been blacklisted (logged out)",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
     # Verify token type is 'refresh'
     if payload.get("type") != "refresh":
@@ -180,17 +203,41 @@ async def refresh(refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
 async def logout(
-    refresh_data: RefreshTokenRequest, db: AsyncSession = Depends(get_db)
+    refresh_data: RefreshTokenRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    redis: Any = Depends(get_redis),
 ) -> Dict[str, str]:
     """
-    Logout user by invalidating refresh token.
+    Logout user by blacklisting both access and refresh tokens.
 
-    In a production system, this would blacklist the token.
-    For now, we just return success.
+    Tokens are added to Redis blacklist and cannot be used after logout.
+    Security improvement: Prevents compromised tokens from being used.
     """
-    # TODO: Implement token blacklisting using Redis
-    # For now, just return success
-    # The client should delete the tokens from storage
+    blacklist_service = TokenBlacklistService(redis)
+
+    # Get access token from Authorization header
+    access_token = credentials.credentials
+
+    # Decode both tokens to get JTI and expiration
+    access_payload = decode_token(access_token)
+    refresh_payload = decode_token(refresh_data.refresh_token)
+
+    # Blacklist access token if valid
+    if access_payload and access_payload.get("jti"):
+        # Calculate remaining TTL (time until natural expiration)
+        exp_timestamp = access_payload.get("exp", 0)
+        current_timestamp = datetime.utcnow().timestamp()
+        ttl_seconds = max(int(exp_timestamp - current_timestamp), 60)  # Min 60s TTL
+
+        await blacklist_service.blacklist_token(access_payload["jti"], ttl_seconds)
+
+    # Blacklist refresh token if valid
+    if refresh_payload and refresh_payload.get("jti"):
+        exp_timestamp = refresh_payload.get("exp", 0)
+        current_timestamp = datetime.utcnow().timestamp()
+        ttl_seconds = max(int(exp_timestamp - current_timestamp), 60)
+
+        await blacklist_service.blacklist_token(refresh_payload["jti"], ttl_seconds)
 
     return {"message": "Successfully logged out"}
 

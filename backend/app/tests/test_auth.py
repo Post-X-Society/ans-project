@@ -240,19 +240,30 @@ class TestLogout:
             "/api/v1/auth/login",
             json={"email": "logoutuser@example.com", "password": "password123"},
         )
+        access_token = login_response.json()["access_token"]
         refresh_token = login_response.json()["refresh_token"]
 
-        # Logout
-        logout_response = client.post("/api/v1/auth/logout", json={"refresh_token": refresh_token})
+        # Logout (now requires Authorization header)
+        logout_response = client.post(
+            "/api/v1/auth/logout",
+            json={"refresh_token": refresh_token},
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
 
         assert logout_response.status_code == 200
         assert "success" in logout_response.json()["message"].lower()
 
     def test_logout_invalid_token(self, client: TestClient) -> None:
-        """Test logout with invalid token still succeeds"""
-        # Logout should succeed even with invalid token
-        response = client.post("/api/v1/auth/logout", json={"refresh_token": "invalid.token"})
+        """Test logout with invalid tokens still succeeds (graceful degradation)"""
+        # Logout should succeed even with invalid tokens (best effort blacklisting)
+        # This prevents errors when tokens are already expired or malformed
+        response = client.post(
+            "/api/v1/auth/logout",
+            json={"refresh_token": "invalid.refresh.token"},
+            headers={"Authorization": "Bearer invalid.access.token"},
+        )
 
+        # Should succeed (logout is idempotent and graceful)
         assert response.status_code == 200
 
 

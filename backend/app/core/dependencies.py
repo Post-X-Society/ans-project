@@ -3,6 +3,7 @@ Authorization dependencies for role-based access control
 """
 
 from collections.abc import Awaitable, Callable
+from typing import Any
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
@@ -11,8 +12,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.redis import get_redis
 from app.core.security import decode_token
 from app.models.user import User, UserRole
+from app.services.token_blacklist import TokenBlacklistService
 
 security = HTTPBearer()
 
@@ -20,19 +23,23 @@ security = HTTPBearer()
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db),
+    redis: Any = Depends(get_redis),
 ) -> User:
     """
     Get current authenticated user from JWT token.
 
+    Security: Checks if token is blacklisted (logged out) before accepting.
+
     Args:
         credentials: HTTP Bearer token credentials
         db: Database session
+        redis: Redis client for blacklist checking
 
     Returns:
         User: Authenticated user object
 
     Raises:
-        HTTPException: 401 if token is invalid or user not found
+        HTTPException: 401 if token is invalid, blacklisted, or user not found
         HTTPException: 403 if user account is inactive
     """
     token = credentials.credentials
@@ -41,6 +48,17 @@ async def get_current_user(
         payload = decode_token(token)
         if not payload:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+        # Check if token is blacklisted (logged out)
+        jti = payload.get("jti")
+        if jti:
+            blacklist_service = TokenBlacklistService(redis)
+            is_blacklisted = await blacklist_service.is_token_blacklisted(jti)
+            if is_blacklisted:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Token has been blacklisted (logged out)",
+                )
 
         user_id = payload.get("sub")
         if not user_id:
