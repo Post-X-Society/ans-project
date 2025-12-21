@@ -63,8 +63,8 @@ class TokenBlacklistService:
             return False  # Handle None/empty JTI gracefully
 
         key = f"blacklist:{jti}"
-        exists = await self.redis.exists(key)
-        return exists == 1
+        exists: int = await self.redis.exists(key)
+        return bool(exists == 1)
 
 
 # Global service instance (will be initialized with Redis client)
