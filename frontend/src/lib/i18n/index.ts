@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { init, register, locale, t, locales } from 'svelte-i18n';
+import { init, register, locale, t, locales, addMessages } from 'svelte-i18n';
 
 // Import translation files
 import en from './locales/en.json';
@@ -23,8 +23,10 @@ const LOCALE_STORAGE_KEY = 'ans-locale';
  * Register all locales with svelte-i18n
  */
 function registerLocales() {
-	register('en', () => Promise.resolve(en));
-	register('nl', () => Promise.resolve(nl));
+	// Use addMessages for immediate availability instead of async register
+	// This ensures translations are available synchronously
+	addMessages('en', en);
+	addMessages('nl', nl);
 }
 
 /**
