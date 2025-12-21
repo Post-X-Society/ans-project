@@ -36,7 +36,8 @@ def load_translations(locale: str) -> dict[str, Any]:
         file_path = LOCALES_DIR / f"{DEFAULT_LOCALE}.json"
 
     with open(file_path, encoding="utf-8") as f:
-        return json.load(f)
+        result: dict[str, Any] = json.load(f)
+        return result
 
 
 def get_translations(locale: str = DEFAULT_LOCALE) -> dict[str, Any]:
