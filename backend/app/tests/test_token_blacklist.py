@@ -224,8 +224,8 @@ async def test_blacklist_handles_invalid_jti(
     # Act & Assert: Should not raise exceptions
     try:
         await blacklist_service.is_token_blacklisted("")
-        # Test with None - expect graceful handling (mypy will warn, but we want to test this)
-        result = await blacklist_service.is_token_blacklisted(None)  # type: ignore
+        # Test with None - expect graceful handling
+        result = await blacklist_service.is_token_blacklisted(None)
         assert result is False
     except Exception as e:
         pytest.fail(f"Blacklist service should handle invalid JTI gracefully: {e}")
