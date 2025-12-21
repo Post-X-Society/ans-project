@@ -25,6 +25,16 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
     
     steps:
       - uses: actions/checkout@v4
@@ -52,6 +62,7 @@ jobs:
         working-directory: ./backend
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/ans_test
+          REDIS_URL: redis://localhost:6379/0
           RAPIDAPI_KEY: test-key-for-ci
           MEDIA_DIR: /tmp/spotlight_videos
         run: |
