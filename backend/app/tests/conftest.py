@@ -20,8 +20,11 @@ os.environ["CORS_ORIGINS"] = (
     "https://ans.postxsociety.cloud"
 )
 
+from redis.asyncio import Redis  # noqa: E402
+
 from app.core.config import settings  # noqa: E402
 from app.core.database import get_db  # noqa: E402
+from app.core.redis import get_redis  # noqa: E402
 from app.core.security import create_access_token  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models.base import Base  # noqa: E402
@@ -29,6 +32,25 @@ from app.models.user import User, UserRole  # noqa: E402
 
 # Reload settings to pick up test environment variables
 settings.CORS_ORIGINS = os.environ["CORS_ORIGINS"]
+
+
+# Override Redis dependency for tests to create new client per test
+@pytest_asyncio.fixture
+async def test_redis_client() -> AsyncGenerator[Any, None]:
+    """Provide a fresh Redis client for each test"""
+    client: Any = Redis.from_url(settings.REDIS_URL, encoding="utf-8", decode_responses=False)
+    try:
+        yield client
+    finally:
+        # Clean up: flush test data and close properly
+        try:
+            await client.flushdb()
+        except Exception:
+            pass  # Ignore errors during cleanup
+        try:
+            await client.aclose()
+        except Exception:
+            pass  # Ignore errors during close
 
 
 @pytest.fixture(scope="session")
@@ -70,16 +92,21 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture
-def client(db_session: AsyncSession) -> Generator[TestClient, None, None]:
+def client(db_session: AsyncSession, test_redis_client: Any) -> Generator[TestClient, None, None]:
     """
-    Provide a test client with database session override.
+    Provide a test client with database and Redis session overrides.
     """
 
     def override_get_db() -> AsyncSession:
         """Override get_db dependency to use test database"""
         return db_session
 
+    async def override_get_redis() -> AsyncGenerator[Any, None]:
+        """Override get_redis dependency to use test Redis client"""
+        yield test_redis_client
+
     app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_redis] = override_get_redis
 
     with TestClient(app) as test_client:
         yield test_client
