@@ -52,9 +52,7 @@ def get_translations(locale: str = DEFAULT_LOCALE) -> dict[str, Any]:
     return load_translations(locale)
 
 
-def get_translation(
-    key: str, locale: str = DEFAULT_LOCALE, **kwargs: Any
-) -> str:
+def get_translation(key: str, locale: str = DEFAULT_LOCALE, **kwargs: Any) -> str:
     """
     Get a translation by dot-notation key with optional interpolation.
 
