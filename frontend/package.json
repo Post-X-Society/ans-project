@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@tanstack/svelte-query": "^5.62.7",
-    "axios": "^1.13.2"
+    "axios": "^1.13.2",
+    "svelte-i18n": "^4.0.1"
   }
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { authStore } from '$lib/stores/auth';
+	import { t } from '$lib/i18n';
 
 	let auth = $derived($authStore);
 </script>
@@ -9,13 +10,13 @@
 		<div class="flex items-center justify-between">
 			<div>
 				<a href="/" class="hover:opacity-90 transition">
-					<h1 class="text-2xl font-bold">Ans</h1>
-					<p class="text-sm text-primary-100">Community based fact-checking for SnapChat</p>
+					<h1 class="text-2xl font-bold">{$t('common.appName')}</h1>
+					<p class="text-sm text-primary-100">{$t('common.tagline')}</p>
 				</a>
 			</div>
 			{#if auth.isAuthenticated && auth.user}
 				<div class="text-right">
-					<p class="text-sm text-primary-100">Welcome back,</p>
+					<p class="text-sm text-primary-100">{$t('common.welcomeBack')}</p>
 					<p class="font-medium">{auth.user.email}</p>
 				</div>
 			{/if}

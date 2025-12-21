@@ -2,6 +2,7 @@
 	import { createSpotlightSubmission } from '$lib/api/submissions';
 	import { authStore } from '$lib/stores/auth';
 	import type { SpotlightContent } from '$lib/api/types';
+	import { t } from '$lib/i18n';
 
 	// Svelte 5 runes for reactive state
 	let spotlightLink = $state('');
@@ -17,7 +18,7 @@
 		errors = {};
 
 		if (!spotlightLink || spotlightLink.trim().length === 0) {
-			errors.link = 'Spotlight link is required';
+			errors.link = $t('submissions.spotlightLinkRequired');
 			return false;
 		}
 
@@ -25,11 +26,11 @@
 		try {
 			const url = new URL(spotlightLink);
 			if (!url.hostname.includes('snapchat.com') || !url.pathname.includes('spotlight')) {
-				errors.link = 'Please enter a valid Snapchat Spotlight link';
+				errors.link = $t('submissions.spotlightLinkInvalid');
 				return false;
 			}
 		} catch {
-			errors.link = 'Please enter a valid URL';
+			errors.link = $t('validation.invalidUrl');
 			return false;
 		}
 
@@ -60,7 +61,7 @@
 			if (error.response?.data?.detail) {
 				errors.submit = error.response.data.detail;
 			} else {
-				errors.submit = 'Failed to submit Spotlight content. Please try again.';
+				errors.submit = $t('submissions.submissionFailedMessage');
 			}
 		} finally {
 			isSubmitting = false;
@@ -72,7 +73,7 @@
 	<!-- Spotlight Link Input -->
 	<div>
 		<label for="spotlight-link" class="block text-sm font-medium text-gray-700 mb-2">
-			Snapchat Spotlight Link
+			{$t('submissions.spotlightLink')}
 		</label>
 		<input
 			id="spotlight-link"
@@ -80,7 +81,7 @@
 			bind:value={spotlightLink}
 			class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition"
 			class:border-red-500={errors.link}
-			placeholder="https://www.snapchat.com/spotlight/..."
+			placeholder={$t('submissions.spotlightLinkPlaceholder')}
 			disabled={isSubmitting || !isAuthenticated}
 		/>
 
@@ -89,8 +90,7 @@
 		{/if}
 
 		<p class="text-sm text-gray-500 mt-2">
-			Paste a Snapchat Spotlight link to submit for fact-checking. The video and metadata will be
-			automatically fetched.
+			{$t('submissions.spotlightLinkHelp')}
 		</p>
 	</div>
 
@@ -123,20 +123,20 @@
 							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 						></path>
 					</svg>
-					Fetching Spotlight content...
+					{$t('submissions.fetchingContent')}
 				</span>
 			{:else if !isAuthenticated}
-				Please login to submit
+				{$t('submissions.pleaseLoginToSubmit')}
 			{:else}
-				Submit Spotlight for Fact-Checking
+				{$t('submissions.submitForFactCheck')}
 			{/if}
 		</button>
 
 		{#if !isAuthenticated}
 			<p class="mt-2 text-sm text-gray-600 text-center">
-				You must be logged in to submit Spotlight content.
+				{$t('submissions.mustBeLoggedIn')}
 				<a href="/login" class="text-primary-600 hover:text-primary-700 font-medium">
-					Login here
+					{$t('auth.loginHere')}
 				</a>
 			</p>
 		{/if}
@@ -145,12 +145,12 @@
 	<!-- Success Message -->
 	{#if submissionResult}
 		<div class="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
-			<p class="text-green-800 font-medium">✓ Spotlight submitted successfully!</p>
+			<p class="text-green-800 font-medium">{$t('submissions.submissionSuccess')}</p>
 
 			<div class="space-y-2 text-sm">
 				{#if submissionResult.creator_name}
 					<p class="text-green-700">
-						<span class="font-medium">Creator:</span>
+						<span class="font-medium">{$t('submissions.creator')}</span>
 						{submissionResult.creator_name}
 						{#if submissionResult.creator_username}
 							(@{submissionResult.creator_username})
@@ -160,21 +160,20 @@
 
 				{#if submissionResult.view_count}
 					<p class="text-green-700">
-						<span class="font-medium">Views:</span>
-						{submissionResult.view_count.toLocaleString()}
+						{$t('submissions.views', { values: { count: submissionResult.view_count.toLocaleString() } })}
 					</p>
 				{/if}
 
 				{#if submissionResult.duration_ms}
 					<p class="text-green-700">
-						<span class="font-medium">Duration:</span>
+						<span class="font-medium">{$t('submissions.duration')}</span>
 						{Math.round(submissionResult.duration_ms / 1000)}s
 					</p>
 				{/if}
 			</div>
 
 			<p class="text-green-700 text-sm">
-				The video has been downloaded and will be fact-checked shortly.
+				{$t('submissions.videoDownloaded')}
 			</p>
 		</div>
 	{/if}
@@ -182,7 +181,7 @@
 	<!-- Error Message -->
 	{#if errors.submit}
 		<div class="bg-red-50 border border-red-200 rounded-lg p-4">
-			<p class="text-red-800 font-medium">✗ Submission failed</p>
+			<p class="text-red-800 font-medium">{$t('submissions.submissionFailed')}</p>
 			<p class="text-red-700 text-sm mt-1">{errors.submit}</p>
 		</div>
 	{/if}

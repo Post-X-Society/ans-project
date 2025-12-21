@@ -1,7 +1,7 @@
 # ADR 0004: Multilingual Support with Text-Based Language Files
 
 ## Status
-Proposed
+Accepted (Implemented)
 
 ## Date
 2025-12-21

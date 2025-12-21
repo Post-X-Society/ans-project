@@ -3,6 +3,7 @@
 	import { authStore } from '$lib/stores/auth';
 	import { register } from '$lib/api/auth';
 	import { onMount } from 'svelte';
+	import { t } from '$lib/i18n';
 
 	let email = $state('');
 	let password = $state('');
@@ -30,23 +31,23 @@
 		let isValid = true;
 
 		if (!email || email.trim().length === 0) {
-			errors.email = 'Email is required';
+			errors.email = $t('validation.emailRequired');
 			isValid = false;
 		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-			errors.email = 'Please enter a valid email address';
+			errors.email = $t('validation.emailInvalid');
 			isValid = false;
 		}
 
 		if (!password || password.trim().length === 0) {
-			errors.password = 'Password is required';
+			errors.password = $t('validation.passwordRequired');
 			isValid = false;
 		} else if (password.length < 8) {
-			errors.password = 'Password must be at least 8 characters';
+			errors.password = $t('validation.passwordMinLength');
 			isValid = false;
 		}
 
 		if (password !== confirmPassword) {
-			errors.confirmPassword = 'Passwords do not match';
+			errors.confirmPassword = $t('validation.passwordsDoNotMatch');
 			isValid = false;
 		}
 
@@ -70,11 +71,11 @@
 		} catch (error: any) {
 			console.error('Registration error:', error);
 			if (error.response?.status === 400) {
-				errors.general = 'Email already registered or invalid data';
+				errors.general = $t('errors.emailAlreadyRegistered');
 			} else if (error.response?.data?.detail) {
 				errors.general = error.response.data.detail;
 			} else {
-				errors.general = 'An error occurred during registration. Please try again.';
+				errors.general = $t('errors.registerFailed');
 			}
 		} finally {
 			isLoading = false;
@@ -85,11 +86,11 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
 	<div class="max-w-md w-full space-y-8">
 		<div>
-			<h2 class="mt-6 text-center text-3xl font-bold text-gray-900">Create your account</h2>
+			<h2 class="mt-6 text-center text-3xl font-bold text-gray-900">{$t('auth.createAccountTitle')}</h2>
 			<p class="mt-2 text-center text-sm text-gray-600">
-				Already have an account?
+				{$t('auth.alreadyHaveAccount')}
 				<a href="/login" class="font-medium text-primary-600 hover:text-primary-500">
-					Sign in here
+					{$t('auth.signInHere')}
 				</a>
 			</p>
 		</div>
@@ -104,7 +105,7 @@
 			<div class="space-y-4">
 				<div>
 					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-						Email address
+						{$t('auth.email')}
 					</label>
 					<input
 						id="email"
@@ -114,7 +115,7 @@
 						bind:value={email}
 						class="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
 						class:border-red-500={errors.email}
-						placeholder="you@example.com"
+						placeholder={$t('auth.emailPlaceholder')}
 					/>
 					{#if errors.email}
 						<p class="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -123,7 +124,7 @@
 
 				<div>
 					<label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-						Password
+						{$t('auth.password')}
 					</label>
 					<input
 						id="password"
@@ -133,7 +134,7 @@
 						bind:value={password}
 						class="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
 						class:border-red-500={errors.password}
-						placeholder="Minimum 8 characters"
+						placeholder={$t('auth.passwordMinChars')}
 					/>
 					{#if errors.password}
 						<p class="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -142,7 +143,7 @@
 
 				<div>
 					<label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">
-						Confirm Password
+						{$t('auth.confirmPassword')}
 					</label>
 					<input
 						id="confirmPassword"
@@ -152,7 +153,7 @@
 						bind:value={confirmPassword}
 						class="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
 						class:border-red-500={errors.confirmPassword}
-						placeholder="Re-enter your password"
+						placeholder={$t('auth.confirmPasswordPlaceholder')}
 					/>
 					{#if errors.confirmPassword}
 						<p class="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
@@ -167,15 +168,15 @@
 					class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
 				>
 					{#if isLoading}
-						Creating account...
+						{$t('auth.creatingAccount')}
 					{:else}
-						Create account
+						{$t('auth.createAccount')}
 					{/if}
 				</button>
 			</div>
 
 			<div class="text-center text-xs text-gray-500">
-				By creating an account, you will be assigned the SUBMITTER role.
+				{$t('auth.submitterRoleNote')}
 			</div>
 		</form>
 	</div>

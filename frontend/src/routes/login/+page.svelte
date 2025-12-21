@@ -3,6 +3,7 @@
 	import { authStore } from '$lib/stores/auth';
 	import { login } from '$lib/api/auth';
 	import { onMount } from 'svelte';
+	import { t } from '$lib/i18n';
 
 	let email = $state('');
 	let password = $state('');
@@ -24,15 +25,15 @@
 		let isValid = true;
 
 		if (!email || email.trim().length === 0) {
-			errors.email = 'Email is required';
+			errors.email = $t('validation.emailRequired');
 			isValid = false;
 		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-			errors.email = 'Please enter a valid email address';
+			errors.email = $t('validation.emailInvalid');
 			isValid = false;
 		}
 
 		if (!password || password.trim().length === 0) {
-			errors.password = 'Password is required';
+			errors.password = $t('validation.passwordRequired');
 			isValid = false;
 		}
 
@@ -56,7 +57,7 @@
 		} catch (error: any) {
 			console.error('Login error:', error);
 			if (error.response?.status === 401) {
-				errors.general = 'Invalid email or password';
+				errors.general = $t('errors.invalidCredentials');
 			} else if (error.response?.data?.detail) {
 				// Handle detail as string or array
 				const detail = error.response.data.detail;
@@ -68,7 +69,7 @@
 					errors.general = JSON.stringify(detail);
 				}
 			} else {
-				errors.general = 'An error occurred during login. Please try again.';
+				errors.general = $t('errors.loginFailed');
 			}
 		} finally {
 			isLoading = false;
@@ -79,11 +80,11 @@
 <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
 	<div class="max-w-md w-full space-y-8">
 		<div>
-			<h2 class="mt-6 text-center text-3xl font-bold text-gray-900">Sign in to your account</h2>
+			<h2 class="mt-6 text-center text-3xl font-bold text-gray-900">{$t('auth.signInTitle')}</h2>
 			<p class="mt-2 text-center text-sm text-gray-600">
-				Or
+				{$t('common.or')}
 				<a href="/register" class="font-medium text-primary-600 hover:text-primary-500">
-					create a new account
+					{$t('auth.createNewAccount')}
 				</a>
 			</p>
 		</div>
@@ -98,7 +99,7 @@
 			<div class="space-y-4">
 				<div>
 					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-						Email address
+						{$t('auth.email')}
 					</label>
 					<input
 						id="email"
@@ -108,7 +109,7 @@
 						bind:value={email}
 						class="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
 						class:border-red-500={errors.email}
-						placeholder="you@example.com"
+						placeholder={$t('auth.emailPlaceholder')}
 					/>
 					{#if errors.email}
 						<p class="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -117,7 +118,7 @@
 
 				<div>
 					<label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-						Password
+						{$t('auth.password')}
 					</label>
 					<input
 						id="password"
@@ -127,7 +128,7 @@
 						bind:value={password}
 						class="appearance-none relative block w-full px-3 py-2 border border-gray-300 rounded-lg placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
 						class:border-red-500={errors.password}
-						placeholder="Enter your password"
+						placeholder={$t('auth.passwordPlaceholder')}
 					/>
 					{#if errors.password}
 						<p class="mt-1 text-sm text-red-600">{errors.password}</p>
@@ -142,9 +143,9 @@
 					class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
 				>
 					{#if isLoading}
-						Signing in...
+						{$t('auth.signingIn')}
 					{:else}
-						Sign in
+						{$t('auth.signIn')}
 					{/if}
 				</button>
 			</div>
