@@ -3,6 +3,8 @@
 	import { authStore, isAdmin } from '$lib/stores/auth';
 	import { goto } from '$app/navigation';
 	import { logout as apiLogout } from '$lib/api/auth';
+	import { t } from '$lib/i18n';
+	import LanguageSelector from './LanguageSelector.svelte';
 
 	let currentPath = $derived($page.url.pathname);
 	let auth = $derived($authStore);
@@ -31,7 +33,7 @@
 						class:font-bold={currentPath === '/'}
 						class:text-primary-600={currentPath === '/'}
 					>
-						Home
+						{$t('nav.home')}
 					</a>
 				</li>
 				{#if auth.isAuthenticated}
@@ -42,7 +44,7 @@
 							class:font-bold={currentPath === '/submit'}
 							class:text-primary-600={currentPath === '/submit'}
 						>
-							Submit
+							{$t('nav.submit')}
 						</a>
 					</li>
 					<li>
@@ -52,7 +54,7 @@
 							class:font-bold={currentPath === '/submissions'}
 							class:text-primary-600={currentPath === '/submissions'}
 						>
-							Submissions
+							{$t('nav.submissions')}
 						</a>
 					</li>
 				{/if}
@@ -64,13 +66,14 @@
 							class:font-bold={currentPath === '/admin'}
 							class:text-primary-600={currentPath === '/admin'}
 						>
-							Admin
+							{$t('nav.admin')}
 						</a>
 					</li>
 				{/if}
 			</ul>
 
 			<div class="flex items-center space-x-4">
+				<LanguageSelector />
 				{#if auth.isAuthenticated && auth.user}
 					<span class="text-sm text-gray-600">
 						{auth.user.email}
@@ -92,20 +95,20 @@
 						onclick={handleLogout}
 						class="text-sm text-gray-700 hover:text-primary-600 transition font-medium"
 					>
-						Logout
+						{$t('nav.logout')}
 					</button>
 				{:else}
 					<a
 						href="/login"
 						class="text-sm text-gray-700 hover:text-primary-600 transition font-medium"
 					>
-						Login
+						{$t('nav.login')}
 					</a>
 					<a
 						href="/register"
 						class="text-sm bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition font-medium"
 					>
-						Register
+						{$t('nav.register')}
 					</a>
 				{/if}
 			</div>

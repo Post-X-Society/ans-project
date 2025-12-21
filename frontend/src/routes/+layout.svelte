@@ -4,6 +4,10 @@
 	import Header from '$lib/components/Header.svelte';
 	import Nav from '$lib/components/Nav.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import { initI18n } from '$lib/i18n';
+
+	// Initialize i18n
+	initI18n();
 
 	// Create QueryClient instance for TanStack Query
 	const queryClient = new QueryClient({

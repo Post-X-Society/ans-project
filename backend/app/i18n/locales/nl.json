@@ -1,0 +1,65 @@
+{
+  "common": {
+    "success": "Geslaagd",
+    "error": "Fout",
+    "notFound": "Niet gevonden",
+    "unauthorized": "Niet geautoriseerd",
+    "forbidden": "Verboden",
+    "badRequest": "Ongeldig verzoek",
+    "internalError": "Interne serverfout"
+  },
+  "auth": {
+    "invalidCredentials": "Ongeldige e-mail of wachtwoord",
+    "userNotFound": "Gebruiker niet gevonden",
+    "userInactive": "Gebruikersaccount is inactief",
+    "emailAlreadyExists": "E-mail is al geregistreerd",
+    "tokenExpired": "Token is verlopen",
+    "tokenInvalid": "Ongeldig token",
+    "loginSuccess": "Inloggen geslaagd",
+    "logoutSuccess": "Uitloggen geslaagd",
+    "registrationSuccess": "Registratie geslaagd"
+  },
+  "validation": {
+    "required": "Dit veld is verplicht",
+    "emailInvalid": "Ongeldig e-mailadres",
+    "passwordTooShort": "Wachtwoord moet minimaal 8 tekens bevatten",
+    "passwordMismatch": "Wachtwoorden komen niet overeen",
+    "invalidUrl": "Ongeldig URL-formaat"
+  },
+  "users": {
+    "notFound": "Gebruiker niet gevonden",
+    "updated": "Gebruiker succesvol bijgewerkt",
+    "deleted": "Gebruiker succesvol verwijderd",
+    "created": "Gebruiker succesvol aangemaakt",
+    "roleUpdated": "Gebruikersrol succesvol bijgewerkt",
+    "cannotModifySelf": "Kan je eigen account niet wijzigen",
+    "cannotDeleteSelf": "Kan je eigen account niet verwijderen"
+  },
+  "submissions": {
+    "notFound": "Inzending niet gevonden",
+    "created": "Inzending succesvol aangemaakt",
+    "updated": "Inzending succesvol bijgewerkt",
+    "deleted": "Inzending succesvol verwijderd",
+    "invalidSpotlightLink": "Ongeldige Snapchat Spotlight-link",
+    "fetchFailed": "Ophalen van Spotlight-inhoud mislukt",
+    "accessDenied": "Je hebt geen toegang tot deze inzending"
+  },
+  "reviewers": {
+    "assigned": "Reviewer succesvol toegewezen",
+    "removed": "Reviewer succesvol verwijderd",
+    "alreadyAssigned": "Reviewer is al toegewezen",
+    "notAssigned": "Reviewer is niet toegewezen aan deze inzending",
+    "invalidReviewer": "Gebruiker is geen geldige reviewer"
+  },
+  "claims": {
+    "notFound": "Claim niet gevonden",
+    "created": "Claim succesvol aangemaakt",
+    "updated": "Claim succesvol bijgewerkt"
+  },
+  "factCheck": {
+    "notFound": "Factcheck niet gevonden",
+    "created": "Factcheck succesvol aangemaakt",
+    "updated": "Factcheck succesvol bijgewerkt",
+    "inProgress": "Factcheck in behandeling"
+  }
+}

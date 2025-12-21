@@ -1,0 +1,65 @@
+{
+  "common": {
+    "success": "Success",
+    "error": "Error",
+    "notFound": "Not found",
+    "unauthorized": "Unauthorized",
+    "forbidden": "Forbidden",
+    "badRequest": "Bad request",
+    "internalError": "Internal server error"
+  },
+  "auth": {
+    "invalidCredentials": "Invalid email or password",
+    "userNotFound": "User not found",
+    "userInactive": "User account is inactive",
+    "emailAlreadyExists": "Email already registered",
+    "tokenExpired": "Token has expired",
+    "tokenInvalid": "Invalid token",
+    "loginSuccess": "Login successful",
+    "logoutSuccess": "Logout successful",
+    "registrationSuccess": "Registration successful"
+  },
+  "validation": {
+    "required": "This field is required",
+    "emailInvalid": "Invalid email address",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match",
+    "invalidUrl": "Invalid URL format"
+  },
+  "users": {
+    "notFound": "User not found",
+    "updated": "User updated successfully",
+    "deleted": "User deleted successfully",
+    "created": "User created successfully",
+    "roleUpdated": "User role updated successfully",
+    "cannotModifySelf": "Cannot modify your own account",
+    "cannotDeleteSelf": "Cannot delete your own account"
+  },
+  "submissions": {
+    "notFound": "Submission not found",
+    "created": "Submission created successfully",
+    "updated": "Submission updated successfully",
+    "deleted": "Submission deleted successfully",
+    "invalidSpotlightLink": "Invalid Snapchat Spotlight link",
+    "fetchFailed": "Failed to fetch Spotlight content",
+    "accessDenied": "You do not have access to this submission"
+  },
+  "reviewers": {
+    "assigned": "Reviewer assigned successfully",
+    "removed": "Reviewer removed successfully",
+    "alreadyAssigned": "Reviewer is already assigned",
+    "notAssigned": "Reviewer is not assigned to this submission",
+    "invalidReviewer": "User is not a valid reviewer"
+  },
+  "claims": {
+    "notFound": "Claim not found",
+    "created": "Claim created successfully",
+    "updated": "Claim updated successfully"
+  },
+  "factCheck": {
+    "notFound": "Fact check not found",
+    "created": "Fact check created successfully",
+    "updated": "Fact check updated successfully",
+    "inProgress": "Fact check in progress"
+  }
+}
