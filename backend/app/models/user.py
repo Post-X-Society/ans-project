@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import TimeStampedModel
 
 if TYPE_CHECKING:
+    from app.models.fact_check_rating import FactCheckRating
     from app.models.submission import Submission
     from app.models.submission_reviewer import SubmissionReviewer
     from app.models.volunteer import Volunteer
@@ -55,6 +56,11 @@ class User(TimeStampedModel):
     assigned_reviews: Mapped[List["SubmissionReviewer"]] = relationship(
         "SubmissionReviewer",
         foreign_keys="SubmissionReviewer.assigned_by_id",
+        back_populates="assigned_by",
+        lazy="selectin",
+    )
+    fact_check_ratings: Mapped[List["FactCheckRating"]] = relationship(
+        "FactCheckRating",
         back_populates="assigned_by",
         lazy="selectin",
     )

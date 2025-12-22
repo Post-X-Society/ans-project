@@ -3,7 +3,7 @@ FactCheck model for verified fact-check results
 """
 
 import json
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 from uuid import UUID
 
 from sqlalchemy import Float, ForeignKey, String, Text, TypeDecorator
@@ -15,6 +15,7 @@ from app.models.base import TimeStampedModel
 
 if TYPE_CHECKING:
     from app.models.claim import Claim
+    from app.models.fact_check_rating import FactCheckRating
 
 
 class StringList(TypeDecorator[list[str]]):
@@ -62,6 +63,12 @@ class FactCheck(TimeStampedModel):
 
     # Relationships
     claim: Mapped["Claim"] = relationship("Claim", back_populates="fact_checks", lazy="selectin")
+    ratings: Mapped[List["FactCheckRating"]] = relationship(
+        "FactCheckRating",
+        back_populates="fact_check",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )
 
     def __repr__(self) -> str:
         return f"<FactCheck(id={self.id}, verdict={self.verdict}, confidence={self.confidence})>"
