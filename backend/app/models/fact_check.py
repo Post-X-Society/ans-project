@@ -16,6 +16,7 @@ from app.models.base import TimeStampedModel
 if TYPE_CHECKING:
     from app.models.claim import Claim
     from app.models.fact_check_rating import FactCheckRating
+    from app.models.peer_review import PeerReview
 
 
 class StringList(TypeDecorator[list[str]]):
@@ -65,6 +66,12 @@ class FactCheck(TimeStampedModel):
     claim: Mapped["Claim"] = relationship("Claim", back_populates="fact_checks", lazy="selectin")
     ratings: Mapped[List["FactCheckRating"]] = relationship(
         "FactCheckRating",
+        back_populates="fact_check",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )
+    peer_reviews: Mapped[List["PeerReview"]] = relationship(
+        "PeerReview",
         back_populates="fact_check",
         lazy="selectin",
         cascade="all, delete-orphan",

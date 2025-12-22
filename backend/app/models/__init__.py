@@ -7,6 +7,12 @@ from app.models.base import Base, TimeStampedModel
 from app.models.claim import Claim
 from app.models.fact_check import FactCheck
 from app.models.fact_check_rating import FactCheckRating
+from app.models.peer_review import ApprovalStatus, PeerReview
+from app.models.peer_review_trigger import (
+    PeerReviewTrigger,
+    TriggerType,
+    seed_default_triggers,
+)
 from app.models.rating_definition import RatingDefinition
 from app.models.spotlight import SpotlightContent
 from app.models.submission import Submission
@@ -26,6 +32,11 @@ __all__ = [
     "Claim",
     "FactCheck",
     "FactCheckRating",
+    "PeerReview",
+    "ApprovalStatus",
+    "PeerReviewTrigger",
+    "TriggerType",
+    "seed_default_triggers",
     "RatingDefinition",
     "Volunteer",
     "WorkflowState",
