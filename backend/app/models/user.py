@@ -12,6 +12,7 @@ from app.models.base import TimeStampedModel
 
 if TYPE_CHECKING:
     from app.models.fact_check_rating import FactCheckRating
+    from app.models.peer_review import PeerReview
     from app.models.submission import Submission
     from app.models.submission_reviewer import SubmissionReviewer
     from app.models.volunteer import Volunteer
@@ -62,6 +63,11 @@ class User(TimeStampedModel):
     fact_check_ratings: Mapped[List["FactCheckRating"]] = relationship(
         "FactCheckRating",
         back_populates="assigned_by",
+        lazy="selectin",
+    )
+    peer_reviews: Mapped[List["PeerReview"]] = relationship(
+        "PeerReview",
+        back_populates="reviewer",
         lazy="selectin",
     )
 
