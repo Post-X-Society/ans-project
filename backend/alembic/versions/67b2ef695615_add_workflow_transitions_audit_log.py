@@ -79,7 +79,9 @@ def upgrade() -> None:
 
     # Set default values for existing rows
     op.execute("UPDATE submissions SET workflow_state = 'submitted' WHERE workflow_state IS NULL")
-    op.execute("UPDATE submissions SET requires_peer_review = FALSE WHERE requires_peer_review IS NULL")
+    op.execute(
+        "UPDATE submissions SET requires_peer_review = FALSE WHERE requires_peer_review IS NULL"
+    )
 
     # Make workflow_state and requires_peer_review NOT NULL after populating defaults
     op.alter_column("submissions", "workflow_state", nullable=False)
