@@ -5,16 +5,18 @@ Submission model for user-submitted content
 from typing import TYPE_CHECKING, List, Optional
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import Boolean, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import TimeStampedModel, submission_claims
+from app.models.workflow_transition import WorkflowState
 
 if TYPE_CHECKING:
     from app.models.claim import Claim
     from app.models.spotlight import SpotlightContent
     from app.models.submission_reviewer import SubmissionReviewer
     from app.models.user import User
+    from app.models.workflow_transition import WorkflowTransition
 
 
 class Submission(TimeStampedModel):
@@ -28,6 +30,23 @@ class Submission(TimeStampedModel):
     status: Mapped[str] = mapped_column(
         String(50), nullable=False, default="pending", index=True
     )  # pending, processing, completed
+
+    # EFCSN workflow fields
+    workflow_state: Mapped[WorkflowState] = mapped_column(
+        Enum(WorkflowState, values_callable=lambda obj: [e.value for e in obj]),
+        nullable=False,
+        default=WorkflowState.SUBMITTED,
+        index=True,
+    )
+    requires_peer_review: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+    )
+    peer_review_reason: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+    )
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="submissions", lazy="selectin")
@@ -45,6 +64,12 @@ class Submission(TimeStampedModel):
         foreign_keys="SubmissionReviewer.submission_id",
         back_populates="submission",
         lazy="selectin",
+    )
+    workflow_transitions: Mapped[List["WorkflowTransition"]] = relationship(
+        "WorkflowTransition",
+        back_populates="submission",
+        lazy="selectin",
+        order_by="WorkflowTransition.created_at",
     )
 
     def __repr__(self) -> str:
