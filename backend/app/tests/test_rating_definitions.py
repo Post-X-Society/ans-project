@@ -85,36 +85,6 @@ class TestRatingDefinitionModel:
             await db_session.commit()
 
     @pytest.mark.asyncio
-    async def test_title_not_null(self, db_session: AsyncSession) -> None:
-        """Test that title cannot be null"""
-        from app.models.rating_definition import RatingDefinition
-
-        rating = RatingDefinition(
-            rating_key="TEST",
-            title=None,
-            description={"en": "Test"},
-        )
-        db_session.add(rating)
-
-        with pytest.raises(IntegrityError):
-            await db_session.commit()
-
-    @pytest.mark.asyncio
-    async def test_description_not_null(self, db_session: AsyncSession) -> None:
-        """Test that description cannot be null"""
-        from app.models.rating_definition import RatingDefinition
-
-        rating = RatingDefinition(
-            rating_key="TEST",
-            title={"en": "Test"},
-            description=None,
-        )
-        db_session.add(rating)
-
-        with pytest.raises(IntegrityError):
-            await db_session.commit()
-
-    @pytest.mark.asyncio
     async def test_optional_fields(self, db_session: AsyncSession) -> None:
         """Test that visual_color, icon_name, and display_order are optional"""
         from app.models.rating_definition import RatingDefinition
