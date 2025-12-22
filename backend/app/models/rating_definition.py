@@ -10,11 +10,14 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Integer, String, func
+from sqlalchemy import JSON, DateTime, Integer, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
+
+# Cross-database compatible JSON type: uses JSON for SQLite, JSONB for PostgreSQL
+JSONType = JSON().with_variant(JSONB, "postgresql")
 
 
 class RatingDefinition(Base):
@@ -44,8 +47,8 @@ class RatingDefinition(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     rating_key: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
-    title: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
-    description: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    title: Mapped[dict[str, Any]] = mapped_column(JSONType, nullable=False)
+    description: Mapped[dict[str, Any]] = mapped_column(JSONType, nullable=False)
     visual_color: Mapped[str | None] = mapped_column(String(7), nullable=True)
     icon_name: Mapped[str | None] = mapped_column(String(50), nullable=True)
     display_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
