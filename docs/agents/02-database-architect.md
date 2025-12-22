@@ -331,3 +331,97 @@ async def test_field_required(self, db_session: AsyncSession) -> None:
     await db_session.commit()
     assert model.field == "valid_value"
 ```
+
+### Issue 5: PostgreSQL Enum Created Twice (CRITICAL)
+**Error**: `psycopg2.errors.DuplicateObject: type "enumname" already exists`
+
+**Cause**: SQLAlchemy automatically creates enum types when it encounters enum columns in `op.create_table()` or `op.add_column()` operations, **even when** you:
+- Set `create_type=False`
+- Set `checkfirst=True`
+- Manually create the enum first
+
+This causes the enum to be created twice, breaking fresh database deployments.
+
+**Why This Happens**:
+When you use an `sa.Enum()` or `postgresql.ENUM()` in column definitions within `op.create_table()` or `op.add_column()`, SQLAlchemy's table creation mechanism automatically calls the enum's `create()` method as part of the table's `before_create` event, ignoring the `create_type=False` flag.
+
+**Fix**: Use raw SQL with `IF NOT EXISTS` check, then reference with BOTH `create_type=False` AND `schema_type=False`:
+
+```python
+from sqlalchemy.dialects import postgresql
+import sqlalchemy as sa
+
+def upgrade():
+    # STEP 1: Create enum ONCE using raw SQL with IF NOT EXISTS
+    op.execute("""
+        DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'myenumname') THEN
+                CREATE TYPE myenumname AS ENUM ('value1', 'value2', 'value3');
+            END IF;
+        END$$;
+    """)
+
+    # STEP 2: Reference the existing enum (DON'T let SQLAlchemy create it)
+    my_enum = postgresql.ENUM(
+        'value1', 'value2', 'value3',
+        name="myenumname",
+        create_type=False,   # Don't create during column operations
+        schema_type=False,   # Don't try to manage the type at all
+    )
+
+    # STEP 3: Use the enum in your migrations
+    op.add_column('my_table', sa.Column('status', my_enum, nullable=False))
+
+    # OR in create_table:
+    op.create_table(
+        'my_table',
+        sa.Column('id', sa.UUID(), primary_key=True),
+        sa.Column('status', my_enum, nullable=False),
+    )
+
+def downgrade():
+    op.drop_column('my_table', 'status')
+
+    # Drop the enum type
+    op.execute("DROP TYPE IF EXISTS myenumname CASCADE")
+```
+
+**❌ WRONG - This will fail**:
+```python
+# Creating enum explicitly then using it in table
+my_enum = sa.Enum('value1', 'value2', name='myenumname')
+my_enum.create(op.get_bind(), checkfirst=True)  # Creates enum
+
+# SQLAlchemy will try to create it AGAIN here, causing duplicate error:
+op.create_table(
+    'my_table',
+    sa.Column('status', my_enum, nullable=False),  # ❌ Triggers second creation
+)
+```
+
+**✅ CORRECT**:
+```python
+# Use raw SQL with IF NOT EXISTS
+op.execute("""
+    DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'myenumname') THEN
+            CREATE TYPE myenumname AS ENUM ('value1', 'value2');
+        END IF;
+    END$$;
+""")
+
+# Reference with create_type=False AND schema_type=False
+my_enum = postgresql.ENUM(
+    'value1', 'value2',
+    name='myenumname',
+    create_type=False,
+    schema_type=False,
+)
+```
+
+**Testing**:
+- ✅ **ALWAYS test migrations on a fresh database** (not just upgrades from previous version)
+- ✅ Test both `alembic upgrade head` and `alembic downgrade base && alembic upgrade head`
+- ✅ Test in CI with empty database to catch enum creation issues
+
+**See Also**: GitHub Issue #99
