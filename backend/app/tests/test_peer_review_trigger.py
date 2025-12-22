@@ -330,6 +330,7 @@ class TestDefaultTriggerSeeding:
         assert len(political_triggers) >= 1
         political = political_triggers[0]
         assert political.enabled is True
+        assert political.threshold_value is not None
         assert "keywords" in political.threshold_value
 
         # Check for engagement threshold trigger
@@ -339,6 +340,7 @@ class TestDefaultTriggerSeeding:
         assert len(engagement_triggers) >= 1
         engagement = engagement_triggers[0]
         assert engagement.enabled is True
+        assert engagement.threshold_value is not None
         assert (
             "min_views" in engagement.threshold_value or "threshold" in engagement.threshold_value
         )
