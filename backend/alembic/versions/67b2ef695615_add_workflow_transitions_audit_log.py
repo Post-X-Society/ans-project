@@ -44,12 +44,28 @@ def upgrade() -> None:
     2. Add workflow_state, requires_peer_review, peer_review_reason to submissions
     3. Create workflow_transitions table with proper indexes
     """
-    # Create the enum type for workflow states
-    workflow_state_enum = sa.Enum(
+    # Create the enum type manually using raw SQL
+    # We do this once at the top, then use schema_type to reference the existing type
+    from sqlalchemy.dialects import postgresql
+
+    op.execute("""
+        DO $$ BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'workflowstate') THEN
+                CREATE TYPE workflowstate AS ENUM (
+                    'submitted', 'claim_extraction', 'pending_review', 'under_review',
+                    'peer_review_required', 'peer_review', 'completed', 'rejected'
+                );
+            END IF;
+        END$$;
+    """)
+
+    # Reference the existing enum type (don't create it)
+    workflow_state_enum = postgresql.ENUM(
         *WORKFLOW_STATES,
         name="workflowstate",
+        create_type=False,
+        schema_type=False,  # Don't try to manage the type
     )
-    workflow_state_enum.create(op.get_bind(), checkfirst=True)
 
     # Add new columns to submissions table
     op.add_column(
