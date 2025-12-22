@@ -17,6 +17,11 @@ from app.models.rating_definition import RatingDefinition
 from app.models.spotlight import SpotlightContent
 from app.models.submission import Submission
 from app.models.submission_reviewer import SubmissionReviewer
+from app.models.transparency_page import (
+    TransparencyPage,
+    TransparencyPageVersion,
+    seed_transparency_pages,
+)
 from app.models.user import User, UserRole
 from app.models.volunteer import Volunteer
 from app.models.workflow_transition import WorkflowState, WorkflowTransition
@@ -41,4 +46,7 @@ __all__ = [
     "Volunteer",
     "WorkflowState",
     "WorkflowTransition",
+    "TransparencyPage",
+    "TransparencyPageVersion",
+    "seed_transparency_pages",
 ]
