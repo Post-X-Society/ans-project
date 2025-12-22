@@ -5,6 +5,12 @@ Import all models here so Alembic can discover them
 
 from app.models.base import Base, TimeStampedModel
 from app.models.claim import Claim
+from app.models.correction import (
+    Correction,
+    CorrectionApplication,
+    CorrectionStatus,
+    CorrectionType,
+)
 from app.models.fact_check import FactCheck
 from app.models.fact_check_rating import FactCheckRating
 from app.models.peer_review import ApprovalStatus, PeerReview
@@ -33,6 +39,10 @@ __all__ = [
     "Claim",
     "FactCheck",
     "FactCheckRating",
+    "Correction",
+    "CorrectionApplication",
+    "CorrectionType",
+    "CorrectionStatus",
     "PeerReview",
     "ApprovalStatus",
     "PeerReviewTrigger",
