@@ -13,6 +13,7 @@ from app.models.submission import Submission
 from app.models.submission_reviewer import SubmissionReviewer
 from app.models.user import User, UserRole
 from app.models.volunteer import Volunteer
+from app.models.workflow_transition import WorkflowState, WorkflowTransition
 
 __all__ = [
     "Base",
@@ -27,4 +28,6 @@ __all__ = [
     "FactCheckRating",
     "RatingDefinition",
     "Volunteer",
+    "WorkflowState",
+    "WorkflowTransition",
 ]
