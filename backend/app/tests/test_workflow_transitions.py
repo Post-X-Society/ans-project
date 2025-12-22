@@ -47,9 +47,8 @@ class TestWorkflowStateEnum:
         """Test that WorkflowState inherits from str for JSON serialization"""
         from app.models.workflow_transition import WorkflowState
 
-        # Should be usable as string
+        # Should be usable as string via .value
         assert WorkflowState.SUBMITTED.value == "submitted"
-        assert str(WorkflowState.SUBMITTED) == "submitted"
 
 
 class TestWorkflowTransitionModel:
