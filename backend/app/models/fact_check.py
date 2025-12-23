@@ -15,6 +15,7 @@ from app.models.base import TimeStampedModel
 
 if TYPE_CHECKING:
     from app.models.claim import Claim
+    from app.models.correction import Correction
     from app.models.fact_check_rating import FactCheckRating
     from app.models.peer_review import PeerReview
     from app.models.source import Source
@@ -84,6 +85,12 @@ class FactCheck(TimeStampedModel):
     )
     source_records: Mapped[List["Source"]] = relationship(
         "Source",
+        back_populates="fact_check",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )
+    corrections: Mapped[List["Correction"]] = relationship(
+        "Correction",
         back_populates="fact_check",
         lazy="selectin",
         cascade="all, delete-orphan",

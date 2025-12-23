@@ -11,6 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import TimeStampedModel
 
 if TYPE_CHECKING:
+    from app.models.correction import Correction, CorrectionApplication
     from app.models.fact_check_rating import FactCheckRating
     from app.models.peer_review import PeerReview
     from app.models.submission import Submission
@@ -68,6 +69,16 @@ class User(TimeStampedModel):
     peer_reviews: Mapped[List["PeerReview"]] = relationship(
         "PeerReview",
         back_populates="reviewer",
+        lazy="selectin",
+    )
+    corrections_reviewed: Mapped[List["Correction"]] = relationship(
+        "Correction",
+        back_populates="reviewed_by",
+        lazy="selectin",
+    )
+    correction_applications: Mapped[List["CorrectionApplication"]] = relationship(
+        "CorrectionApplication",
+        back_populates="applied_by",
         lazy="selectin",
     )
 
