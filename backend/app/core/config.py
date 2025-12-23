@@ -43,10 +43,27 @@ class Settings(BaseSettings):
     # CORS Configuration
     CORS_ORIGINS: str = "http://localhost:3000,https://ans.postxsociety.cloud"
 
+    # SMTP Email Configuration (for annual review reminders)
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM_EMAIL: str = "noreply@anscheckt.nl"
+    SMTP_FROM_NAME: str = "AnsCheckt"
+    SMTP_USE_TLS: bool = True
+
+    # Admin email for notifications
+    ADMIN_EMAIL: Optional[str] = None
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS_ORIGINS string into list of origins"""
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
+    @property
+    def smtp_configured(self) -> bool:
+        """Check if SMTP is properly configured."""
+        return bool(self.SMTP_HOST and self.SMTP_USER and self.SMTP_PASSWORD)
 
 
 # Global settings instance
