@@ -14,6 +14,7 @@ from app.models.peer_review_trigger import (
     seed_default_triggers,
 )
 from app.models.rating_definition import RatingDefinition
+from app.models.source import Source, SourceRelevance, SourceType
 from app.models.spotlight import SpotlightContent
 from app.models.submission import Submission
 from app.models.submission_reviewer import SubmissionReviewer
@@ -38,6 +39,9 @@ __all__ = [
     "TriggerType",
     "seed_default_triggers",
     "RatingDefinition",
+    "Source",
+    "SourceType",
+    "SourceRelevance",
     "Volunteer",
     "WorkflowState",
     "WorkflowTransition",

@@ -6,7 +6,7 @@ import json
 from typing import TYPE_CHECKING, Any, List, Optional
 from uuid import UUID
 
-from sqlalchemy import Float, ForeignKey, String, Text, TypeDecorator
+from sqlalchemy import Float, ForeignKey, Integer, String, Text, TypeDecorator
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.engine import Dialect
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from app.models.claim import Claim
     from app.models.fact_check_rating import FactCheckRating
     from app.models.peer_review import PeerReview
+    from app.models.source import Source
 
 
 class StringList(TypeDecorator[list[str]]):
@@ -62,6 +63,11 @@ class FactCheck(TimeStampedModel):
         StringList, nullable=False
     )  # URLs to fact-check sources
 
+    # Source count for EFCSN compliance (Issue #69)
+    sources_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+
     # Relationships
     claim: Mapped["Claim"] = relationship("Claim", back_populates="fact_checks", lazy="selectin")
     ratings: Mapped[List["FactCheckRating"]] = relationship(
@@ -72,6 +78,12 @@ class FactCheck(TimeStampedModel):
     )
     peer_reviews: Mapped[List["PeerReview"]] = relationship(
         "PeerReview",
+        back_populates="fact_check",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+    )
+    source_records: Mapped[List["Source"]] = relationship(
+        "Source",
         back_populates="fact_check",
         lazy="selectin",
         cascade="all, delete-orphan",
