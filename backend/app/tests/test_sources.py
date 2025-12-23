@@ -20,32 +20,11 @@ class TestSourceModel:
         from app.models.claim import Claim
         from app.models.fact_check import FactCheck
         from app.models.source import Source, SourceRelevance, SourceType
-        from app.models.submission import Submission
-        from app.models.user import User, UserRole
 
-        # Create prerequisite objects
-        user = User(
-            email="test@example.com",
-            password_hash="hashed_password",
-            role=UserRole.SUBMITTER,
-            is_active=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        submission = Submission(
-            user_id=user.id,
-            content="Test submission content",
-            submission_type="text",
-            status="pending",
-        )
-        db_session.add(submission)
-        await db_session.flush()
-
+        # Create prerequisite objects - Claim has content and source fields
         claim = Claim(
-            submission_id=submission.id,
-            claim_text="Test claim",
-            extracted_by="ai",
+            content="Test claim content",
+            source="user_submission",
         )
         db_session.add(claim)
         await db_session.flush()
@@ -98,32 +77,11 @@ class TestSourceModel:
         from app.models.claim import Claim
         from app.models.fact_check import FactCheck
         from app.models.source import Source, SourceType
-        from app.models.submission import Submission
-        from app.models.user import User, UserRole
 
         # Create prerequisite objects
-        user = User(
-            email="test2@example.com",
-            password_hash="hashed_password",
-            role=UserRole.SUBMITTER,
-            is_active=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        submission = Submission(
-            user_id=user.id,
-            content="Test submission",
-            submission_type="text",
-            status="pending",
-        )
-        db_session.add(submission)
-        await db_session.flush()
-
         claim = Claim(
-            submission_id=submission.id,
-            claim_text="Test claim",
-            extracted_by="ai",
+            content="Test claim content",
+            source="user_submission",
         )
         db_session.add(claim)
         await db_session.flush()
@@ -198,32 +156,11 @@ class TestSourceModel:
         from app.models.claim import Claim
         from app.models.fact_check import FactCheck
         from app.models.source import Source, SourceType
-        from app.models.submission import Submission
-        from app.models.user import User, UserRole
 
         # Create prerequisite objects
-        user = User(
-            email="test3@example.com",
-            password_hash="hashed_password",
-            role=UserRole.SUBMITTER,
-            is_active=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        submission = Submission(
-            user_id=user.id,
-            content="Test submission",
-            submission_type="text",
-            status="pending",
-        )
-        db_session.add(submission)
-        await db_session.flush()
-
         claim = Claim(
-            submission_id=submission.id,
-            claim_text="Test claim",
-            extracted_by="ai",
+            content="Test claim content",
+            source="user_submission",
         )
         db_session.add(claim)
         await db_session.flush()
@@ -270,32 +207,11 @@ class TestSourceModel:
         from app.models.claim import Claim
         from app.models.fact_check import FactCheck
         from app.models.source import Source, SourceRelevance, SourceType
-        from app.models.submission import Submission
-        from app.models.user import User, UserRole
 
         # Create prerequisite objects
-        user = User(
-            email="test4@example.com",
-            password_hash="hashed_password",
-            role=UserRole.SUBMITTER,
-            is_active=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        submission = Submission(
-            user_id=user.id,
-            content="Test submission",
-            submission_type="text",
-            status="pending",
-        )
-        db_session.add(submission)
-        await db_session.flush()
-
         claim = Claim(
-            submission_id=submission.id,
-            claim_text="Test claim",
-            extracted_by="ai",
+            content="Test claim content",
+            source="user_submission",
         )
         db_session.add(claim)
         await db_session.flush()
@@ -344,32 +260,11 @@ class TestSourceModel:
         from app.models.claim import Claim
         from app.models.fact_check import FactCheck
         from app.models.source import Source, SourceType
-        from app.models.submission import Submission
-        from app.models.user import User, UserRole
 
         # Create prerequisite objects
-        user = User(
-            email="test5@example.com",
-            password_hash="hashed_password",
-            role=UserRole.SUBMITTER,
-            is_active=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        submission = Submission(
-            user_id=user.id,
-            content="Test submission",
-            submission_type="text",
-            status="pending",
-        )
-        db_session.add(submission)
-        await db_session.flush()
-
         claim = Claim(
-            submission_id=submission.id,
-            claim_text="Test claim",
-            extracted_by="ai",
+            content="Test claim content",
+            source="user_submission",
         )
         db_session.add(claim)
         await db_session.flush()
@@ -410,32 +305,11 @@ class TestSourceModel:
         from app.models.claim import Claim
         from app.models.fact_check import FactCheck
         from app.models.source import Source, SourceType
-        from app.models.submission import Submission
-        from app.models.user import User, UserRole
 
         # Create prerequisite objects
-        user = User(
-            email="test6@example.com",
-            password_hash="hashed_password",
-            role=UserRole.SUBMITTER,
-            is_active=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        submission = Submission(
-            user_id=user.id,
-            content="Test submission",
-            submission_type="text",
-            status="pending",
-        )
-        db_session.add(submission)
-        await db_session.flush()
-
         claim = Claim(
-            submission_id=submission.id,
-            claim_text="Test claim",
-            extracted_by="ai",
+            content="Test claim content",
+            source="user_submission",
         )
         db_session.add(claim)
         await db_session.flush()
@@ -470,32 +344,11 @@ class TestSourceModel:
         from app.models.claim import Claim
         from app.models.fact_check import FactCheck
         from app.models.source import Source, SourceType
-        from app.models.submission import Submission
-        from app.models.user import User, UserRole
 
         # Create prerequisite objects
-        user = User(
-            email="test7@example.com",
-            password_hash="hashed_password",
-            role=UserRole.SUBMITTER,
-            is_active=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        submission = Submission(
-            user_id=user.id,
-            content="Test submission",
-            submission_type="text",
-            status="pending",
-        )
-        db_session.add(submission)
-        await db_session.flush()
-
         claim = Claim(
-            submission_id=submission.id,
-            claim_text="Test claim",
-            extracted_by="ai",
+            content="Test claim content",
+            source="user_submission",
         )
         db_session.add(claim)
         await db_session.flush()
@@ -541,32 +394,11 @@ class TestSourceModel:
         from app.models.claim import Claim
         from app.models.fact_check import FactCheck
         from app.models.source import Source, SourceRelevance, SourceType
-        from app.models.submission import Submission
-        from app.models.user import User, UserRole
 
         # Create prerequisite objects
-        user = User(
-            email="test8@example.com",
-            password_hash="hashed_password",
-            role=UserRole.SUBMITTER,
-            is_active=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        submission = Submission(
-            user_id=user.id,
-            content="Test submission",
-            submission_type="text",
-            status="pending",
-        )
-        db_session.add(submission)
-        await db_session.flush()
-
         claim = Claim(
-            submission_id=submission.id,
-            claim_text="Test claim",
-            extracted_by="ai",
+            content="Test claim content",
+            source="user_submission",
         )
         db_session.add(claim)
         await db_session.flush()
@@ -615,32 +447,11 @@ class TestFactCheckSourcesCount:
         """Test that sources_count defaults to 0"""
         from app.models.claim import Claim
         from app.models.fact_check import FactCheck
-        from app.models.submission import Submission
-        from app.models.user import User, UserRole
 
         # Create prerequisite objects
-        user = User(
-            email="test9@example.com",
-            password_hash="hashed_password",
-            role=UserRole.SUBMITTER,
-            is_active=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        submission = Submission(
-            user_id=user.id,
-            content="Test submission",
-            submission_type="text",
-            status="pending",
-        )
-        db_session.add(submission)
-        await db_session.flush()
-
         claim = Claim(
-            submission_id=submission.id,
-            claim_text="Test claim",
-            extracted_by="ai",
+            content="Test claim content",
+            source="user_submission",
         )
         db_session.add(claim)
         await db_session.flush()
@@ -663,32 +474,11 @@ class TestFactCheckSourcesCount:
         """Test that sources_count can be updated"""
         from app.models.claim import Claim
         from app.models.fact_check import FactCheck
-        from app.models.submission import Submission
-        from app.models.user import User, UserRole
 
         # Create prerequisite objects
-        user = User(
-            email="test10@example.com",
-            password_hash="hashed_password",
-            role=UserRole.SUBMITTER,
-            is_active=True,
-        )
-        db_session.add(user)
-        await db_session.flush()
-
-        submission = Submission(
-            user_id=user.id,
-            content="Test submission",
-            submission_type="text",
-            status="pending",
-        )
-        db_session.add(submission)
-        await db_session.flush()
-
         claim = Claim(
-            submission_id=submission.id,
-            claim_text="Test claim",
-            extracted_by="ai",
+            content="Test claim content",
+            source="user_submission",
         )
         db_session.add(claim)
         await db_session.flush()
