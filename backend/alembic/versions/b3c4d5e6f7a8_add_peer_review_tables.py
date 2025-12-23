@@ -264,7 +264,7 @@ def seed_default_triggers() -> None:
                     INSERT INTO peer_review_triggers
                     (id, trigger_type, enabled, threshold_value, description, created_at, updated_at)
                     VALUES
-                    (:id::uuid, :trigger_type, :enabled, :threshold_value, :description, now(), now())
+                    (CAST(:id AS uuid), :trigger_type, :enabled, :threshold_value, :description, now(), now())
                     """
                 ),
                 {
