@@ -1,7 +1,7 @@
 """add corrections tables
 
-Revision ID: c4d5e6f7a8b9
-Revises: b3c4d5e6f7a8
+Revision ID: d5e6f7a8b9c0
+Revises: c4d5e6f7a8b9
 Create Date: 2025-12-22 18:00:00.000000
 
 Issue #75: Database Schema for Corrections Tables
@@ -18,8 +18,8 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "c4d5e6f7a8b9"
-down_revision: Union[str, None] = "b3c4d5e6f7a8"
+revision: str = "d5e6f7a8b9c0"
+down_revision: Union[str, None] = "c4d5e6f7a8b9"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
