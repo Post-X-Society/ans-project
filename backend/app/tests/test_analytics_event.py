@@ -86,8 +86,7 @@ class TestAnalyticsEventModel:
         await db_session.commit()
         await db_session.refresh(event)
 
-        # SQLite doesn't preserve timezone info, so compare without tzinfo
-        assert event.occurred_at == custom_time.replace(tzinfo=None)
+        assert event.occurred_at == custom_time
 
     @pytest.mark.asyncio
     async def test_analytics_event_types(self, db_session: AsyncSession) -> None:
@@ -251,10 +250,9 @@ class TestAnalyticsEventModel:
         events = result.scalars().all()
 
         assert len(events) == 3
-        # SQLite doesn't preserve timezone info, so compare without tzinfo
-        assert events[0].occurred_at == times[0].replace(tzinfo=None)
-        assert events[1].occurred_at == times[1].replace(tzinfo=None)
-        assert events[2].occurred_at == times[2].replace(tzinfo=None)
+        assert events[0].occurred_at == times[0]
+        assert events[1].occurred_at == times[1]
+        assert events[2].occurred_at == times[2]
 
     @pytest.mark.asyncio
     async def test_analytics_event_repr(self, db_session: AsyncSession) -> None:
