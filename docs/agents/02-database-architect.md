@@ -241,6 +241,10 @@ def downgrade():
 ❌ **Test database NOT NULL constraints** when using `Mapped[Type]` without `| None` - type system already enforces it
 ❌ **Forget to run Black formatter** after editing migration files
 ❌ **Ignore migration chain conflicts** - update `down_revision` when rebasing
+❌ **Use `::` cast operator with parameters** - always use `CAST(:param AS type)` instead of `:param::type`
+❌ **Push migrations without testing on fresh database** - always test `alembic upgrade head` on clean database first
+❌ **Create enums with just `create_type=False`** - must use BOTH `create_type=False` AND `schema_type=False`
+❌ **Skip migration validation** - validate before PR to prevent database wipes
 
 ## Do This:
 ✅ Always test migrations both ways (up and down)
@@ -252,6 +256,10 @@ def downgrade():
 ✅ **Run Black formatter on all migration files** after creation or edits
 ✅ **Check and update `down_revision`** when rebasing on main
 ✅ **Test with SQLite** (CI tests) to ensure cross-database compatibility
+✅ **Use `CAST(:param AS type)` syntax** for type casting in parameterized queries
+✅ **Test on fresh database** - run `alembic upgrade head` on empty database before PR
+✅ **Use raw SQL + `schema_type=False`** for PostgreSQL enums
+✅ **Complete migration checklist** before creating PR (see Issue #7, section C)
 
 ## Common CI/PR Issues and Solutions
 
@@ -425,3 +433,205 @@ my_enum = postgresql.ENUM(
 - ✅ Test in CI with empty database to catch enum creation issues
 
 **See Also**: GitHub Issue #99
+
+### Issue 6: SQL Syntax Error with :: Cast Operator (CRITICAL)
+**Error**: `psycopg2.errors.SyntaxError: syntax error at or near ":"` when using parameterized queries
+
+**Cause**: Using PostgreSQL's `::` cast operator syntax with SQLAlchemy parameterized queries. The `::` operator cannot be combined with `:parameter` placeholders in parameterized queries.
+
+**Example of Broken Code**:
+```python
+from sqlalchemy import text
+
+connection.execute(
+    text("""
+        INSERT INTO my_table (id, data)
+        VALUES (:id::uuid, :data::jsonb)
+    """),
+    {"id": "some-uuid-string", "data": json.dumps({"key": "value"})}
+)
+# ❌ ERROR: syntax error at or near ":"
+# The :id::uuid is interpreted as :id: :uuid which is invalid
+```
+
+**Why This Happens**:
+- SQLAlchemy uses `:parameter_name` for parameter placeholders
+- PostgreSQL uses `::type` for type casting
+- Combining them creates `:id::uuid` which SQLAlchemy tries to parse as parameter `:id:` followed by `:uuid`
+- This creates ambiguous syntax that PostgreSQL can't parse
+
+**Fix**: Use `CAST(:parameter AS type)` syntax instead:
+
+```python
+# ✅ CORRECT - Use CAST() function
+connection.execute(
+    text("""
+        INSERT INTO my_table (id, data)
+        VALUES (CAST(:id AS uuid), CAST(:data AS jsonb))
+    """),
+    {"id": "some-uuid-string", "data": json.dumps({"key": "value"})}
+)
+```
+
+**Common Patterns**:
+```python
+# ❌ WRONG
+:id::uuid
+:content::jsonb
+:metadata::json
+:price::numeric
+:timestamp::timestamp
+
+# ✅ CORRECT
+CAST(:id AS uuid)
+CAST(:content AS jsonb)
+CAST(:metadata AS json)
+CAST(:price AS numeric)
+CAST(:timestamp AS timestamp)
+```
+
+**Alternative - Let PostgreSQL Infer Types**:
+If the table column already has the correct type, you don't need explicit casting:
+```python
+# If the column is already UUID type, no cast needed:
+connection.execute(
+    text("INSERT INTO my_table (id) VALUES (:id)"),
+    {"id": "uuid-string"}  # PostgreSQL will auto-convert
+)
+```
+
+**Best Practice**:
+- ✅ **Use CAST() syntax** with parameterized queries
+- ✅ **Let PostgreSQL infer types** when column type is already correct
+- ❌ **Never use :: operator** with SQLAlchemy parameters
+
+### Issue 7: Database Wipes During Development (CRITICAL)
+**Problem**: Migration errors require dropping the entire database, losing all development data including admin users, test data, and manual configurations.
+
+**Root Causes**:
+1. **Invalid migration files** - Syntax errors in SQL (like Issue #6)
+2. **Enum double-creation** - PostgreSQL enum conflicts (like Issue #5)
+3. **Migration chain conflicts** - Multiple heads in migration tree
+4. **Missing down_revision updates** - Migrations not properly chained
+
+**Prevention Strategies**:
+
+#### A. Test Migrations BEFORE Pushing to Main
+```bash
+# 1. Test on fresh database first
+docker compose down -v  # Wipe test database
+docker compose up -d postgres
+alembic upgrade head    # Should succeed without errors
+
+# 2. Test rollback
+alembic downgrade base
+alembic upgrade head    # Should still work
+
+# 3. Only push if both succeed
+git push origin your-branch
+```
+
+#### B. Use Migration Validation Script
+Create `backend/scripts/validate_migration.py`:
+```python
+"""Validate migration on fresh database before pushing."""
+import subprocess
+import sys
+
+def validate():
+    """Test migration on clean database."""
+    print("🧪 Testing migration on fresh database...")
+
+    # Wipe database
+    subprocess.run(["docker", "compose", "down", "-v"], check=True)
+    subprocess.run(["docker", "compose", "up", "-d", "postgres"], check=True)
+
+    # Wait for postgres
+    subprocess.run(["sleep", "5"], check=True)
+
+    # Test upgrade
+    result = subprocess.run(["alembic", "upgrade", "head"], capture_output=True)
+    if result.returncode != 0:
+        print("❌ Migration failed!")
+        print(result.stderr.decode())
+        sys.exit(1)
+
+    # Test downgrade
+    result = subprocess.run(["alembic", "downgrade", "base"], capture_output=True)
+    if result.returncode != 0:
+        print("❌ Rollback failed!")
+        print(result.stderr.decode())
+        sys.exit(1)
+
+    print("✅ Migration validated successfully!")
+
+if __name__ == "__main__":
+    validate()
+```
+
+#### C. Required Checks Before Creating PR
+**Checklist** - MUST complete ALL before creating PR:
+- [ ] Migration tested on fresh database (`alembic upgrade head` succeeds)
+- [ ] Rollback tested (`alembic downgrade -1` succeeds)
+- [ ] No `::` cast operators in parameterized queries (use `CAST()`)
+- [ ] Enums use raw SQL + `schema_type=False` pattern
+- [ ] `down_revision` points to correct parent migration
+- [ ] Black formatter run on migration file
+- [ ] JSONB uses `JSON().with_variant(JSONB, "postgresql")`
+- [ ] CI tests pass (including migration tests)
+
+#### D. Migration Review Checklist
+When reviewing migration PRs, check:
+1. ✅ Uses `CAST(:param AS type)` not `:param::type`
+2. ✅ PostgreSQL enums created with raw SQL + IF NOT EXISTS
+3. ✅ Enum references use both `create_type=False` AND `schema_type=False`
+4. ✅ JSONB uses cross-database compatible pattern
+5. ✅ No duplicate `down_revision` values (check `alembic heads`)
+6. ✅ Migration has both upgrade() and downgrade()
+7. ✅ Seed data uses `CAST()` not `::`
+
+#### E. Recovery After Failed Migration
+If a migration does fail and database wipe is needed:
+```bash
+# 1. Fix the migration file
+# 2. Commit the fix
+git add backend/alembic/versions/broken_migration.py
+git commit -m "fix: correct SQL syntax in migration"
+git push origin main
+
+# 3. Rebuild local environment
+make clean && make dev
+
+# 4. Recreate admin user
+make seed-admin
+
+# 5. Add test data if needed
+python -m scripts.seed_test_data  # If you have a seed script
+```
+
+#### F. Protecting Against Data Loss
+**For local development**:
+1. Create database backup script:
+```bash
+# scripts/backup_db.sh
+docker compose exec postgres pg_dump -U ans_user ans_db > backup_$(date +%Y%m%d_%H%M%S).sql
+```
+
+2. Run before risky migrations:
+```bash
+./scripts/backup_db.sh
+alembic upgrade head
+# If it fails, restore:
+# docker compose exec -T postgres psql -U ans_user ans_db < backup_*.sql
+```
+
+**For production**:
+- ✅ ALWAYS test migrations on staging first
+- ✅ Take database snapshot before production deployment
+- ✅ Have rollback plan ready
+- ✅ Monitor migration execution
+- ✅ Never deploy migrations without thorough testing
+
+**Key Principle**:
+> **MIGRATIONS MUST BE TESTED ON FRESH DATABASES**
+> If it doesn't work on a fresh database, it will break production deployments and CI/CD.
