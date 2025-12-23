@@ -14,6 +14,15 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
+def normalize_dt(dt: datetime) -> datetime:
+    """Normalize datetime by stripping timezone info for consistent comparisons.
+
+    SQLite may return timezone-naive or timezone-aware datetimes inconsistently.
+    This helper ensures consistent comparison regardless of timezone presence.
+    """
+    return dt.replace(tzinfo=None) if dt.tzinfo else dt
+
+
 class TestAnalyticsEventModel:
     """Tests for AnalyticsEvent model"""
 
@@ -86,8 +95,8 @@ class TestAnalyticsEventModel:
         await db_session.commit()
         await db_session.refresh(event)
 
-        # SQLite returns timezone-naive datetimes, so compare without tzinfo
-        assert event.occurred_at == custom_time.replace(tzinfo=None)
+        # Normalize both sides for consistent comparison regardless of timezone
+        assert normalize_dt(event.occurred_at) == normalize_dt(custom_time)
 
     @pytest.mark.asyncio
     async def test_analytics_event_types(self, db_session: AsyncSession) -> None:
@@ -251,10 +260,10 @@ class TestAnalyticsEventModel:
         events = result.scalars().all()
 
         assert len(events) == 3
-        # SQLite returns timezone-naive datetimes, so compare without tzinfo
-        assert events[0].occurred_at == times[0].replace(tzinfo=None)
-        assert events[1].occurred_at == times[1].replace(tzinfo=None)
-        assert events[2].occurred_at == times[2].replace(tzinfo=None)
+        # Normalize both sides for consistent comparison regardless of timezone
+        assert normalize_dt(events[0].occurred_at) == normalize_dt(times[0])
+        assert normalize_dt(events[1].occurred_at) == normalize_dt(times[1])
+        assert normalize_dt(events[2].occurred_at) == normalize_dt(times[2])
 
     @pytest.mark.asyncio
     async def test_analytics_event_repr(self, db_session: AsyncSession) -> None:
