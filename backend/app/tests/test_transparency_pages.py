@@ -346,6 +346,7 @@ class TestTransparencyPageVersionModel:
         assert len(all_versions) == 3
         assert all_versions[0].version == 1
         assert all_versions[-1].version == 3
+        assert all_versions[-1].change_summary is not None
         assert "EFCSN compliance" in all_versions[-1].change_summary
 
     @pytest.mark.asyncio
