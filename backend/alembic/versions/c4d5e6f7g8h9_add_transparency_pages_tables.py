@@ -322,7 +322,7 @@ def seed_transparency_pages() -> None:
                     (id, slug, title, content, version, last_reviewed, next_review_due,
                      created_at, updated_at)
                     VALUES
-                    (:id::uuid, :slug, :title::jsonb, :content::jsonb, 1, :last_reviewed,
+                    (CAST(:id AS uuid), :slug, CAST(:title AS jsonb), CAST(:content AS jsonb), 1, :last_reviewed,
                      :next_review_due, now(), now())
                     """
                 ),
