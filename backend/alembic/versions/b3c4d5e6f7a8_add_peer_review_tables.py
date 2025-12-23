@@ -1,7 +1,7 @@
 """add peer_review tables
 
 Revision ID: b3c4d5e6f7a8
-Revises: a2b3c4d5e6f7
+Revises: 67b2ef695615
 Create Date: 2025-12-22 12:00:00.000000
 
 Issue #63: Database Schema for Peer Review Tables
@@ -16,7 +16,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "b3c4d5e6f7a8"
-down_revision: Union[str, None] = "a2b3c4d5e6f7"
+down_revision: Union[str, None] = "67b2ef695615"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

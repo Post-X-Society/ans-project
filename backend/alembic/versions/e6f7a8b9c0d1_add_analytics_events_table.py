@@ -1,7 +1,7 @@
 """add analytics events table
 
 Revision ID: e6f7a8b9c0d1
-Revises: c4d5e6f7a8b9
+Revises: c4d5e6f7g8h9
 Create Date: 2025-12-22 12:00:00.000000
 
 This migration adds:
@@ -17,7 +17,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "e6f7a8b9c0d1"
-down_revision: Union[str, None] = "c4d5e6f7a8b9"
+down_revision: Union[str, None] = "c4d5e6f7g8h9"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
