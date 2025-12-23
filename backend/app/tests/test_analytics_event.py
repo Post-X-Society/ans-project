@@ -306,6 +306,7 @@ class TestAnalyticsEventModel:
         await db_session.commit()
         await db_session.refresh(event)
 
+        assert event.event_metadata is not None
         assert event.event_metadata["user_info"]["browser"] == "Chrome"
         assert event.event_metadata["context"]["page"] == "/fact-checks/123"
         assert event.event_metadata["tracking"]["page_views"] == 5
