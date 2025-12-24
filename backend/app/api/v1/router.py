@@ -4,7 +4,14 @@ API v1 router - aggregates all v1 endpoints
 
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import auth, health, reviewer_assignments, submissions, users
+from app.api.v1.endpoints import (
+    auth,
+    health,
+    reviewer_assignments,
+    submissions,
+    transparency,
+    users,
+)
 
 api_router = APIRouter()
 
@@ -16,3 +23,4 @@ api_router.include_router(submissions.router, prefix="/submissions", tags=["subm
 api_router.include_router(
     reviewer_assignments.router, prefix="/submissions", tags=["reviewer-assignments"]
 )
+api_router.include_router(transparency.router, prefix="/transparency", tags=["transparency"])

@@ -1,6 +1,14 @@
 import type { QueryOptions, MutationOptions } from '@tanstack/svelte-query';
 import { getSubmissions, getSubmission, createSubmission } from './submissions';
-import type { SubmissionListResponse, Submission, SubmissionCreate } from './types';
+import { getTransparencyPages, getTransparencyPage } from './transparency';
+import type {
+	SubmissionListResponse,
+	Submission,
+	SubmissionCreate,
+	TransparencyPageListResponse,
+	TransparencyPage,
+	TransparencyPageSlug
+} from './types';
 
 /**
  * Query options for fetching list of submissions
@@ -35,5 +43,30 @@ export function createSubmissionMutationOptions(): MutationOptions<
 > {
 	return {
 		mutationFn: (data: SubmissionCreate) => createSubmission(data)
+	};
+}
+
+/**
+ * Query options for fetching all transparency pages
+ */
+export function transparencyPagesQueryOptions(): QueryOptions<TransparencyPageListResponse> {
+	return {
+		queryKey: ['transparency-pages'],
+		queryFn: () => getTransparencyPages(),
+		staleTime: 5 * 60 * 1000 // 5 minutes - transparency pages don't change often
+	};
+}
+
+/**
+ * Query options for fetching a single transparency page by slug
+ */
+export function transparencyPageQueryOptions(
+	slug: TransparencyPageSlug | string,
+	lang?: string
+): QueryOptions<TransparencyPage> {
+	return {
+		queryKey: ['transparency-pages', slug, lang],
+		queryFn: () => getTransparencyPage(slug, lang),
+		staleTime: 5 * 60 * 1000 // 5 minutes
 	};
 }

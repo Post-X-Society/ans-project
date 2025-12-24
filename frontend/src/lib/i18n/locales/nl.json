@@ -173,5 +173,33 @@
     "select": "Taal",
     "english": "English",
     "dutch": "Nederlands"
+  },
+  "transparency": {
+    "title": "Over Ons",
+    "navTitle": "Transparantie",
+    "lastUpdated": "Laatst bijgewerkt: {date}",
+    "version": "Versie {version}",
+    "loadingPage": "Pagina laden...",
+    "pageNotFound": "Pagina niet gevonden",
+    "pageNotFoundMessage": "De transparantiepagina die je zoekt bestaat niet.",
+    "backToAbout": "Terug naar Over Ons",
+    "pages": {
+      "methodology": "Methodologie",
+      "organization": "Organisatie",
+      "team": "Ons Team",
+      "funding": "Financiering",
+      "partnerships": "Partnerschappen",
+      "corrections-policy": "Correctiebeleid",
+      "privacy-policy": "Privacybeleid"
+    },
+    "descriptions": {
+      "methodology": "Hoe wij content factchecken",
+      "organization": "Onze juridische structuur en bestuur",
+      "team": "Maak kennis met de mensen achter Ans",
+      "funding": "Onze financieringsbronnen",
+      "partnerships": "Organisaties waarmee we samenwerken",
+      "corrections-policy": "Hoe wij correcties afhandelen",
+      "privacy-policy": "Hoe wij je gegevens beschermen"
+    }
   }
 }

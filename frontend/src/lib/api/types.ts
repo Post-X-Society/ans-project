@@ -127,3 +127,41 @@ export interface UserListResponse {
 	page_size: number;
 	total_pages: number;
 }
+
+// Transparency Page Types (Issue #85 - EFCSN Compliance)
+export interface TransparencyPage {
+	id: string;
+	slug: string;
+	title: Record<string, string>;
+	content: Record<string, string>;
+	version: number;
+	last_reviewed: string | null;
+	next_review_due: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface TransparencyPageSummary {
+	id: string;
+	slug: string;
+	title: Record<string, string>;
+	version: number;
+	last_reviewed: string | null;
+	next_review_due: string | null;
+	updated_at: string;
+}
+
+export interface TransparencyPageListResponse {
+	items: TransparencyPageSummary[];
+	total: number;
+}
+
+// Valid transparency page slugs for type safety
+export type TransparencyPageSlug =
+	| 'methodology'
+	| 'organization'
+	| 'team'
+	| 'funding'
+	| 'partnerships'
+	| 'corrections-policy'
+	| 'privacy-policy';
