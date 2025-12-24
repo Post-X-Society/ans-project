@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { authStore } from '$lib/stores/auth';
+	import { t } from '$lib/i18n';
 	import SubmissionsList from '$lib/components/submissions/SubmissionsList.svelte';
 	import type { PageData } from './$types';
 
@@ -11,20 +12,11 @@
 	let auth = $derived($authStore);
 
 	/**
-	 * Get role-specific welcome message
+	 * Get role-specific welcome message using i18n
 	 */
 	function getWelcomeMessage(role: string): string {
-		switch (role) {
-			case 'super_admin':
-			case 'admin':
-				return 'View and manage all submissions from all users.';
-			case 'reviewer':
-				return 'View all submissions for fact-checking and review.';
-			case 'submitter':
-				return 'View your submitted content and track their status.';
-			default:
-				return 'View your submissions here.';
-		}
+		const roleKey = role === 'super_admin' ? 'superAdmin' : role;
+		return $t(`roleMessages.${roleKey}`) || $t('roleMessages.default');
 	}
 
 	/**
@@ -45,6 +37,24 @@
 				return baseClasses;
 		}
 	}
+
+	/**
+	 * Get translated role name
+	 */
+	function getRoleName(role: string): string {
+		switch (role) {
+			case 'super_admin':
+				return $t('roles.superAdmin');
+			case 'admin':
+				return $t('roles.admin');
+			case 'reviewer':
+				return $t('roles.reviewer');
+			case 'submitter':
+				return $t('roles.submitter');
+			default:
+				return role;
+		}
+	}
 </script>
 
 <div class="container mx-auto px-4 py-8">
@@ -52,16 +62,16 @@
 		<!-- Page Header -->
 		<div class="mb-8">
 			<div class="flex items-center justify-between mb-4">
-				<h1 class="text-3xl font-bold text-gray-900">Submissions</h1>
+				<h1 class="text-3xl font-bold text-gray-900">{$t('submissions.title')}</h1>
 				{#if auth.user}
 					<span class={getRoleBadgeClasses(auth.user.role)}>
-						{auth.user.role.replace('_', ' ').toUpperCase()}
+						{getRoleName(auth.user.role).toUpperCase()}
 					</span>
 				{/if}
 			</div>
 
 			<p class="text-gray-600">
-				{auth.user ? getWelcomeMessage(auth.user.role) : 'View submissions here.'}
+				{auth.user ? getWelcomeMessage(auth.user.role) : $t('roleMessages.default')}
 			</p>
 
 			<!-- Quick Actions -->
@@ -83,7 +93,7 @@
 							d="M12 4v16m8-8H4"
 						/>
 					</svg>
-					New Submission
+					{$t('submissions.newSubmission')}
 				</a>
 
 				{#if auth.user && (auth.user.role === 'admin' || auth.user.role === 'super_admin')}
@@ -110,7 +120,7 @@
 								d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
 							/>
 						</svg>
-						Admin Panel
+						{$t('admin.adminPanel')}
 					</a>
 				{/if}
 			</div>

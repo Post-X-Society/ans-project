@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { authStore, isSuperAdmin } from '$lib/stores/auth';
+	import { t, getCurrentLocale } from '$lib/i18n';
 	import { getUsers, createUser, updateUserRole, updateUser } from '$lib/api/users';
 	import type { User, UserRole } from '$lib/api/types';
 
@@ -33,7 +34,7 @@
 			users = await getUsers();
 		} catch (err: any) {
 			console.error('Error loading users:', err);
-			error = err.response?.data?.detail || 'Failed to load users';
+			error = err.response?.data?.detail || $t('errors.loadFailed');
 		} finally {
 			isLoading = false;
 		}
@@ -59,7 +60,7 @@
 			await loadUsers();
 		} catch (err: any) {
 			console.error('Error creating user:', err);
-			createError = err.response?.data?.detail || 'Failed to create user';
+			createError = err.response?.data?.detail || $t('errors.saveFailed');
 		} finally {
 			isCreating = false;
 		}
@@ -72,7 +73,7 @@
 			editingUserId = null;
 		} catch (err: any) {
 			console.error('Error updating role:', err);
-			alert(err.response?.data?.detail || 'Failed to update role');
+			alert(err.response?.data?.detail || $t('errors.saveFailed'));
 		}
 	}
 
@@ -82,7 +83,7 @@
 			await loadUsers();
 		} catch (err: any) {
 			console.error('Error updating user:', err);
-			alert(err.response?.data?.detail || 'Failed to update user');
+			alert(err.response?.data?.detail || $t('errors.saveFailed'));
 		}
 	}
 
@@ -112,8 +113,24 @@
 		}
 	}
 
+	function getRoleName(role: UserRole): string {
+		switch (role) {
+			case 'super_admin':
+				return $t('roles.superAdmin');
+			case 'admin':
+				return $t('roles.admin');
+			case 'reviewer':
+				return $t('roles.reviewer');
+			case 'submitter':
+				return $t('roles.submitter');
+			default:
+				return role;
+		}
+	}
+
 	function formatDate(dateString: string): string {
-		return new Date(dateString).toLocaleDateString('en-US', {
+		const locale = getCurrentLocale();
+		return new Date(dateString).toLocaleDateString(locale === 'nl' ? 'nl-NL' : 'en-US', {
 			year: 'numeric',
 			month: 'short',
 			day: 'numeric'
@@ -124,18 +141,18 @@
 <div class="container mx-auto px-4 py-8">
 	<div class="max-w-6xl mx-auto">
 		<div class="flex justify-between items-center mb-6">
-			<h1 class="text-3xl font-bold text-gray-900">User Management</h1>
+			<h1 class="text-3xl font-bold text-gray-900">{$t('admin.title')}</h1>
 			<button
 				onclick={() => (showCreateModal = true)}
 				class="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition font-medium"
 			>
-				Create User
+				{$t('admin.createUser')}
 			</button>
 		</div>
 
 		{#if isLoading}
 			<div class="text-center py-12">
-				<p class="text-gray-600">Loading users...</p>
+				<p class="text-gray-600">{$t('admin.loadingUsers')}</p>
 			</div>
 		{:else if error}
 			<div class="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -143,7 +160,7 @@
 			</div>
 		{:else if users.length === 0}
 			<div class="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-				<p class="text-gray-600">No users found</p>
+				<p class="text-gray-600">{$t('admin.noUsersFound')}</p>
 			</div>
 		{:else}
 			<div class="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -153,27 +170,27 @@
 							<th
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 							>
-								Email
+								{$t('admin.email')}
 							</th>
 							<th
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 							>
-								Role
+								{$t('admin.role')}
 							</th>
 							<th
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 							>
-								Status
+								{$t('admin.status')}
 							</th>
 							<th
 								class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
 							>
-								Created
+								{$t('admin.created')}
 							</th>
 							<th
 								class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
 							>
-								Actions
+								{$t('admin.actions')}
 							</th>
 						</tr>
 					</thead>
@@ -189,15 +206,15 @@
 											bind:value={editUserRole}
 											class="border border-gray-300 rounded px-2 py-1 text-sm"
 										>
-											<option value="submitter">submitter</option>
-											<option value="reviewer">reviewer</option>
-											<option value="admin">admin</option>
+											<option value="submitter">{getRoleName('submitter')}</option>
+											<option value="reviewer">{getRoleName('reviewer')}</option>
+											<option value="admin">{getRoleName('admin')}</option>
 											{#if isSuperAdminUser}
-												<option value="super_admin">super_admin</option>
+												<option value="super_admin">{getRoleName('super_admin')}</option>
 											{/if}
 										</select>
 									{:else}
-										<span class={getRoleBadgeClass(user.role)}>{user.role}</span>
+										<span class={getRoleBadgeClass(user.role)}>{getRoleName(user.role)}</span>
 									{/if}
 								</td>
 								<td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -205,13 +222,13 @@
 										<span
 											class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
 										>
-											Active
+											{$t('status.active')}
 										</span>
 									{:else}
 										<span
 											class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
 										>
-											Inactive
+											{$t('status.inactive')}
 										</span>
 									{/if}
 								</td>
@@ -224,26 +241,26 @@
 											onclick={() => handleUpdateRole(user.id, editUserRole)}
 											class="text-green-600 hover:text-green-900 mr-3"
 										>
-											Save
+											{$t('common.save')}
 										</button>
 										<button
 											onclick={cancelEdit}
 											class="text-gray-600 hover:text-gray-900"
 										>
-											Cancel
+											{$t('common.cancel')}
 										</button>
 									{:else}
 										<button
 											onclick={() => startEditRole(user.id, user.role, user.is_active)}
 											class="text-primary-600 hover:text-primary-900 mr-3"
 										>
-											Edit Role
+											{$t('admin.editRole')}
 										</button>
 										<button
 											onclick={() => handleToggleActive(user.id, user.is_active)}
 											class="text-orange-600 hover:text-orange-900"
 										>
-											{user.is_active ? 'Deactivate' : 'Activate'}
+											{user.is_active ? $t('admin.deactivate') : $t('admin.activate')}
 										</button>
 									{/if}
 								</td>
@@ -261,7 +278,7 @@
 	<div class="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
 		<div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
 			<div class="px-6 py-4 border-b border-gray-200">
-				<h2 class="text-xl font-bold text-gray-900">Create New User</h2>
+				<h2 class="text-xl font-bold text-gray-900">{$t('admin.createNewUser')}</h2>
 			</div>
 
 			<form onsubmit={handleCreateUser} class="px-6 py-4 space-y-4">
@@ -273,7 +290,7 @@
 
 				<div>
 					<label for="new-email" class="block text-sm font-medium text-gray-700 mb-1">
-						Email
+						{$t('admin.email')}
 					</label>
 					<input
 						id="new-email"
@@ -281,13 +298,13 @@
 						bind:value={newUserEmail}
 						required
 						class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-						placeholder="user@example.com"
+						placeholder={$t('auth.emailPlaceholder')}
 					/>
 				</div>
 
 				<div>
 					<label for="new-password" class="block text-sm font-medium text-gray-700 mb-1">
-						Password
+						{$t('auth.password')}
 					</label>
 					<input
 						id="new-password"
@@ -295,24 +312,24 @@
 						bind:value={newUserPassword}
 						required
 						class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-						placeholder="Minimum 8 characters"
+						placeholder={$t('auth.passwordMinChars')}
 					/>
 				</div>
 
 				<div>
 					<label for="new-role" class="block text-sm font-medium text-gray-700 mb-1">
-						Role
+						{$t('admin.role')}
 					</label>
 					<select
 						id="new-role"
 						bind:value={newUserRole}
 						class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
 					>
-						<option value="submitter">submitter</option>
-						<option value="reviewer">reviewer</option>
-						<option value="admin">admin</option>
+						<option value="submitter">{getRoleName('submitter')}</option>
+						<option value="reviewer">{getRoleName('reviewer')}</option>
+						<option value="admin">{getRoleName('admin')}</option>
 						{#if isSuperAdminUser}
-							<option value="super_admin">super_admin</option>
+							<option value="super_admin">{getRoleName('super_admin')}</option>
 						{/if}
 					</select>
 				</div>
@@ -323,14 +340,14 @@
 						onclick={() => (showCreateModal = false)}
 						class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
 					>
-						Cancel
+						{$t('common.cancel')}
 					</button>
 					<button
 						type="submit"
 						disabled={isCreating}
 						class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-400 transition"
 					>
-						{isCreating ? 'Creating...' : 'Create User'}
+						{isCreating ? $t('admin.creatingUser') : $t('admin.createUser')}
 					</button>
 				</div>
 			</form>

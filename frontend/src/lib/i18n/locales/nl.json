@@ -28,9 +28,12 @@
   },
   "nav": {
     "home": "Home",
+    "about": "Over Ons",
     "submit": "Indienen",
     "submissions": "Inzendingen",
     "admin": "Beheer",
+    "userManagement": "Gebruikersbeheer",
+    "transparencyPages": "Transparantiepagina's",
     "login": "Inloggen",
     "logout": "Uitloggen",
     "register": "Registreren"
