@@ -245,6 +245,7 @@ def downgrade():
 ❌ **Push migrations without testing on fresh database** - always test `alembic upgrade head` on clean database first
 ❌ **Create enums with just `create_type=False`** - must use BOTH `create_type=False` AND `schema_type=False`
 ❌ **Skip migration validation** - validate before PR to prevent database wipes
+❌ **Compare datetimes directly in tests** - always use `normalize_dt()` helper for SQLite compatibility
 
 ## Do This:
 ✅ Always test migrations both ways (up and down)
@@ -260,6 +261,7 @@ def downgrade():
 ✅ **Test on fresh database** - run `alembic upgrade head` on empty database before PR
 ✅ **Use raw SQL + `schema_type=False`** for PostgreSQL enums
 ✅ **Complete migration checklist** before creating PR (see Issue #7, section C)
+✅ **Use `normalize_dt()` helper** for all datetime comparisons in tests (see Issue #8)
 
 ## Common CI/PR Issues and Solutions
 
@@ -635,3 +637,99 @@ alembic upgrade head
 **Key Principle**:
 > **MIGRATIONS MUST BE TESTED ON FRESH DATABASES**
 > If it doesn't work on a fresh database, it will break production deployments and CI/CD.
+
+### Issue 8: DateTime Timezone Comparison Errors in Tests (RECURRING)
+**Error**: `TypeError: can't subtract offset-naive and offset-aware datetimes`
+
+**Cause**: SQLite inconsistently returns datetime objects - sometimes with timezone info, sometimes without. When comparing datetimes from the database with timezone-aware datetimes (like `datetime.now(timezone.utc)`), you get type errors.
+
+**This is a RECURRING issue** that has appeared in:
+- PR #105 (Analytics Events Table)
+- PR #108 (Transparency Page API)
+
+**Root Cause**:
+- PostgreSQL (production) properly handles `DateTime(timezone=True)` and returns timezone-aware datetimes
+- SQLite (tests) stores datetimes as strings and may return them timezone-naive
+- When parsing from JSON (like API responses), `datetime.fromisoformat()` behavior depends on the string format
+
+**Solution - Use Shared Test Helper**:
+
+Create `backend/app/tests/helpers.py`:
+```python
+"""Shared test helper utilities."""
+from datetime import datetime
+
+
+def normalize_dt(dt: datetime) -> datetime:
+    """Normalize datetime by stripping timezone info for consistent comparisons.
+
+    SQLite may return timezone-naive or timezone-aware datetimes inconsistently.
+    This helper ensures consistent comparison regardless of timezone presence.
+
+    Args:
+        dt: The datetime to normalize
+
+    Returns:
+        Timezone-naive datetime for comparison
+
+    Example:
+        >>> from datetime import datetime, timezone
+        >>> dt_aware = datetime(2025, 1, 1, 12, 0, tzinfo=timezone.utc)
+        >>> dt_naive = datetime(2025, 1, 1, 12, 0)
+        >>> normalize_dt(dt_aware) == normalize_dt(dt_naive)
+        True
+    """
+    return dt.replace(tzinfo=None) if dt.tzinfo else dt
+```
+
+**Usage in Tests**:
+```python
+from datetime import datetime, timezone
+from app.tests.helpers import normalize_dt
+
+# ❌ WRONG - May fail with timezone mismatch
+db_time = some_model.created_at  # May be naive or aware from SQLite
+now = datetime.now(timezone.utc)
+assert (now - db_time).total_seconds() < 60  # Error!
+
+# ✅ CORRECT - Normalize both sides
+assert (normalize_dt(now) - normalize_dt(db_time)).total_seconds() < 60
+
+# ✅ CORRECT - For direct comparisons
+assert normalize_dt(event.occurred_at) == normalize_dt(expected_time)
+
+# ✅ CORRECT - When parsing from JSON
+from_json = datetime.fromisoformat(data["timestamp"].replace("Z", "+00:00"))
+expected = datetime(2025, 1, 1, 12, 0, tzinfo=timezone.utc)
+assert normalize_dt(from_json) == normalize_dt(expected)
+```
+
+**When to Use**:
+- ✅ **ALWAYS** when comparing datetime values in tests
+- ✅ When parsing datetimes from JSON/API responses
+- ✅ When comparing database datetimes with `datetime.now()`
+- ✅ When testing datetime arithmetic (subtraction, addition)
+
+**Best Practice**:
+```python
+# Import at top of test file
+from app.tests.helpers import normalize_dt
+
+# Use consistently for ALL datetime comparisons
+class TestMyModel:
+    async def test_created_at(self, db_session):
+        model = MyModel(...)
+        db_session.add(model)
+        await db_session.commit()
+        await db_session.refresh(model)
+
+        # Always normalize
+        now = datetime.now(timezone.utc)
+        assert normalize_dt(model.created_at) == normalize_dt(now.replace(microsecond=0))
+```
+
+**Why Not Fix SQLite Behavior?**:
+- SQLite doesn't have native timezone support
+- Configuring SQLite to always return timezone-aware datetimes is complex and fragile
+- The `normalize_dt()` helper is simpler and more reliable
+- Production (PostgreSQL) handles timezones correctly, this only affects tests
