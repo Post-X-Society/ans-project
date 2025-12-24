@@ -173,5 +173,33 @@
     "select": "Language",
     "english": "English",
     "dutch": "Nederlands"
+  },
+  "transparency": {
+    "title": "About Us",
+    "navTitle": "Transparency",
+    "lastUpdated": "Last updated: {date}",
+    "version": "Version {version}",
+    "loadingPage": "Loading page...",
+    "pageNotFound": "Page not found",
+    "pageNotFoundMessage": "The transparency page you are looking for does not exist.",
+    "backToAbout": "Back to About",
+    "pages": {
+      "methodology": "Methodology",
+      "organization": "Organization",
+      "team": "Our Team",
+      "funding": "Funding",
+      "partnerships": "Partnerships",
+      "corrections-policy": "Corrections Policy",
+      "privacy-policy": "Privacy Policy"
+    },
+    "descriptions": {
+      "methodology": "How we fact-check content",
+      "organization": "Our legal structure and governance",
+      "team": "Meet the people behind Ans",
+      "funding": "Our funding sources",
+      "partnerships": "Organizations we work with",
+      "corrections-policy": "How we handle corrections",
+      "privacy-policy": "How we protect your data"
+    }
   }
 }

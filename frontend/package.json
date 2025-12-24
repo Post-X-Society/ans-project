@@ -23,6 +23,8 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/svelte": "^5.2.5",
     "@testing-library/user-event": "^14.5.2",
+    "@types/dompurify": "^3.0.5",
+    "@types/marked": "^5.0.2",
     "@types/node": "^22.10.2",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.16.0",
@@ -42,6 +44,8 @@
   "dependencies": {
     "@tanstack/svelte-query": "^5.62.7",
     "axios": "^1.13.2",
+    "dompurify": "^3.3.1",
+    "marked": "^17.0.1",
     "svelte-i18n": "^4.0.1"
   }
 }
