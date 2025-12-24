@@ -10,7 +10,6 @@ This test module covers:
 - Auto-trigger peer review for political claims
 """
 
-
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
