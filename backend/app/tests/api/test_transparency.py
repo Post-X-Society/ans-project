@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import create_access_token
 from app.models.transparency_page import TransparencyPage, TransparencyPageVersion
 from app.models.user import User, UserRole
+from app.tests.helpers import normalize_dt
 
 
 class TestGetTransparencyPage:
@@ -650,9 +651,12 @@ class TestMarkPageReviewed:
         assert "last_reviewed" in data
         assert "next_review_due" in data
         # The review dates should be recent
-        last_reviewed = datetime.fromisoformat(data["last_reviewed"].replace("Z", "+00:00"))
+        # Parse the datetime string - handle both "Z" suffix and "+00:00" formats
+        last_reviewed_str = data["last_reviewed"].replace("Z", "+00:00")
+        last_reviewed = datetime.fromisoformat(last_reviewed_str)
         now = datetime.now(timezone.utc)
-        assert (now - last_reviewed).total_seconds() < 60
+        # Use normalize_dt helper for SQLite/PostgreSQL compatibility
+        assert (normalize_dt(now) - normalize_dt(last_reviewed)).total_seconds() < 60
 
     @pytest.mark.asyncio
     async def test_mark_reviewed_as_super_admin(
