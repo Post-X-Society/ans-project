@@ -158,7 +158,8 @@
     "deactivate": "Deactiveren",
     "removing": "Verwijderen...",
     "assigning": "Toewijzen...",
-    "adminPanel": "Beheerpaneel"
+    "adminPanel": "Beheerpaneel",
+    "transparencyPages": "Transparantiepagina's"
   },
   "reviewers": {
     "assignReviewers": "Reviewers toewijzen",
@@ -200,6 +201,27 @@
       "partnerships": "Organisaties waarmee we samenwerken",
       "corrections-policy": "Hoe wij correcties afhandelen",
       "privacy-policy": "Hoe wij je gegevens beschermen"
+    },
+    "editor": {
+      "title": "Transparantiepagina Bewerken",
+      "loading": "Editor laden...",
+      "currentVersion": "Huidig",
+      "nextReview": "Volgende review",
+      "pageTitle": "Titel",
+      "titlePlaceholder": "Voer paginatitel in",
+      "markdownEditor": "Markdown Editor",
+      "preview": "Live Voorbeeld",
+      "changeSummary": "Wijzigingsomschrijving",
+      "changeSummaryPlaceholder": "Beschrijf wat je hebt gewijzigd",
+      "markAsReviewed": "Markeer als Beoordeeld",
+      "markingReviewed": "Markeren...",
+      "saving": "Opslaan...",
+      "savedSuccessfully": "Wijzigingen succesvol opgeslagen!",
+      "versionHistory": "Versiegeschiedenis",
+      "noVersionHistory": "Geen eerdere versies",
+      "compare": "Vergelijken",
+      "diffTitle": "Vergelijking Versie {from} met Versie {to}",
+      "noDiffAvailable": "Geen verschil beschikbaar"
     }
   }
 }
