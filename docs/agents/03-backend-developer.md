@@ -318,12 +318,110 @@ def client(db_session):
         yield c
 ```
 
+## Common Testing Issues
+
+### DateTime Timezone Comparisons (CRITICAL - RECURRING ISSUE)
+
+**Problem**: Tests fail with `TypeError: can't subtract offset-naive and offset-aware datetimes`
+
+**This has occurred in**: PR #105 (Analytics Events), PR #108 (Transparency Page API)
+
+**Root Cause**: SQLite (used in tests) inconsistently returns timezone-naive datetimes, while PostgreSQL (production) returns timezone-aware datetimes. When comparing datetime values in tests, you mix naive and aware datetimes causing TypeErrors.
+
+**Solution**: Always use the `normalize_dt()` helper for datetime comparisons in tests.
+
+#### Create Shared Test Helper
+
+Create `backend/app/tests/helpers.py`:
+```python
+"""Shared test helper utilities."""
+from datetime import datetime
+
+
+def normalize_dt(dt: datetime) -> datetime:
+    """Normalize datetime by stripping timezone info for consistent comparisons.
+
+    SQLite may return timezone-naive or timezone-aware datetimes inconsistently.
+    This helper ensures consistent comparison regardless of timezone presence.
+
+    Args:
+        dt: The datetime to normalize
+
+    Returns:
+        Timezone-naive datetime for comparison
+
+    Example:
+        >>> from datetime import datetime, timezone
+        >>> dt_aware = datetime(2025, 1, 1, 12, 0, tzinfo=timezone.utc)
+        >>> dt_naive = datetime(2025, 1, 1, 12, 0)
+        >>> normalize_dt(dt_aware) == normalize_dt(dt_naive)
+        True
+    """
+    return dt.replace(tzinfo=None) if dt.tzinfo else dt
+```
+
+#### Usage in Tests
+
+```python
+from datetime import datetime, timezone
+from app.tests.helpers import normalize_dt
+
+# ❌ WRONG - May fail with timezone mismatch
+async def test_created_timestamp(client, db_session):
+    response = client.post("/api/v1/items", json={"name": "test"})
+    data = response.json()
+
+    created_at = datetime.fromisoformat(data["created_at"].replace("Z", "+00:00"))
+    now = datetime.now(timezone.utc)
+    assert (now - created_at).total_seconds() < 60  # TypeError!
+
+# ✅ CORRECT - Normalize both sides
+async def test_created_timestamp(client, db_session):
+    response = client.post("/api/v1/items", json={"name": "test"})
+    data = response.json()
+
+    created_at = datetime.fromisoformat(data["created_at"].replace("Z", "+00:00"))
+    now = datetime.now(timezone.utc)
+    # Normalize both datetimes before comparison
+    assert (normalize_dt(now) - normalize_dt(created_at)).total_seconds() < 60
+
+# ✅ CORRECT - Direct comparison
+assert normalize_dt(model.created_at) == normalize_dt(expected_time)
+
+# ✅ CORRECT - With database models
+async def test_model_timestamp(db_session):
+    model = MyModel(name="test")
+    db_session.add(model)
+    await db_session.commit()
+    await db_session.refresh(model)
+
+    now = datetime.now(timezone.utc)
+    # Always normalize for comparisons
+    assert normalize_dt(model.created_at) <= normalize_dt(now)
+```
+
+#### When to Use `normalize_dt()`
+
+**ALWAYS use when**:
+- ✅ Comparing datetime from database models
+- ✅ Comparing datetime from API JSON responses
+- ✅ Doing datetime arithmetic (subtraction, addition)
+- ✅ Comparing with `datetime.now(timezone.utc)`
+- ✅ Testing "recent" timestamps (within X seconds)
+
+**Import Pattern**:
+```python
+# At top of every test file that uses datetimes
+from app.tests.helpers import normalize_dt
+```
+
 ## Don't Do This:
 ❌ Write code before tests (TDD is mandatory!)
 ❌ Use blocking I/O in async functions
 ❌ Skip input validation
 ❌ Ignore error handling
 ❌ Commit without running tests
+❌ **Compare datetimes directly in tests** - always use `normalize_dt()` helper
 
 ## Do This:
 ✅ Write tests first, every time (TDD)
@@ -332,3 +430,4 @@ def client(db_session):
 ✅ Handle errors gracefully with proper HTTP status codes
 ✅ Keep endpoints thin, business logic in services
 ✅ Document API with docstrings (they become OpenAPI docs)
+✅ **Use `normalize_dt()` helper for all datetime comparisons in tests**
