@@ -24,26 +24,40 @@ if TYPE_CHECKING:
 
 class WorkflowState(str, enum.Enum):
     """
-    Workflow state enumeration for EFCSN compliance.
+    Workflow state enumeration for EFCSN compliance (ADR 0005).
 
     States represent the lifecycle of a submission through the fact-checking process:
     - SUBMITTED: Initial state when user submits content
-    - CLAIM_EXTRACTION: AI is extracting claims from the submission
-    - PENDING_REVIEW: Ready for human reviewer assignment
-    - UNDER_REVIEW: Actively being reviewed by assigned reviewer
-    - PEER_REVIEW_REQUIRED: Flagged for additional peer review
-    - PEER_REVIEW: Under peer review by second reviewer
-    - COMPLETED: Fact-check complete with final verdict
-    - REJECTED: Submission rejected (invalid, duplicate, etc.)
+    - QUEUED: Awaiting assignment to reviewer
+    - DUPLICATE_DETECTED: Identified as duplicate of existing submission
+    - ARCHIVED: Permanently archived (from duplicate or rejection)
+    - ASSIGNED: Reviewer has been assigned
+    - IN_RESEARCH: Reviewer actively collecting evidence
+    - DRAFT_READY: Reviewer submitted draft fact-check
+    - NEEDS_MORE_RESEARCH: Admin requests additional research
+    - ADMIN_REVIEW: Admin evaluating draft
+    - PEER_REVIEW: Under peer review (2+ editors for substantial claims)
+    - FINAL_APPROVAL: Super Admin final check
+    - PUBLISHED: Public-facing fact-check
+    - UNDER_CORRECTION: Correction in progress
+    - CORRECTED: Correction applied, awaiting republish
+    - REJECTED: Submission rejected (invalid, out of scope, etc.)
     """
 
     SUBMITTED = "submitted"
-    CLAIM_EXTRACTION = "claim_extraction"
-    PENDING_REVIEW = "pending_review"
-    UNDER_REVIEW = "under_review"
-    PEER_REVIEW_REQUIRED = "peer_review_required"
+    QUEUED = "queued"
+    DUPLICATE_DETECTED = "duplicate_detected"
+    ARCHIVED = "archived"
+    ASSIGNED = "assigned"
+    IN_RESEARCH = "in_research"
+    DRAFT_READY = "draft_ready"
+    NEEDS_MORE_RESEARCH = "needs_more_research"
+    ADMIN_REVIEW = "admin_review"
     PEER_REVIEW = "peer_review"
-    COMPLETED = "completed"
+    FINAL_APPROVAL = "final_approval"
+    PUBLISHED = "published"
+    UNDER_CORRECTION = "under_correction"
+    CORRECTED = "corrected"
     REJECTED = "rejected"
 
 
