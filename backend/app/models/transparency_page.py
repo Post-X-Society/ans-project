@@ -250,7 +250,7 @@ REQUIRED_TRANSPARENCY_PAGES: list[dict[str, Any]] = [
         },
     },
     {
-        "slug": "corrections",
+        "slug": "corrections-policy",
         "title": {
             "en": "Corrections Policy",
             "nl": "Correctiebeleid",
@@ -275,7 +275,7 @@ REQUIRED_TRANSPARENCY_PAGES: list[dict[str, Any]] = [
         },
     },
     {
-        "slug": "privacy",
+        "slug": "privacy-policy",
         "title": {
             "en": "Privacy Policy",
             "nl": "Privacybeleid",

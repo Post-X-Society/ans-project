@@ -246,7 +246,7 @@ def seed_transparency_pages() -> None:
         },
         {
             "id": str(uuid.uuid4()),
-            "slug": "corrections",
+            "slug": "corrections-policy",
             "title": json.dumps(
                 {
                     "en": "Corrections Policy",
@@ -276,7 +276,7 @@ def seed_transparency_pages() -> None:
         },
         {
             "id": str(uuid.uuid4()),
-            "slug": "privacy",
+            "slug": "privacy-policy",
             "title": json.dumps(
                 {
                     "en": "Privacy Policy",

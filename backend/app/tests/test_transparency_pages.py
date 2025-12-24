@@ -213,7 +213,7 @@ class TestTransparencyPageModel:
         pages_data = [
             ("methodology", {"en": "Methodology"}),
             ("organization", {"en": "Organization"}),
-            ("corrections", {"en": "Corrections Policy"}),
+            ("corrections-policy", {"en": "Corrections Policy"}),
         ]
 
         for slug, title in pages_data:
@@ -229,11 +229,11 @@ class TestTransparencyPageModel:
 
         # Query by slug
         result = await db_session.execute(
-            select(TransparencyPage).where(TransparencyPage.slug == "corrections")
+            select(TransparencyPage).where(TransparencyPage.slug == "corrections-policy")
         )
         page = result.scalar_one()
 
-        assert page.slug == "corrections"
+        assert page.slug == "corrections-policy"
         assert page.title["en"] == "Corrections Policy"
 
 
@@ -257,7 +257,7 @@ class TestTransparencyPageVersionModel:
 
         # Create page
         page = TransparencyPage(
-            slug="privacy",
+            slug="privacy-policy",
             title={"en": "Privacy Policy"},
             content={"en": "Your privacy matters..."},
             version=1,
@@ -452,7 +452,7 @@ class TestTransparencyPageVersionModel:
 
         # Create page
         page = TransparencyPage(
-            slug="corrections",
+            slug="corrections-policy",
             title={"en": "Corrections"},
             content={"en": "Our corrections policy..."},
             version=1,
@@ -487,8 +487,8 @@ class TestRequiredTransparencyPages:
         "team",
         "funding",
         "partnerships",
-        "corrections",
-        "privacy",
+        "corrections-policy",
+        "privacy-policy",
     ]
 
     @pytest.mark.asyncio
