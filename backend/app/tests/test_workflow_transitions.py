@@ -21,25 +21,33 @@ from app.models.user import User, UserRole
 
 
 class TestWorkflowStateEnum:
-    """Tests for WorkflowState enumeration"""
+    """Tests for WorkflowState enumeration (15 states per ADR 0005)"""
 
     def test_workflow_state_values(self) -> None:
-        """Test that WorkflowState enum has all expected values"""
+        """Test that WorkflowState enum has all 15 expected values from ADR 0005"""
         from app.models.workflow_transition import WorkflowState
 
-        # Verify all expected states exist
+        # Verify all 15 expected states exist (per ADR 0005)
         expected_states = [
             "submitted",
-            "claim_extraction",
-            "pending_review",
-            "under_review",
-            "peer_review_required",
+            "queued",
+            "duplicate_detected",
+            "archived",
+            "assigned",
+            "in_research",
+            "draft_ready",
+            "needs_more_research",
+            "admin_review",
             "peer_review",
-            "completed",
+            "final_approval",
+            "published",
+            "under_correction",
+            "corrected",
             "rejected",
         ]
 
         actual_values = [state.value for state in WorkflowState]
+        assert len(actual_values) == 15, f"Expected 15 states, got {len(actual_values)}"
         for expected in expected_states:
             assert expected in actual_values, f"Missing state: {expected}"
 
@@ -85,9 +93,9 @@ class TestWorkflowTransitionModel:
         transition = WorkflowTransition(
             submission_id=submission.id,
             from_state=WorkflowState.SUBMITTED,
-            to_state=WorkflowState.CLAIM_EXTRACTION,
+            to_state=WorkflowState.QUEUED,
             actor_id=user.id,
-            reason="Starting claim extraction process",
+            reason="Adding to review queue",
         )
         db_session.add(transition)
         await db_session.commit()
@@ -97,9 +105,9 @@ class TestWorkflowTransitionModel:
         assert isinstance(transition.id, UUID)
         assert transition.submission_id == submission.id
         assert transition.from_state == WorkflowState.SUBMITTED
-        assert transition.to_state == WorkflowState.CLAIM_EXTRACTION
+        assert transition.to_state == WorkflowState.QUEUED
         assert transition.actor_id == user.id
-        assert transition.reason == "Starting claim extraction process"
+        assert transition.reason == "Adding to review queue"
         assert isinstance(transition.created_at, datetime)
 
     @pytest.mark.asyncio
@@ -170,8 +178,8 @@ class TestWorkflowTransitionModel:
 
         transition = WorkflowTransition(
             submission_id=submission.id,
-            from_state=WorkflowState.UNDER_REVIEW,
-            to_state=WorkflowState.PEER_REVIEW_REQUIRED,
+            from_state=WorkflowState.ADMIN_REVIEW,
+            to_state=WorkflowState.PEER_REVIEW,
             actor_id=user.id,
             reason="Needs peer review",
             transition_metadata=transition_metadata,
@@ -210,7 +218,7 @@ class TestWorkflowTransitionModel:
         transition = WorkflowTransition(
             submission_id=submission.id,
             from_state=WorkflowState.SUBMITTED,
-            to_state=WorkflowState.PENDING_REVIEW,
+            to_state=WorkflowState.QUEUED,
             actor_id=user.id,
         )
         db_session.add(transition)
@@ -251,8 +259,8 @@ class TestWorkflowTransitionModel:
         # Transition by reviewer (different from submitter)
         transition = WorkflowTransition(
             submission_id=submission.id,
-            from_state=WorkflowState.PENDING_REVIEW,
-            to_state=WorkflowState.UNDER_REVIEW,
+            from_state=WorkflowState.ASSIGNED,
+            to_state=WorkflowState.IN_RESEARCH,
             actor_id=reviewer.id,
             reason="Reviewer picked up the submission",
         )
@@ -286,13 +294,16 @@ class TestWorkflowTransitionModel:
         await db_session.commit()
         await db_session.refresh(submission)
 
-        # Create multiple transitions (audit trail)
+        # Create multiple transitions (audit trail) using new 15-state workflow
         transitions_data = [
             (None, WorkflowState.SUBMITTED, "Created"),
-            (WorkflowState.SUBMITTED, WorkflowState.CLAIM_EXTRACTION, "Extracting claims"),
-            (WorkflowState.CLAIM_EXTRACTION, WorkflowState.PENDING_REVIEW, "Ready for review"),
-            (WorkflowState.PENDING_REVIEW, WorkflowState.UNDER_REVIEW, "Review started"),
-            (WorkflowState.UNDER_REVIEW, WorkflowState.COMPLETED, "Review complete"),
+            (WorkflowState.SUBMITTED, WorkflowState.QUEUED, "Added to queue"),
+            (WorkflowState.QUEUED, WorkflowState.ASSIGNED, "Assigned to reviewer"),
+            (WorkflowState.ASSIGNED, WorkflowState.IN_RESEARCH, "Research started"),
+            (WorkflowState.IN_RESEARCH, WorkflowState.DRAFT_READY, "Draft completed"),
+            (WorkflowState.DRAFT_READY, WorkflowState.ADMIN_REVIEW, "Submitted for review"),
+            (WorkflowState.ADMIN_REVIEW, WorkflowState.FINAL_APPROVAL, "Admin approved"),
+            (WorkflowState.FINAL_APPROVAL, WorkflowState.PUBLISHED, "Published"),
         ]
 
         for from_state, to_state, reason in transitions_data:
@@ -315,9 +326,9 @@ class TestWorkflowTransitionModel:
         )
         all_transitions = result.scalars().all()
 
-        assert len(all_transitions) == 5
+        assert len(all_transitions) == 8
         assert all_transitions[0].to_state == WorkflowState.SUBMITTED
-        assert all_transitions[-1].to_state == WorkflowState.COMPLETED
+        assert all_transitions[-1].to_state == WorkflowState.PUBLISHED
 
 
 class TestSubmissionWorkflowFields:
@@ -499,7 +510,7 @@ class TestSubmissionWorkflowFields:
         transition2 = WorkflowTransition(
             submission_id=submission.id,
             from_state=WorkflowState.SUBMITTED,
-            to_state=WorkflowState.PENDING_REVIEW,
+            to_state=WorkflowState.QUEUED,
             actor_id=user.id,
         )
         db_session.add_all([transition1, transition2])
