@@ -11,6 +11,13 @@
 	import { t } from '$lib/i18n';
 	import TransparencyNav from '$lib/components/transparency/TransparencyNav.svelte';
 	import LanguageSelector from '$lib/components/LanguageSelector.svelte';
+	import type { Snippet } from 'svelte';
+
+	interface Props {
+		children: Snippet;
+	}
+
+	let { children }: Props = $props();
 
 	// Get the current slug from the URL
 	let currentSlug = $derived($page.params.slug || '');
@@ -52,7 +59,7 @@
 
 			<!-- Main content area -->
 			<div class="lg:col-span-3">
-				<slot />
+				{@render children?.()}
 			</div>
 		</div>
 	</div>

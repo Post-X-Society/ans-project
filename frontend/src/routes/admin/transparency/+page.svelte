@@ -10,6 +10,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { get } from 'svelte/store';
 	import { isAdmin, isAuthenticated } from '$lib/stores/auth';
 	import { t } from '$lib/i18n';
 	import { getTransparencyPages } from '$lib/api/transparency';
@@ -57,9 +58,14 @@
 		setTimeout(() => {
 			isCheckingAuth = false;
 
-			if (!$isAuthenticated) {
-				goto('/login?redirect=' + encodeURIComponent($page.url.pathname));
-			} else if (!$isAdmin) {
+			// Use get() to access store value inside callback
+			const currentPage = get(page);
+			const authenticated = get(isAuthenticated);
+			const admin = get(isAdmin);
+
+			if (!authenticated) {
+				goto('/login?redirect=' + encodeURIComponent(currentPage.url.pathname));
+			} else if (!admin) {
 				goto('/');
 			} else {
 				loadPages();

@@ -5,6 +5,13 @@
 	import Nav from '$lib/components/Nav.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import { initI18n } from '$lib/i18n';
+	import type { Snippet } from 'svelte';
+
+	interface Props {
+		children: Snippet;
+	}
+
+	let { children }: Props = $props();
 
 	// Initialize i18n
 	initI18n();
@@ -25,7 +32,7 @@
 		<Header />
 		<Nav />
 		<main class="flex-1">
-			<slot />
+			{@render children?.()}
 		</main>
 		<Footer />
 	</div>
