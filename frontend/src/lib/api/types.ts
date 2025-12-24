@@ -165,3 +165,31 @@ export type TransparencyPageSlug =
 	| 'partnerships'
 	| 'corrections-policy'
 	| 'privacy-policy';
+
+// Transparency page version (for version history)
+export interface TransparencyPageVersion {
+	id: string;
+	page_id: string;
+	version: number;
+	title: Record<string, string>;
+	content: Record<string, string>;
+	changed_by_id: string;
+	change_summary: string | null;
+	created_at: string;
+}
+
+// Transparency page diff (for comparing versions)
+export interface TransparencyPageDiff {
+	slug: string;
+	from_version: number;
+	to_version: number;
+	diff: Record<string, unknown>;
+	language: string | null;
+}
+
+// Update payload for transparency pages
+export interface TransparencyPageUpdate {
+	title?: Record<string, string>;
+	content?: Record<string, string>;
+	change_summary: string;
+}

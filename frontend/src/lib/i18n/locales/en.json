@@ -158,7 +158,8 @@
     "deactivate": "Deactivate",
     "removing": "Removing...",
     "assigning": "Assigning...",
-    "adminPanel": "Admin Panel"
+    "adminPanel": "Admin Panel",
+    "transparencyPages": "Transparency Pages"
   },
   "reviewers": {
     "assignReviewers": "Assign Reviewers",
@@ -200,6 +201,27 @@
       "partnerships": "Organizations we work with",
       "corrections-policy": "How we handle corrections",
       "privacy-policy": "How we protect your data"
+    },
+    "editor": {
+      "title": "Edit Transparency Page",
+      "loading": "Loading editor...",
+      "currentVersion": "Current",
+      "nextReview": "Next review due",
+      "pageTitle": "Title",
+      "titlePlaceholder": "Enter page title",
+      "markdownEditor": "Markdown Editor",
+      "preview": "Live Preview",
+      "changeSummary": "Change Summary",
+      "changeSummaryPlaceholder": "Describe what you changed",
+      "markAsReviewed": "Mark as Reviewed",
+      "markingReviewed": "Marking...",
+      "saving": "Saving...",
+      "savedSuccessfully": "Changes saved successfully!",
+      "versionHistory": "Version History",
+      "noVersionHistory": "No previous versions",
+      "compare": "Compare",
+      "diffTitle": "Comparing Version {from} to Version {to}",
+      "noDiffAvailable": "No diff data available"
     }
   }
 }
