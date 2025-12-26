@@ -1,13 +1,18 @@
 import type { QueryOptions, MutationOptions } from '@tanstack/svelte-query';
 import { getSubmissions, getSubmission, createSubmission } from './submissions';
 import { getTransparencyPages, getTransparencyPage } from './transparency';
+import { getWorkflowHistory, getWorkflowCurrentState, transitionWorkflowState } from './workflow';
 import type {
 	SubmissionListResponse,
 	Submission,
 	SubmissionCreate,
 	TransparencyPageListResponse,
 	TransparencyPage,
-	TransparencyPageSlug
+	TransparencyPageSlug,
+	WorkflowHistoryResponse,
+	WorkflowCurrentStateResponse,
+	WorkflowTransitionRequest,
+	WorkflowHistoryItem
 } from './types';
 
 /**
@@ -68,5 +73,43 @@ export function transparencyPageQueryOptions(
 		queryKey: ['transparency-pages', slug, lang],
 		queryFn: () => getTransparencyPage(slug, lang),
 		staleTime: 5 * 60 * 1000 // 5 minutes
+	};
+}
+
+/**
+ * Query options for fetching workflow history for a submission
+ */
+export function workflowHistoryQueryOptions(
+	submissionId: string
+): QueryOptions<WorkflowHistoryResponse> {
+	return {
+		queryKey: ['workflow', submissionId, 'history'],
+		queryFn: () => getWorkflowHistory(submissionId),
+		staleTime: 30 * 1000 // 30 seconds - workflow state can change
+	};
+}
+
+/**
+ * Query options for fetching current workflow state
+ */
+export function workflowCurrentStateQueryOptions(
+	submissionId: string
+): QueryOptions<WorkflowCurrentStateResponse> {
+	return {
+		queryKey: ['workflow', submissionId, 'current'],
+		queryFn: () => getWorkflowCurrentState(submissionId),
+		staleTime: 30 * 1000 // 30 seconds
+	};
+}
+
+/**
+ * Mutation options for workflow state transition
+ */
+export function workflowTransitionMutationOptions(
+	submissionId: string
+): MutationOptions<WorkflowHistoryItem, Error, WorkflowTransitionRequest> {
+	return {
+		mutationFn: (request: WorkflowTransitionRequest) =>
+			transitionWorkflowState(submissionId, request)
 	};
 }
