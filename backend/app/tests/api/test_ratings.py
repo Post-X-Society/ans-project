@@ -19,10 +19,10 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
+from app.models.claim import Claim
 from app.models.fact_check import FactCheck
 from app.models.fact_check_rating import FactCheckRating
 from app.models.rating_definition import RatingDefinition
-from app.models.submission import Submission
 from app.models.user import User, UserRole
 
 
@@ -194,24 +194,27 @@ class TestAssignRating:
         )
         db_session.add(admin)
 
-        # Create submission and fact-check
-        submission = Submission(
-            content="Test claim content",
-            source_url="https://example.com",
-            workflow_state="in_research",
-        )
-        db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(submission)
+        await db_session.refresh(admin)
+
+        # Create claim and fact-check
+        claim = Claim(
+            content="Test claim content",
+            source="https://example.com",
+        )
+        db_session.add(claim)
+        await db_session.commit()
+        await db_session.refresh(claim)
 
         fact_check = FactCheck(
-            submission_id=submission.id,
-            title="Test Fact Check",
-            summary="Test summary content here",
+            claim_id=claim.id,
+            verdict="unverified",
+            confidence=0.0,
+            reasoning="Pending review",
+            sources=["https://example.com"],
         )
         db_session.add(fact_check)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(fact_check)
 
         token = create_access_token(data={"sub": str(admin.id)})
@@ -249,24 +252,26 @@ class TestAssignRating:
             is_active=True,
         )
         db_session.add(admin)
-
-        submission = Submission(
-            content="Test claim for versioning",
-            source_url="https://example.com",
-            workflow_state="in_research",
-        )
-        db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(submission)
+        await db_session.refresh(admin)
+
+        claim = Claim(
+            content="Test claim for versioning",
+            source="https://example.com",
+        )
+        db_session.add(claim)
+        await db_session.commit()
+        await db_session.refresh(claim)
 
         fact_check = FactCheck(
-            submission_id=submission.id,
-            title="Test Versioning",
-            summary="Test summary",
+            claim_id=claim.id,
+            verdict="unverified",
+            confidence=0.0,
+            reasoning="Pending review",
+            sources=["https://example.com"],
         )
         db_session.add(fact_check)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(fact_check)
 
         # Create first rating directly
@@ -314,24 +319,26 @@ class TestAssignRating:
             is_active=True,
         )
         db_session.add(reviewer)
-
-        submission = Submission(
-            content="Test claim",
-            source_url="https://example.com",
-            workflow_state="in_research",
-        )
-        db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(submission)
+        await db_session.refresh(reviewer)
+
+        claim = Claim(
+            content="Test claim",
+            source="https://example.com",
+        )
+        db_session.add(claim)
+        await db_session.commit()
+        await db_session.refresh(claim)
 
         fact_check = FactCheck(
-            submission_id=submission.id,
-            title="Test",
-            summary="Test summary",
+            claim_id=claim.id,
+            verdict="unverified",
+            confidence=0.0,
+            reasoning="Pending review",
+            sources=["https://example.com"],
         )
         db_session.add(fact_check)
         await db_session.commit()
-        await db_session.refresh(reviewer)
         await db_session.refresh(fact_check)
 
         token = create_access_token(data={"sub": str(reviewer.id)})
@@ -412,24 +419,26 @@ class TestAssignRating:
             is_active=True,
         )
         db_session.add(admin)
-
-        submission = Submission(
-            content="Test claim",
-            source_url="https://example.com",
-            workflow_state="in_research",
-        )
-        db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(submission)
+        await db_session.refresh(admin)
+
+        claim = Claim(
+            content="Test claim",
+            source="https://example.com",
+        )
+        db_session.add(claim)
+        await db_session.commit()
+        await db_session.refresh(claim)
 
         fact_check = FactCheck(
-            submission_id=submission.id,
-            title="Test",
-            summary="Test summary",
+            claim_id=claim.id,
+            verdict="unverified",
+            confidence=0.0,
+            reasoning="Pending review",
+            sources=["https://example.com"],
         )
         db_session.add(fact_check)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(fact_check)
 
         token = create_access_token(data={"sub": str(admin.id)})
@@ -465,24 +474,26 @@ class TestGetRatingHistory:
             is_active=True,
         )
         db_session.add(admin)
-
-        submission = Submission(
-            content="Test claim",
-            source_url="https://example.com",
-            workflow_state="published",
-        )
-        db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(submission)
+        await db_session.refresh(admin)
+
+        claim = Claim(
+            content="Test claim",
+            source="https://example.com",
+        )
+        db_session.add(claim)
+        await db_session.commit()
+        await db_session.refresh(claim)
 
         fact_check = FactCheck(
-            submission_id=submission.id,
-            title="Test History",
-            summary="Test summary",
+            claim_id=claim.id,
+            verdict="false",
+            confidence=0.9,
+            reasoning="Verified as false",
+            sources=["https://example.com"],
         )
         db_session.add(fact_check)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(fact_check)
 
         # Create ratings
@@ -523,20 +534,21 @@ class TestGetRatingHistory:
         self, client: TestClient, db_session: AsyncSession
     ) -> None:
         """Test retrieving rating history when no ratings exist."""
-        # Arrange
-        submission = Submission(
-            content="Test claim",
-            source_url="https://example.com",
-            workflow_state="in_research",
+        # Arrange: Create claim and fact-check
+        claim = Claim(
+            content="Test claim without rating",
+            source="https://example.com",
         )
-        db_session.add(submission)
+        db_session.add(claim)
         await db_session.commit()
-        await db_session.refresh(submission)
+        await db_session.refresh(claim)
 
         fact_check = FactCheck(
-            submission_id=submission.id,
-            title="Unrated",
-            summary="Test summary",
+            claim_id=claim.id,
+            verdict="unverified",
+            confidence=0.0,
+            reasoning="Pending review",
+            sources=["https://example.com"],
         )
         db_session.add(fact_check)
         await db_session.commit()

@@ -39,15 +39,17 @@ class TestWorkflowTransition:
             is_active=True,
         )
         db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
 
         submission = Submission(
+            user_id=admin.id,
             content="Test claim content",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.SUBMITTED,
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(submission)
 
         token = create_access_token(data={"sub": str(admin.id)})
@@ -81,15 +83,17 @@ class TestWorkflowTransition:
             is_active=True,
         )
         db_session.add(reviewer)
+        await db_session.commit()
+        await db_session.refresh(reviewer)
 
         submission = Submission(
+            user_id=reviewer.id,
             content="Test claim for research",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.ASSIGNED,
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(reviewer)
         await db_session.refresh(submission)
 
         token = create_access_token(data={"sub": str(reviewer.id)})
@@ -123,15 +127,17 @@ class TestWorkflowTransition:
             is_active=True,
         )
         db_session.add(super_admin)
+        await db_session.commit()
+        await db_session.refresh(super_admin)
 
         submission = Submission(
+            user_id=super_admin.id,
             content="Test claim ready for publication",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.FINAL_APPROVAL,
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(super_admin)
         await db_session.refresh(submission)
 
         token = create_access_token(data={"sub": str(super_admin.id)})
@@ -165,15 +171,17 @@ class TestWorkflowTransition:
             is_active=True,
         )
         db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
 
         submission = Submission(
+            user_id=admin.id,
             content="Test claim",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.FINAL_APPROVAL,
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(submission)
 
         token = create_access_token(data={"sub": str(admin.id)})
@@ -205,15 +213,17 @@ class TestWorkflowTransition:
             is_active=True,
         )
         db_session.add(submitter)
+        await db_session.commit()
+        await db_session.refresh(submitter)
 
         submission = Submission(
+            user_id=submitter.id,
             content="Test claim",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.SUBMITTED,
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(submitter)
         await db_session.refresh(submission)
 
         token = create_access_token(data={"sub": str(submitter.id)})
@@ -245,15 +255,17 @@ class TestWorkflowTransition:
             is_active=True,
         )
         db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
 
         submission = Submission(
+            user_id=admin.id,
             content="Test claim",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.SUBMITTED,  # Can't go directly to PUBLISHED
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(submission)
 
         token = create_access_token(data={"sub": str(admin.id)})
@@ -330,15 +342,17 @@ class TestWorkflowTransition:
             is_active=True,
         )
         db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
 
         submission = Submission(
+            user_id=admin.id,
             content="Test claim with metadata",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.SUBMITTED,
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(submission)
 
         token = create_access_token(data={"sub": str(admin.id)})
@@ -373,15 +387,17 @@ class TestGetWorkflowHistory:
             is_active=True,
         )
         db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
 
         submission = Submission(
+            user_id=admin.id,
             content="Test claim with history",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.QUEUED,
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(submission)
 
         # Create transition history
@@ -429,15 +445,17 @@ class TestGetWorkflowHistory:
             is_active=True,
         )
         db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
 
         submission = Submission(
+            user_id=admin.id,
             content="New submission",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.SUBMITTED,
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(submission)
 
         token = create_access_token(data={"sub": str(admin.id)})
@@ -505,15 +523,17 @@ class TestGetCurrentState:
             is_active=True,
         )
         db_session.add(user)
+        await db_session.commit()
+        await db_session.refresh(user)
 
         submission = Submission(
+            user_id=user.id,
             content="Test claim",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.IN_RESEARCH,
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(user)
         await db_session.refresh(submission)
 
         token = create_access_token(data={"sub": str(user.id)})
@@ -543,15 +563,17 @@ class TestGetCurrentState:
             is_active=True,
         )
         db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
 
         submission = Submission(
+            user_id=admin.id,
             content="Test claim",
-            source_url="https://example.com",
+            submission_type="text",
             workflow_state=WorkflowState.DRAFT_READY,
         )
         db_session.add(submission)
         await db_session.commit()
-        await db_session.refresh(admin)
         await db_session.refresh(submission)
 
         token = create_access_token(data={"sub": str(admin.id)})
