@@ -226,5 +226,39 @@
       "diffTitle": "Comparing Version {from} to Version {to}",
       "noDiffAvailable": "No diff data available"
     }
+  },
+  "ratings": {
+    "label": "Fact-check rating",
+    "true": {
+      "name": "True",
+      "description": "The claim is completely accurate and supported by credible evidence."
+    },
+    "partly_false": {
+      "name": "Partly False",
+      "description": "The claim contains a mix of accurate and inaccurate information."
+    },
+    "false": {
+      "name": "False",
+      "description": "The claim is completely inaccurate and contradicted by credible evidence."
+    },
+    "missing_context": {
+      "name": "Missing Context",
+      "description": "The claim is technically true but misleading without additional context."
+    },
+    "altered": {
+      "name": "Altered",
+      "description": "The content has been digitally manipulated or edited in a misleading way."
+    },
+    "satire": {
+      "name": "Satire",
+      "description": "The content is satirical or parody and not meant to be taken literally."
+    },
+    "unverifiable": {
+      "name": "Unverifiable",
+      "description": "The claim cannot be verified due to lack of available evidence."
+    },
+    "ariaLabel": "Rating: {rating}",
+    "showDefinition": "Show rating definition",
+    "hideDefinition": "Hide rating definition"
   }
 }
