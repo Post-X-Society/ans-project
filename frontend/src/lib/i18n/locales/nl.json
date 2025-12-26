@@ -226,5 +226,39 @@
       "diffTitle": "Vergelijking Versie {from} met Versie {to}",
       "noDiffAvailable": "Geen verschil beschikbaar"
     }
+  },
+  "ratings": {
+    "label": "Factcheck-beoordeling",
+    "true": {
+      "name": "Waar",
+      "description": "De bewering is volledig juist en wordt ondersteund door betrouwbare bronnen."
+    },
+    "partly_false": {
+      "name": "Gedeeltelijk Onwaar",
+      "description": "De bewering bevat een mix van juiste en onjuiste informatie."
+    },
+    "false": {
+      "name": "Onwaar",
+      "description": "De bewering is volledig onjuist en wordt tegengesproken door betrouwbare bronnen."
+    },
+    "missing_context": {
+      "name": "Context Ontbreekt",
+      "description": "De bewering is technisch waar maar misleidend zonder extra context."
+    },
+    "altered": {
+      "name": "Gemanipuleerd",
+      "description": "De inhoud is digitaal bewerkt of gemanipuleerd op een misleidende manier."
+    },
+    "satire": {
+      "name": "Satire",
+      "description": "De inhoud is satirisch of parodie en niet bedoeld om letterlijk te nemen."
+    },
+    "unverifiable": {
+      "name": "Niet Verifieerbaar",
+      "description": "De bewering kan niet worden geverifieerd vanwege gebrek aan beschikbaar bewijs."
+    },
+    "ariaLabel": "Beoordeling: {rating}",
+    "showDefinition": "Toon beoordelingsdefinitie",
+    "hideDefinition": "Verberg beoordelingsdefinitie"
   }
 }

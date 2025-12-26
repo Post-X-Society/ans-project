@@ -193,3 +193,46 @@ export interface TransparencyPageUpdate {
 	content?: Record<string, string>;
 	change_summary: string;
 }
+
+// Rating Types (EFCSN Compliant - Issue #61)
+export type FactCheckRatingValue =
+	| 'true'
+	| 'partly_false'
+	| 'false'
+	| 'missing_context'
+	| 'altered'
+	| 'satire'
+	| 'unverifiable';
+
+export interface RatingDefinition {
+	id: string;
+	rating: FactCheckRatingValue;
+	name: Record<string, string>;
+	description: Record<string, string>;
+	color_hex: string;
+	icon: string;
+	display_order: number;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface RatingDefinitionListResponse {
+	items: RatingDefinition[];
+	total: number;
+}
+
+export interface FactCheckRating {
+	id: string;
+	fact_check_id: string;
+	rating: FactCheckRatingValue;
+	justification: string;
+	assigned_by_id: string;
+	version: number;
+	is_current: boolean;
+	created_at: string;
+}
+
+export interface CurrentRatingResponse {
+	rating: FactCheckRating | null;
+	definition: RatingDefinition | null;
+}
