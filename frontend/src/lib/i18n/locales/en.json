@@ -227,6 +227,34 @@
       "noDiffAvailable": "No diff data available"
     }
   },
+  "workflow": {
+    "timeline": {
+      "title": "Workflow History",
+      "ariaLabel": "Workflow state transition history",
+      "loading": "Loading workflow history...",
+      "empty": "No workflow history available",
+      "error": "Failed to load workflow history",
+      "transitionBy": "by {actor}",
+      "currentState": "Current state"
+    },
+    "states": {
+      "submitted": "Submitted",
+      "queued": "Queued",
+      "duplicate_detected": "Duplicate Detected",
+      "archived": "Archived",
+      "assigned": "Assigned",
+      "in_research": "In Research",
+      "draft_ready": "Draft Ready",
+      "needs_more_research": "Needs More Research",
+      "admin_review": "Admin Review",
+      "peer_review": "Peer Review",
+      "final_approval": "Final Approval",
+      "published": "Published",
+      "under_correction": "Under Correction",
+      "corrected": "Corrected",
+      "rejected": "Rejected"
+    }
+  },
   "ratings": {
     "label": "Fact-check rating",
     "true": {

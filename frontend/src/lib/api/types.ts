@@ -236,3 +236,51 @@ export interface CurrentRatingResponse {
 	rating: FactCheckRating | null;
 	definition: RatingDefinition | null;
 }
+
+// Workflow Types (EFCSN Compliance - Issue #60, #62)
+export type WorkflowState =
+	| 'submitted'
+	| 'queued'
+	| 'duplicate_detected'
+	| 'archived'
+	| 'assigned'
+	| 'in_research'
+	| 'draft_ready'
+	| 'needs_more_research'
+	| 'admin_review'
+	| 'peer_review'
+	| 'final_approval'
+	| 'published'
+	| 'under_correction'
+	| 'corrected'
+	| 'rejected';
+
+export interface WorkflowHistoryItem {
+	id: string;
+	submission_id: string;
+	from_state: WorkflowState | null;
+	to_state: WorkflowState;
+	transitioned_by_id: string;
+	transitioned_by?: UserBasic;
+	reason: string | null;
+	metadata: Record<string, unknown> | null;
+	created_at: string;
+}
+
+export interface WorkflowHistoryResponse {
+	items: WorkflowHistoryItem[];
+	total: number;
+	current_state: WorkflowState;
+}
+
+export interface WorkflowCurrentStateResponse {
+	submission_id: string;
+	current_state: WorkflowState;
+	valid_transitions: WorkflowState[];
+}
+
+export interface WorkflowTransitionRequest {
+	to_state: WorkflowState;
+	reason?: string;
+	metadata?: Record<string, unknown>;
+}

@@ -227,6 +227,34 @@
       "noDiffAvailable": "Geen verschil beschikbaar"
     }
   },
+  "workflow": {
+    "timeline": {
+      "title": "Werkstroomgeschiedenis",
+      "ariaLabel": "Geschiedenis van werkstroomstatusovergangen",
+      "loading": "Werkstroomgeschiedenis laden...",
+      "empty": "Geen werkstroomgeschiedenis beschikbaar",
+      "error": "Werkstroomgeschiedenis laden mislukt",
+      "transitionBy": "door {actor}",
+      "currentState": "Huidige status"
+    },
+    "states": {
+      "submitted": "Ingediend",
+      "queued": "In wachtrij",
+      "duplicate_detected": "Duplicaat gedetecteerd",
+      "archived": "Gearchiveerd",
+      "assigned": "Toegewezen",
+      "in_research": "In onderzoek",
+      "draft_ready": "Concept klaar",
+      "needs_more_research": "Meer onderzoek nodig",
+      "admin_review": "Beheerdersbeoordeling",
+      "peer_review": "Collegiale toetsing",
+      "final_approval": "Definitieve goedkeuring",
+      "published": "Gepubliceerd",
+      "under_correction": "Onder correctie",
+      "corrected": "Gecorrigeerd",
+      "rejected": "Afgewezen"
+    }
+  },
   "ratings": {
     "label": "Factcheck-beoordeling",
     "true": {
