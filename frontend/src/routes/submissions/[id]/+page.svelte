@@ -30,6 +30,7 @@
 	let submissionId = $derived(data.id);
 
 	// Query for submission details
+	// Query options now include enabled check to prevent queries when ID is empty/undefined
 	const submissionQuery = createQuery(() => submissionQueryOptions(submissionId));
 
 	// Query for workflow history
@@ -44,7 +45,7 @@
 	// Query for current rating
 	const currentRatingQuery = createQuery(() => currentRatingQueryOptions(submissionId));
 
-	// Query for rating definitions
+	// Query for rating definitions (no submissionId dependency)
 	const ratingDefinitionsQuery = createQuery(() => ratingDefinitionsQueryOptions());
 
 	// Mutation for workflow transition
