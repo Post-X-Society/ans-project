@@ -339,5 +339,75 @@
     "ariaLabel": "Beoordeling: {rating}",
     "showDefinition": "Toon beoordelingsdefinitie",
     "hideDefinition": "Verberg beoordelingsdefinitie"
+  },
+  "factCheckEditor": {
+    "title": "Factcheck Editor",
+    "loading": "Concept laden...",
+    "loadError": "Concept laden mislukt",
+    "claim": {
+      "title": "Bewering",
+      "summary": "Samenvatting Bewering",
+      "summaryPlaceholder": "Korte samenvatting van de bewering die wordt gecontroleerd..."
+    },
+    "analysis": {
+      "title": "Analyse",
+      "placeholder": "Schrijf hier je gedetailleerde analyse...",
+      "minLength": "Analyse moet minimaal 200 tekens bevatten",
+      "charCount": "{count} tekens",
+      "wordCount": "{count} woorden"
+    },
+    "verdict": {
+      "title": "Oordeel",
+      "select": "Selecteer een oordeel",
+      "required": "Selecteer een oordeel"
+    },
+    "justification": {
+      "title": "Onderbouwing Oordeel",
+      "placeholder": "Leg de redenering achter dit oordeel uit..."
+    },
+    "sources": {
+      "title": "Bronnen",
+      "add": "Bron Toevoegen",
+      "remove": "Bron verwijderen",
+      "placeholder": "Voer bron-URL of referentie in...",
+      "empty": "Nog geen bronnen toegevoegd"
+    },
+    "notes": {
+      "title": "Interne Notities",
+      "placeholder": "Privénotities alleen voor reviewers..."
+    },
+    "status": {
+      "draft": "Concept",
+      "saved": "Opgeslagen",
+      "saving": "Opslaan...",
+      "unsaved": "Niet-opgeslagen wijzigingen",
+      "lastSaved": "Laatst opgeslagen: {time}",
+      "autoSaveEnabled": "Automatisch opslaan ingeschakeld"
+    },
+    "actions": {
+      "save": "Concept Opslaan",
+      "saving": "Opslaan...",
+      "submit": "Indienen voor Review",
+      "submitting": "Indienen...",
+      "preview": "Voorbeeld",
+      "edit": "Bewerken"
+    },
+    "preview": {
+      "title": "Voorbeeld",
+      "noContent": "Geen inhoud om te bekijken"
+    },
+    "validation": {
+      "analysisRequired": "Analyse is verplicht",
+      "analysisMinLength": "Analyse moet minimaal 200 tekens bevatten",
+      "verdictRequired": "Oordeel is verplicht"
+    },
+    "success": {
+      "saved": "Concept succesvol opgeslagen",
+      "submitted": "Succesvol ingediend voor review"
+    },
+    "error": {
+      "saveFailed": "Concept opslaan mislukt",
+      "submitFailed": "Indienen voor review mislukt"
+    }
   }
 }

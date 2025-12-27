@@ -6,6 +6,7 @@
 	import WorkflowTimeline from '$lib/components/WorkflowTimeline.svelte';
 	import RatingBadge from '$lib/components/RatingBadge.svelte';
 	import RatingDefinition from '$lib/components/RatingDefinition.svelte';
+	import FactCheckEditor from '$lib/components/FactCheckEditor.svelte';
 	import {
 		submissionQueryOptions,
 		workflowHistoryQueryOptions,
@@ -98,6 +99,14 @@
 			['admin', 'super_admin'].includes(auth.user.role) &&
 			workflowState?.valid_transitions &&
 			workflowState.valid_transitions.length > 0
+	);
+
+	// Check if fact-check editor should be shown (in_research or draft_ready state)
+	let showFactCheckEditor = $derived(
+		auth.user &&
+			['reviewer', 'admin', 'super_admin'].includes(auth.user.role) &&
+			workflowState?.current_state &&
+			['in_research', 'draft_ready'].includes(workflowState.current_state)
 	);
 
 	/**
@@ -440,6 +449,17 @@
 								</dl>
 							</div>
 						</div>
+					{/if}
+
+					<!-- Fact-Check Editor (shown in in_research or draft_ready states) -->
+					{#if showFactCheckEditor}
+						<FactCheckEditor
+							factCheckId={submissionId}
+							claimText={submission.content}
+							onSubmitForReview={() => {
+								queryClient.invalidateQueries({ queryKey: ['workflow', submissionId] });
+							}}
+						/>
 					{/if}
 
 					<!-- Workflow Timeline -->

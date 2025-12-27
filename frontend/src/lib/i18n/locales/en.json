@@ -339,5 +339,75 @@
     "ariaLabel": "Rating: {rating}",
     "showDefinition": "Show rating definition",
     "hideDefinition": "Hide rating definition"
+  },
+  "factCheckEditor": {
+    "title": "Fact-Check Editor",
+    "loading": "Loading draft...",
+    "loadError": "Failed to load draft",
+    "claim": {
+      "title": "Claim",
+      "summary": "Claim Summary",
+      "summaryPlaceholder": "Brief summary of the claim being checked..."
+    },
+    "analysis": {
+      "title": "Analysis",
+      "placeholder": "Write your detailed analysis here...",
+      "minLength": "Analysis must be at least 200 characters",
+      "charCount": "{count} characters",
+      "wordCount": "{count} words"
+    },
+    "verdict": {
+      "title": "Verdict",
+      "select": "Select a verdict",
+      "required": "Please select a verdict"
+    },
+    "justification": {
+      "title": "Verdict Justification",
+      "placeholder": "Explain the reasoning behind this verdict..."
+    },
+    "sources": {
+      "title": "Sources",
+      "add": "Add Source",
+      "remove": "Remove source",
+      "placeholder": "Enter source URL or reference...",
+      "empty": "No sources added yet"
+    },
+    "notes": {
+      "title": "Internal Notes",
+      "placeholder": "Private notes for reviewers only..."
+    },
+    "status": {
+      "draft": "Draft",
+      "saved": "Saved",
+      "saving": "Saving...",
+      "unsaved": "Unsaved changes",
+      "lastSaved": "Last saved: {time}",
+      "autoSaveEnabled": "Auto-save enabled"
+    },
+    "actions": {
+      "save": "Save Draft",
+      "saving": "Saving...",
+      "submit": "Submit for Review",
+      "submitting": "Submitting...",
+      "preview": "Preview",
+      "edit": "Edit"
+    },
+    "preview": {
+      "title": "Preview",
+      "noContent": "No content to preview"
+    },
+    "validation": {
+      "analysisRequired": "Analysis is required",
+      "analysisMinLength": "Analysis must be at least 200 characters",
+      "verdictRequired": "Verdict is required"
+    },
+    "success": {
+      "saved": "Draft saved successfully",
+      "submitted": "Submitted for review successfully"
+    },
+    "error": {
+      "saveFailed": "Failed to save draft",
+      "submitFailed": "Failed to submit for review"
+    }
   }
 }

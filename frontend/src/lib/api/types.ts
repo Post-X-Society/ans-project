@@ -284,3 +284,31 @@ export interface WorkflowTransitionRequest {
 	reason?: string;
 	metadata?: Record<string, unknown>;
 }
+
+// Draft Types (Issue #122 - Fact-Check Editor Interface)
+export interface DraftContent {
+	claim_summary: string | null;
+	analysis: string | null;
+	verdict: FactCheckRatingValue | null;
+	justification: string | null;
+	sources_cited: string[];
+	internal_notes: string | null;
+	version: number;
+	last_edited_by: string | null;
+}
+
+export interface DraftUpdate {
+	claim_summary?: string | null;
+	analysis?: string | null;
+	verdict?: FactCheckRatingValue | null;
+	justification?: string | null;
+	sources_cited?: string[] | null;
+	internal_notes?: string | null;
+}
+
+export interface DraftResponse {
+	fact_check_id: string;
+	draft_content: DraftContent | null;
+	draft_updated_at: string | null;
+	has_draft: boolean;
+}
