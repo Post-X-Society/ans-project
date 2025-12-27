@@ -9,6 +9,7 @@ import {
 	getRatingDefinitions,
 	type RatingAssignRequest
 } from './ratings';
+import { getDraft, saveDraft } from './drafts';
 import type {
 	SubmissionListResponse,
 	Submission,
@@ -22,7 +23,9 @@ import type {
 	WorkflowHistoryItem,
 	FactCheckRating,
 	CurrentRatingResponse,
-	RatingDefinitionListResponse
+	RatingDefinitionListResponse,
+	DraftResponse,
+	DraftUpdate
 } from './types';
 
 /**
@@ -178,5 +181,31 @@ export function assignRatingMutationOptions(
 ): MutationOptions<FactCheckRating, Error, RatingAssignRequest> {
 	return {
 		mutationFn: (data: RatingAssignRequest) => assignRating(submissionId, data)
+	};
+}
+
+/**
+ * Query options for fetching a fact-check draft
+ */
+export function draftQueryOptions(
+	factCheckId: string,
+	enabled: boolean = true
+): QueryOptions<DraftResponse> {
+	return {
+		queryKey: ['fact-checks', factCheckId, 'draft'],
+		queryFn: () => getDraft(factCheckId),
+		staleTime: 30 * 1000, // 30 seconds
+		enabled: enabled && !!factCheckId
+	};
+}
+
+/**
+ * Mutation options for saving a draft
+ */
+export function saveDraftMutationOptions(
+	factCheckId: string
+): MutationOptions<DraftResponse, Error, DraftUpdate> {
+	return {
+		mutationFn: (data: DraftUpdate) => saveDraft(factCheckId, data)
 	};
 }
