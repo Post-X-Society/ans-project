@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     auth,
+    drafts,
     health,
     ratings,
     reviewer_assignments,
@@ -28,3 +29,4 @@ api_router.include_router(
 api_router.include_router(transparency.router, prefix="/transparency", tags=["transparency"])
 api_router.include_router(ratings.router, tags=["ratings"])
 api_router.include_router(workflow.router, tags=["workflow"])
+api_router.include_router(drafts.router, tags=["drafts"])

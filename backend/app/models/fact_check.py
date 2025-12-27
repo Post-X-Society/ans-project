@@ -3,15 +3,20 @@ FactCheck model for verified fact-check results
 """
 
 import json
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, List, Optional
 from uuid import UUID
 
-from sqlalchemy import Float, ForeignKey, Integer, String, Text, TypeDecorator
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, TypeDecorator
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.engine import Dialect
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.types import JSON
 
 from app.models.base import TimeStampedModel
+
+# Cross-database compatible JSONB type (JSONB for PostgreSQL, JSON for SQLite)
+DraftJSONType = JSON().with_variant(JSONB, "postgresql")
 
 if TYPE_CHECKING:
     from app.models.claim import Claim
@@ -67,6 +72,18 @@ class FactCheck(TimeStampedModel):
     # Source count for EFCSN compliance (Issue #69)
     sources_count: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
+    )
+
+    # Draft storage for reviewer work-in-progress (Issue #123)
+    draft_content: Mapped[Optional[dict[str, Any]]] = mapped_column(
+        DraftJSONType,
+        nullable=True,
+        default=None,
+    )
+    draft_updated_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        default=None,
     )
 
     # Relationships
