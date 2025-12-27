@@ -84,19 +84,9 @@
 	}
 </script>
 
-<div
-	class="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-	onclick={() => {
-		/* TODO: Navigate to submission detail page */
-		console.log('View submission:', submission.id);
-	}}
-	role="button"
-	tabindex="0"
-	onkeydown={(e) => {
-		if (e.key === 'Enter' || e.key === ' ') {
-			console.log('View submission:', submission.id);
-		}
-	}}
+<a
+	href="/submissions/{submission.id}"
+	class="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
 >
 	<!-- Spotlight Video Thumbnail (if applicable) -->
 	{#if submission.submission_type === 'spotlight' && submission.spotlight_content}
@@ -241,4 +231,4 @@
 			{formatDate(submission.created_at)}
 		</div>
 	</div>
-</div>
+</a>
