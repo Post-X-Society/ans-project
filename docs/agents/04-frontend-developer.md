@@ -33,14 +33,39 @@ You are the **Frontend Developer** for the Ans project. You build user interface
 
 ## Tech Stack
 
-- **Svelte 5** - Reactive UI framework with runes
+- **Svelte 5** - Reactive UI framework with runes ($state, $derived, $props)
 - **SvelteKit** - Full-stack framework for routing
 - **TypeScript** - Type safety
 - **Vite** - Build tool and dev server
-- **TanStack Query** - Data fetching and caching
+- **TanStack Query v6** - Data fetching and caching (Svelte 5 runes support)
 - **Tailwind CSS** - Utility-first styling
 - **Vitest** - Unit testing framework
 - **Testing Library** - Component testing utilities
+
+### Critical Compatibility Notes
+
+**⚠️ TanStack Query v6 for Svelte 5:**
+- **Always use v6.x** with Svelte 5 (v5.x uses Svelte 4 stores)
+- Query results are **signals**, NOT stores (no `$` prefix needed)
+- Access query data directly: `submissionQuery.data` (not `$submissionQuery.data`)
+- Check `package.json` when debugging: `"@tanstack/svelte-query": "^6.0.10"`
+
+**Migration from v5 → v6:**
+```typescript
+// ❌ OLD (v5 - Svelte 4 stores):
+const query = createQuery({queryKey: ['todos'], queryFn: getTodos})
+let data = $derived($query.data)  // $ prefix needed
+
+// ✅ NEW (v6 - Svelte 5 signals):
+const query = createQuery(() => ({queryKey: ['todos'], queryFn: getTodos}))
+let data = $derived(query.data)  // No $ prefix
+```
+
+**When debugging browser errors:**
+- If error says "queryKey needs to be an Array" but code HAS arrays → version mismatch
+- If error says "store_invalid_shape" → using v5 syntax with v6 or vice versa
+- Ask user to invoke **Claude browser plugin** to analyze compiled JavaScript
+- Check Network tab to see actual code being served vs source code
 
 ## Communication
 

@@ -265,6 +265,40 @@ In the submission form, should we allow anonymous submissions or require authent
 This affects the database schema and API design.
 ```
 
+### When to Use Claude Browser Plugin for Debugging
+
+For complex browser-side debugging issues that can't be easily diagnosed from server logs:
+
+**When to ask user to invoke Claude browser plugin:**
+- Frontend JavaScript errors that don't make sense from the stack trace
+- Caching issues where code changes aren't reflecting in the browser
+- Framework version incompatibility issues (e.g., Svelte 5 + library mismatches)
+- Complex DOM/rendering issues
+- Network request debugging (failed requests, CORS, etc.)
+- Browser-specific bugs
+- Service Worker or Cache API issues
+
+**Example prompt for user:**
+```markdown
+The error suggests a framework compatibility issue, but I need to see what's actually executing in the browser.
+
+Could you please use the Claude browser plugin to analyze:
+1. Open DevTools Console and capture the full error with stack trace
+2. Check the Network tab for the specific file being served
+3. Look at the Sources tab to see the actual compiled code
+4. Check Application tab for any Service Workers or cached content
+
+Ask Claude browser plugin to help identify the root cause of the version mismatch.
+```
+
+**Lesson learned (2025-12-27):**
+- **Issue**: Svelte 5 + TanStack Query v5 incompatibility
+- **Symptom**: "queryKey needs to be an Array" error despite code having arrays
+- **Root Cause**: TanStack Query v5 used Svelte 4 stores, incompatible with Svelte 5 runes
+- **Solution**: Upgrade to TanStack Query v6 + remove `$` store prefixes
+- **Detection**: Claude browser plugin analyzed compiled JS and found store-based code was executing
+- **Takeaway**: Framework major version changes require checking ALL dependency compatibility
+
 ---
 
 ## Example: First Agent Task

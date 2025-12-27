@@ -1,4 +1,5 @@
 <script lang="ts">
+	
 	import { t } from '$lib/i18n';
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 	import { authStore } from '$lib/stores/auth';
@@ -64,23 +65,23 @@
 	let transitionReason = $state('');
 	let showTransitionModal = $state(false);
 
-	// Derived values
-	let submission = $derived($submissionQuery.data);
-	let workflowHistory = $derived($workflowHistoryQuery.data);
-	let workflowState = $derived($workflowStateQuery.data);
-	let ratings = $derived($ratingsQuery.data ?? []);
-	let currentRating = $derived($currentRatingQuery.data);
-	let ratingDefinitions = $derived($ratingDefinitionsQuery.data?.items ?? []);
+	// Derived values (v6: no $ prefix needed, queries are signals)
+	let submission = $derived(submissionQuery.data);
+	let workflowHistory = $derived(workflowHistoryQuery.data);
+	let workflowState = $derived(workflowStateQuery.data);
+	let ratings = $derived(ratingsQuery.data ?? []);
+	let currentRating = $derived(currentRatingQuery.data);
+	let ratingDefinitions = $derived(ratingDefinitionsQuery.data?.items ?? []);
 
 	let isLoading = $derived(
-		$submissionQuery.isPending ||
-			$workflowHistoryQuery.isPending ||
-			$workflowStateQuery.isPending
+		submissionQuery.isPending ||
+			workflowHistoryQuery.isPending ||
+			workflowStateQuery.isPending
 	);
 
-	let hasError = $derived($submissionQuery.isError);
+	let hasError = $derived(submissionQuery.isError);
 	let errorMessage = $derived(
-		$submissionQuery.error?.message ?? $t('submissions.detail.error')
+		submissionQuery.error?.message ?? $t('submissions.detail.error')
 	);
 
 	// Check if user can assign ratings (reviewer, admin, super_admin)
@@ -161,7 +162,7 @@
 	async function handleRatingSubmit() {
 		if (!validateRatingForm() || !selectedRating) return;
 
-		$assignRatingMutation.mutate(
+		assignRatingMutation.mutate(
 			{
 				rating: selectedRating,
 				justification
@@ -197,7 +198,7 @@
 	async function handleTransition() {
 		if (!selectedTransition) return;
 
-		$workflowTransitionMutation.mutate(
+		workflowTransitionMutation.mutate(
 			{
 				to_state: selectedTransition,
 				reason: transitionReason || undefined
@@ -218,11 +219,11 @@
 	 * Retry loading data
 	 */
 	function handleRetry() {
-		$submissionQuery.refetch();
-		$workflowHistoryQuery.refetch();
-		$workflowStateQuery.refetch();
-		$ratingsQuery.refetch();
-		$currentRatingQuery.refetch();
+		submissionQuery.refetch();
+		workflowHistoryQuery.refetch();
+		workflowStateQuery.refetch();
+		ratingsQuery.refetch();
+		currentRatingQuery.refetch();
 	}
 </script>
 
@@ -450,8 +451,8 @@
 						<WorkflowTimeline
 							history={workflowHistory?.items ?? []}
 							currentState={workflowState?.current_state ?? 'submitted'}
-							isLoading={$workflowHistoryQuery.isPending}
-							error={$workflowHistoryQuery.error?.message}
+							isLoading={workflowHistoryQuery.isPending}
+							error={workflowHistoryQuery.error?.message}
 						/>
 					</div>
 				</div>
@@ -464,7 +465,7 @@
 							{$t('submissions.rating.current')}
 						</h2>
 
-						{#if $currentRatingQuery.isPending}
+						{#if currentRatingQuery.isPending}
 							<div class="flex items-center text-gray-500">
 								<svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
 									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -556,10 +557,10 @@
 								<!-- Submit Button -->
 								<button
 									type="submit"
-									disabled={$assignRatingMutation.isPending}
+									disabled={assignRatingMutation.isPending}
 									class="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
 								>
-									{$assignRatingMutation.isPending ? $t('submissions.rating.submitting') : $t('submissions.rating.submitRating')}
+									{assignRatingMutation.isPending ? $t('submissions.rating.submitting') : $t('submissions.rating.submitRating')}
 								</button>
 							</form>
 						</div>
@@ -659,10 +660,10 @@
 				</button>
 				<button
 					onclick={handleTransition}
-					disabled={$workflowTransitionMutation.isPending}
+					disabled={workflowTransitionMutation.isPending}
 					class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition"
 				>
-					{$workflowTransitionMutation.isPending ? $t('submissions.transition.confirming') : $t('submissions.transition.confirm')}
+					{workflowTransitionMutation.isPending ? $t('submissions.transition.confirming') : $t('submissions.transition.confirm')}
 				</button>
 			</div>
 		</div>
