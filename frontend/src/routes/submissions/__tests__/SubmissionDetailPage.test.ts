@@ -1,6 +1,14 @@
 import { render, screen } from '@testing-library/svelte';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { locale } from 'svelte-i18n';
+import {
+	submissionQueryOptions,
+	workflowHistoryQueryOptions,
+	workflowCurrentStateQueryOptions,
+	submissionRatingsQueryOptions,
+	currentRatingQueryOptions,
+	ratingDefinitionsQueryOptions
+} from '$lib/api/queries';
 
 /**
  * SubmissionDetailPage Tests
@@ -36,6 +44,71 @@ describe('SubmissionDetailPage', () => {
 	beforeEach(() => {
 		locale.set('en');
 		vi.clearAllMocks();
+	});
+
+	describe('Query Options - queryKey Array Validation (Issue #127)', () => {
+		/**
+		 * These tests verify that all query options have properly formatted queryKeys
+		 * to prevent the "queryKey needs to be an Array" error in TanStack Query v5.
+		 */
+
+		it('should have queryKey as array for submissionQueryOptions', () => {
+			const options = submissionQueryOptions('test-id-123');
+			expect(Array.isArray(options.queryKey)).toBe(true);
+			expect(options.queryKey).toContain('submissions');
+			expect(options.queryKey).toContain('test-id-123');
+		});
+
+		it('should have queryKey as array for workflowHistoryQueryOptions', () => {
+			const options = workflowHistoryQueryOptions('test-id-123');
+			expect(Array.isArray(options.queryKey)).toBe(true);
+			expect(options.queryKey).toContain('workflow');
+			expect(options.queryKey).toContain('test-id-123');
+		});
+
+		it('should have queryKey as array for workflowCurrentStateQueryOptions', () => {
+			const options = workflowCurrentStateQueryOptions('test-id-123');
+			expect(Array.isArray(options.queryKey)).toBe(true);
+			expect(options.queryKey).toContain('workflow');
+			expect(options.queryKey).toContain('test-id-123');
+		});
+
+		it('should have queryKey as array for submissionRatingsQueryOptions', () => {
+			const options = submissionRatingsQueryOptions('test-id-123');
+			expect(Array.isArray(options.queryKey)).toBe(true);
+			expect(options.queryKey).toContain('submissions');
+			expect(options.queryKey).toContain('test-id-123');
+		});
+
+		it('should have queryKey as array for currentRatingQueryOptions', () => {
+			const options = currentRatingQueryOptions('test-id-123');
+			expect(Array.isArray(options.queryKey)).toBe(true);
+			expect(options.queryKey).toContain('submissions');
+			expect(options.queryKey).toContain('test-id-123');
+		});
+
+		it('should have queryKey as array for ratingDefinitionsQueryOptions', () => {
+			const options = ratingDefinitionsQueryOptions();
+			expect(Array.isArray(options.queryKey)).toBe(true);
+			expect(options.queryKey).toContain('ratings');
+		});
+
+		it('should have enabled option set to false when submissionId is empty', () => {
+			// When submissionId is empty, the query should be disabled
+			const options = submissionQueryOptions('');
+			// After fix, options should include enabled: false for empty IDs
+			expect(options.enabled).toBe(false);
+		});
+
+		it('should have enabled option set to true when submissionId is valid', () => {
+			const options = submissionQueryOptions('valid-id-123');
+			expect(options.enabled).toBe(true);
+		});
+
+		it('should respect explicit enabled=false parameter', () => {
+			const options = submissionQueryOptions('valid-id-123', false);
+			expect(options.enabled).toBe(false);
+		});
 	});
 
 	describe('Test Wrapper Rendering', () => {

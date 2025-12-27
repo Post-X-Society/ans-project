@@ -41,10 +41,11 @@ export function submissionsQueryOptions(
 /**
  * Query options for fetching a single submission
  */
-export function submissionQueryOptions(id: string): QueryOptions<Submission> {
+export function submissionQueryOptions(id: string, enabled: boolean = true): QueryOptions<Submission> {
 	return {
 		queryKey: ['submissions', id],
-		queryFn: () => getSubmission(id)
+		queryFn: () => getSubmission(id),
+		enabled: enabled && !!id
 	};
 }
 
@@ -90,12 +91,14 @@ export function transparencyPageQueryOptions(
  * Query options for fetching workflow history for a submission
  */
 export function workflowHistoryQueryOptions(
-	submissionId: string
+	submissionId: string,
+	enabled: boolean = true
 ): QueryOptions<WorkflowHistoryResponse> {
 	return {
 		queryKey: ['workflow', submissionId, 'history'],
 		queryFn: () => getWorkflowHistory(submissionId),
-		staleTime: 30 * 1000 // 30 seconds - workflow state can change
+		staleTime: 30 * 1000, // 30 seconds - workflow state can change
+		enabled: enabled && !!submissionId
 	};
 }
 
@@ -103,12 +106,14 @@ export function workflowHistoryQueryOptions(
  * Query options for fetching current workflow state
  */
 export function workflowCurrentStateQueryOptions(
-	submissionId: string
+	submissionId: string,
+	enabled: boolean = true
 ): QueryOptions<WorkflowCurrentStateResponse> {
 	return {
 		queryKey: ['workflow', submissionId, 'current'],
 		queryFn: () => getWorkflowCurrentState(submissionId),
-		staleTime: 30 * 1000 // 30 seconds
+		staleTime: 30 * 1000, // 30 seconds
+		enabled: enabled && !!submissionId
 	};
 }
 
@@ -128,12 +133,14 @@ export function workflowTransitionMutationOptions(
  * Query options for fetching submission ratings (history)
  */
 export function submissionRatingsQueryOptions(
-	submissionId: string
+	submissionId: string,
+	enabled: boolean = true
 ): QueryOptions<FactCheckRating[]> {
 	return {
 		queryKey: ['submissions', submissionId, 'ratings'],
 		queryFn: () => getSubmissionRatings(submissionId),
-		staleTime: 30 * 1000 // 30 seconds
+		staleTime: 30 * 1000, // 30 seconds
+		enabled: enabled && !!submissionId
 	};
 }
 
@@ -141,12 +148,14 @@ export function submissionRatingsQueryOptions(
  * Query options for fetching current rating
  */
 export function currentRatingQueryOptions(
-	submissionId: string
+	submissionId: string,
+	enabled: boolean = true
 ): QueryOptions<CurrentRatingResponse> {
 	return {
 		queryKey: ['submissions', submissionId, 'ratings', 'current'],
 		queryFn: () => getCurrentRating(submissionId),
-		staleTime: 30 * 1000 // 30 seconds
+		staleTime: 30 * 1000, // 30 seconds
+		enabled: enabled && !!submissionId
 	};
 }
 
