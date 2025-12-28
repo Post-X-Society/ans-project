@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     health,
     ratings,
     reviewer_assignments,
+    sources,
     submissions,
     transparency,
     users,
@@ -30,3 +31,4 @@ api_router.include_router(transparency.router, prefix="/transparency", tags=["tr
 api_router.include_router(ratings.router, tags=["ratings"])
 api_router.include_router(workflow.router, tags=["workflow"])
 api_router.include_router(drafts.router, tags=["drafts"])
+api_router.include_router(sources.router, tags=["sources"])
