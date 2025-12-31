@@ -171,7 +171,7 @@ class TestSubmitPeerReview:
 
         assert review is not None
         assert review.approval_status == ApprovalStatus.REJECTED
-        assert "more evidence" in review.comments
+        assert review.comments is not None and "more evidence" in review.comments
 
     @pytest.mark.asyncio
     async def test_submit_peer_review_updates_existing(
