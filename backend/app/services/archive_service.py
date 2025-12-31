@@ -147,7 +147,8 @@ class ArchiveService:
                 closest = snapshots.get("closest", {})
 
                 if closest.get("available"):
-                    return closest.get("url")
+                    archived_url: str | None = closest.get("url")
+                    return archived_url
 
                 return None
 
@@ -166,18 +167,18 @@ class ArchiveService:
             The full archived URL
         """
         # Try Content-Location header first
-        content_location = response.headers.get("Content-Location")
+        content_location: str | None = response.headers.get("Content-Location")
         if content_location:
             if content_location.startswith("/web/"):
                 return f"https://web.archive.org{content_location}"
-            return content_location
+            return str(content_location)
 
         # Try Location header (for redirects)
-        location = response.headers.get("Location")
+        location: str | None = response.headers.get("Location")
         if location:
             if location.startswith("/web/"):
                 return f"https://web.archive.org{location}"
-            return location
+            return str(location)
 
         # Fall back to constructing URL from timestamp
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")

@@ -67,6 +67,7 @@ class TestArchiveResult:
         )
         assert result.success is True
         assert result.original_url == "https://example.com/article"
+        assert result.archived_url is not None
         assert "web.archive.org" in result.archived_url
         assert result.method == "wayback"
         assert result.error is None
@@ -155,6 +156,7 @@ class TestWaybackMachineArchiving:
 
             assert result.success is True
             assert result.original_url == "https://example.com/article"
+            assert result.archived_url is not None
             assert "web.archive.org" in result.archived_url
             assert result.method == "wayback"
             assert result.archived_at is not None
@@ -309,6 +311,7 @@ class TestRetryLogic:
 
             assert result.success is False
             assert result.archived_url is None
+            assert result.error is not None
             assert "Connection failed" in result.error
 
     @pytest.mark.asyncio
@@ -362,6 +365,7 @@ class TestErrorHandling:
             result = await archive_url("https://example.com", max_retries=1)
 
             assert result.success is False
+            assert result.error is not None
             assert "500" in result.error or "Internal Server Error" in result.error
 
     @pytest.mark.asyncio
@@ -377,6 +381,7 @@ class TestErrorHandling:
             result = await archive_url("https://example.com", max_retries=1)
 
             assert result.success is False
+            assert result.error is not None
             assert "Network unreachable" in result.error
 
     @pytest.mark.asyncio
@@ -657,7 +662,9 @@ class TestSourceArchivingIntegration:
 
             result = await archive_source_url("https://source.example.com/article")
 
+            assert result is not None
             assert result.success is True
+            assert result.archived_url is not None
             assert "web.archive.org" in result.archived_url
 
     @pytest.mark.asyncio
