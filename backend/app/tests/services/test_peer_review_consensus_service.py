@@ -690,7 +690,7 @@ class TestReviewerNotifications:
         await db_session.refresh(pending_review)
 
         # Mock the EmailService to simulate successful email sending
-        with patch("app.services.peer_review_service.EmailService") as mock_email_class:
+        with patch("app.services.email_service.EmailService") as mock_email_class:
             mock_email_instance = MagicMock()
             mock_email_instance.send_email.return_value = True
             mock_email_class.return_value = mock_email_instance
@@ -729,7 +729,7 @@ class TestReviewerNotifications:
         await db_session.commit()
 
         # Mock the EmailService to simulate successful email sending
-        with patch("app.services.peer_review_service.EmailService") as mock_email_class:
+        with patch("app.services.email_service.EmailService") as mock_email_class:
             mock_email_instance = MagicMock()
             mock_email_instance.send_email.return_value = True
             mock_email_class.return_value = mock_email_instance
