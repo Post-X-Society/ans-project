@@ -675,6 +675,8 @@ class TestReviewerNotifications:
         reviewer_user: User,
     ) -> None:
         """Test sending notification for a pending review."""
+        from unittest.mock import MagicMock, patch
+
         from app.services.peer_review_service import PeerReviewService
 
         # Create pending review
@@ -687,13 +689,19 @@ class TestReviewerNotifications:
         await db_session.commit()
         await db_session.refresh(pending_review)
 
-        service = PeerReviewService(db_session)
-        result = await service.send_pending_review_notification(
-            review_id=pending_review.id,
-        )
+        # Mock the EmailService to simulate successful email sending
+        with patch("app.services.peer_review_service.EmailService") as mock_email_class:
+            mock_email_instance = MagicMock()
+            mock_email_instance.send_email.return_value = True
+            mock_email_class.return_value = mock_email_instance
 
-        # Email sending might not work in tests, but the function should return status
+            service = PeerReviewService(db_session)
+            result = await service.send_pending_review_notification(
+                review_id=pending_review.id,
+            )
+
         assert result.attempted is True
+        assert result.sent is True
         assert result.reviewer_email == reviewer_user.email
 
     @pytest.mark.asyncio
@@ -705,6 +713,8 @@ class TestReviewerNotifications:
         second_reviewer: User,
     ) -> None:
         """Test notifying all pending reviewers for a fact check."""
+        from unittest.mock import MagicMock, patch
+
         from app.services.peer_review_service import PeerReviewService
 
         # Create multiple pending reviews
@@ -718,12 +728,19 @@ class TestReviewerNotifications:
 
         await db_session.commit()
 
-        service = PeerReviewService(db_session)
-        results = await service.notify_pending_reviewers(
-            fact_check_id=sample_fact_check.id,
-        )
+        # Mock the EmailService to simulate successful email sending
+        with patch("app.services.peer_review_service.EmailService") as mock_email_class:
+            mock_email_instance = MagicMock()
+            mock_email_instance.send_email.return_value = True
+            mock_email_class.return_value = mock_email_instance
+
+            service = PeerReviewService(db_session)
+            results = await service.notify_pending_reviewers(
+                fact_check_id=sample_fact_check.id,
+            )
 
         assert results.notification_count == 2
+        assert results.sent_count == 2
         assert reviewer_user.email in results.notified_emails
         assert second_reviewer.email in results.notified_emails
 
