@@ -2,6 +2,7 @@
 Tests for Source API Endpoints - TDD Approach (Tests written FIRST)
 
 Issue #70: Backend: Source Management Service (TDD)
+Issue #72: Backend: Source CRUD API Endpoints (TDD) - Archive endpoint
 EPIC #49: Evidence & Source Management
 ADR 0005: EFCSN Compliance Architecture
 
@@ -14,9 +15,11 @@ Endpoints:
 - DELETE /api/v1/sources/{id} - Delete source
 - GET /api/v1/fact-checks/{id}/sources/validate - Validate minimum sources
 - GET /api/v1/fact-checks/{id}/sources/credibility - Get credibility summary
+- POST /api/v1/sources/archive - Archive URL via Wayback Machine (Issue #72)
 """
 
-from datetime import date
+from datetime import date, datetime, timezone
+from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
@@ -28,6 +31,7 @@ from app.models.claim import Claim
 from app.models.fact_check import FactCheck
 from app.models.source import Source, SourceType
 from app.models.user import User, UserRole
+from app.services.archive_service import ArchiveResult
 
 # =============================================================================
 # Helper functions
@@ -801,3 +805,318 @@ class TestHighCredibilitySources:
         assert response.status_code == 200
         data = response.json()
         assert data["total_count"] == 3  # Scores 3, 4, and 5
+
+
+# =============================================================================
+# Test: Archive Source URL (Issue #72)
+# =============================================================================
+
+
+class TestArchiveSourceURL:
+    """Tests for POST /api/v1/sources/archive
+
+    Issue #72: Backend: Source CRUD API Endpoints (TDD)
+    EPIC #49: Evidence & Source Management
+    """
+
+    @pytest.mark.asyncio
+    async def test_archive_url_as_reviewer_success(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test archiving a URL as reviewer succeeds."""
+        # Arrange
+        _, token = await create_test_user(db_session, role=UserRole.REVIEWER)
+
+        payload = {"url": "https://example.com/article-to-archive"}
+
+        # Act
+        with patch("app.api.v1.endpoints.sources.archive_url") as mock_archive:
+            mock_archive.return_value = ArchiveResult(
+                success=True,
+                original_url="https://example.com/article-to-archive",
+                archived_url="https://web.archive.org/web/20251231/https://example.com/article-to-archive",
+                archived_at=datetime.now(timezone.utc),
+                method="wayback",
+            )
+
+            response = client.post(
+                "/api/v1/sources/archive",
+                json=payload,
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert data["original_url"] == "https://example.com/article-to-archive"
+        assert "web.archive.org" in data["archived_url"]
+        assert data["method"] == "wayback"
+
+    @pytest.mark.asyncio
+    async def test_archive_url_as_admin_success(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test archiving a URL as admin succeeds."""
+        # Arrange
+        _, token = await create_test_user(db_session, role=UserRole.ADMIN)
+
+        payload = {"url": "https://news.example.com/story"}
+
+        # Act
+        with patch("app.api.v1.endpoints.sources.archive_url") as mock_archive:
+            mock_archive.return_value = ArchiveResult(
+                success=True,
+                original_url="https://news.example.com/story",
+                archived_url="https://web.archive.org/web/20251231/https://news.example.com/story",
+                archived_at=datetime.now(timezone.utc),
+                method="wayback",
+            )
+
+            response = client.post(
+                "/api/v1/sources/archive",
+                json=payload,
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+
+    @pytest.mark.asyncio
+    async def test_archive_url_as_submitter_forbidden(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test that submitter cannot archive URLs (403)."""
+        # Arrange
+        _, token = await create_test_user(db_session, role=UserRole.SUBMITTER)
+
+        payload = {"url": "https://example.com/article"}
+
+        # Act
+        response = client.post(
+            "/api/v1/sources/archive",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        # Assert
+        assert response.status_code == 403
+
+    @pytest.mark.asyncio
+    async def test_archive_url_requires_auth(self, client: TestClient) -> None:
+        """Test that archiving requires authentication."""
+        # Arrange
+        payload = {"url": "https://example.com/article"}
+
+        # Act - no auth header
+        response = client.post("/api/v1/sources/archive", json=payload)
+
+        # Assert
+        assert response.status_code == 401
+
+    @pytest.mark.asyncio
+    async def test_archive_url_invalid_url_rejected(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test that invalid URLs are rejected with 422."""
+        # Arrange
+        _, token = await create_test_user(db_session, role=UserRole.REVIEWER)
+
+        payload = {"url": "not-a-valid-url"}
+
+        # Act
+        response = client.post(
+            "/api/v1/sources/archive",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        # Assert - FastAPI/Pydantic returns 422 for validation errors
+        assert response.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_archive_url_empty_url_rejected(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test that empty URLs are rejected with 422."""
+        # Arrange
+        _, token = await create_test_user(db_session, role=UserRole.REVIEWER)
+
+        payload = {"url": ""}
+
+        # Act
+        response = client.post(
+            "/api/v1/sources/archive",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        # Assert - FastAPI/Pydantic returns 422 for validation errors
+        assert response.status_code == 422
+
+    @pytest.mark.asyncio
+    async def test_archive_url_returns_failure_result(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test that archive failures return proper result with success=False."""
+        # Arrange
+        _, token = await create_test_user(db_session, role=UserRole.REVIEWER)
+
+        payload = {"url": "https://unreachable-site.example.com/page"}
+
+        # Act
+        with patch("app.api.v1.endpoints.sources.archive_url") as mock_archive:
+            mock_archive.return_value = ArchiveResult(
+                success=False,
+                original_url="https://unreachable-site.example.com/page",
+                archived_url=None,
+                archived_at=None,
+                method="wayback",
+                error="Connection failed after 3 retries",
+            )
+
+            response = client.post(
+                "/api/v1/sources/archive",
+                json=payload,
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+        # Assert
+        assert response.status_code == 200  # 200 OK even on archive failure
+        data = response.json()
+        assert data["success"] is False
+        assert data["archived_url"] is None
+        assert data["error"] == "Connection failed after 3 retries"
+
+    @pytest.mark.asyncio
+    async def test_archive_url_with_source_id_updates_source(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test archiving with source_id updates the source's archived_url."""
+        # Arrange
+        fact_check = await create_test_fact_check(db_session)
+        _, token = await create_test_user(db_session, role=UserRole.REVIEWER)
+
+        # Create a source without archived_url
+        source = Source(
+            fact_check_id=fact_check.id,
+            source_type=SourceType.MEDIA,
+            title="News Article",
+            url="https://news.example.com/story",
+            access_date=date(2025, 12, 28),
+        )
+        db_session.add(source)
+        await db_session.commit()
+        await db_session.refresh(source)
+
+        payload = {
+            "url": "https://news.example.com/story",
+            "source_id": str(source.id),
+        }
+
+        # Act
+        with patch("app.api.v1.endpoints.sources.archive_url") as mock_archive:
+            mock_archive.return_value = ArchiveResult(
+                success=True,
+                original_url="https://news.example.com/story",
+                archived_url="https://web.archive.org/web/20251231/https://news.example.com/story",
+                archived_at=datetime.now(timezone.utc),
+                method="wayback",
+            )
+
+            response = client.post(
+                "/api/v1/sources/archive",
+                json=payload,
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert data["source_updated"] is True
+
+        # Verify source was updated in database
+        await db_session.refresh(source)
+        assert (
+            source.archived_url
+            == "https://web.archive.org/web/20251231/https://news.example.com/story"
+        )
+
+    @pytest.mark.asyncio
+    async def test_archive_url_with_invalid_source_id_returns_404(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test archiving with non-existent source_id returns 404."""
+        # Arrange
+        _, token = await create_test_user(db_session, role=UserRole.REVIEWER)
+
+        payload = {
+            "url": "https://example.com/article",
+            "source_id": str(uuid4()),  # Non-existent source
+        }
+
+        # Act
+        response = client.post(
+            "/api/v1/sources/archive",
+            json=payload,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        # Assert
+        assert response.status_code == 404
+
+    @pytest.mark.asyncio
+    async def test_archive_url_does_not_update_source_on_failure(
+        self, client: TestClient, db_session: AsyncSession
+    ) -> None:
+        """Test that source is not updated when archiving fails."""
+        # Arrange
+        fact_check = await create_test_fact_check(db_session)
+        _, token = await create_test_user(db_session, role=UserRole.REVIEWER)
+
+        # Create a source without archived_url
+        source = Source(
+            fact_check_id=fact_check.id,
+            source_type=SourceType.MEDIA,
+            title="News Article",
+            url="https://news.example.com/story",
+            access_date=date(2025, 12, 28),
+        )
+        db_session.add(source)
+        await db_session.commit()
+        await db_session.refresh(source)
+
+        payload = {
+            "url": "https://news.example.com/story",
+            "source_id": str(source.id),
+        }
+
+        # Act
+        with patch("app.api.v1.endpoints.sources.archive_url") as mock_archive:
+            mock_archive.return_value = ArchiveResult(
+                success=False,
+                original_url="https://news.example.com/story",
+                archived_url=None,
+                archived_at=None,
+                method="wayback",
+                error="Failed to archive",
+            )
+
+            response = client.post(
+                "/api/v1/sources/archive",
+                json=payload,
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is False
+        assert data.get("source_updated") is False or "source_updated" not in data
+
+        # Verify source was NOT updated
+        await db_session.refresh(source)
+        assert source.archived_url is None
