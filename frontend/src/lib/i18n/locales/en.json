@@ -409,5 +409,37 @@
       "saveFailed": "Failed to save draft",
       "submitFailed": "Failed to submit for review"
     }
+  },
+  "peerReview": {
+    "title": "Peer Review Dashboard",
+    "loading": "Loading peer reviews...",
+    "error": "Error loading peer reviews",
+    "pendingReviews": "Pending Reviews",
+    "noPendingReviews": "No pending reviews",
+    "noPendingReviewsMessage": "You have no fact-checks awaiting your review.",
+    "reviewDetails": "Review Details",
+    "factCheckId": "Fact-Check ID",
+    "submittedAt": "Submitted at",
+    "selectReview": "Select a review from the list to see details",
+    "consensusStatus": "Consensus Status",
+    "consensusReached": "Consensus Reached",
+    "consensusNotReached": "Awaiting More Reviews",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "pending": "Pending",
+    "approvedCount": "{count} Approved",
+    "rejectedCount": "{count} Rejected",
+    "pendingCount": "{count} Pending",
+    "otherReviewers": "Other Reviewers",
+    "noOtherReviews": "No other reviews yet",
+    "yourDecision": "Your Decision",
+    "comments": "Comments",
+    "commentsPlaceholder": "Add your review comments (optional)...",
+    "approve": "Approve",
+    "reject": "Reject",
+    "submitting": "Submitting...",
+    "reviewSubmitted": "Review submitted successfully!",
+    "reviewFailed": "Failed to submit review",
+    "viewSubmission": "View Submission"
   }
 }

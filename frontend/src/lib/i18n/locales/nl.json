@@ -409,5 +409,37 @@
       "saveFailed": "Concept opslaan mislukt",
       "submitFailed": "Indienen voor review mislukt"
     }
+  },
+  "peerReview": {
+    "title": "Peer Review Dashboard",
+    "loading": "Peer reviews laden...",
+    "error": "Fout bij laden van peer reviews",
+    "pendingReviews": "Openstaande Reviews",
+    "noPendingReviews": "Geen openstaande reviews",
+    "noPendingReviewsMessage": "Je hebt geen factchecks die op je review wachten.",
+    "reviewDetails": "Review Details",
+    "factCheckId": "Factcheck ID",
+    "submittedAt": "Ingediend op",
+    "selectReview": "Selecteer een review uit de lijst voor details",
+    "consensusStatus": "Consensus Status",
+    "consensusReached": "Consensus Bereikt",
+    "consensusNotReached": "Wacht op Meer Reviews",
+    "approved": "Goedgekeurd",
+    "rejected": "Afgekeurd",
+    "pending": "In afwachting",
+    "approvedCount": "{count} Goedgekeurd",
+    "rejectedCount": "{count} Afgekeurd",
+    "pendingCount": "{count} In afwachting",
+    "otherReviewers": "Andere Reviewers",
+    "noOtherReviews": "Nog geen andere reviews",
+    "yourDecision": "Jouw Beslissing",
+    "comments": "Opmerkingen",
+    "commentsPlaceholder": "Voeg je review opmerkingen toe (optioneel)...",
+    "approve": "Goedkeuren",
+    "reject": "Afkeuren",
+    "submitting": "Indienen...",
+    "reviewSubmitted": "Review succesvol ingediend!",
+    "reviewFailed": "Review indienen mislukt",
+    "viewSubmission": "Bekijk Inzending"
   }
 }

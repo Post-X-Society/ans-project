@@ -312,3 +312,65 @@ export interface DraftResponse {
 	draft_updated_at: string | null;
 	has_draft: boolean;
 }
+
+// Peer Review Types (Issue #66 & #67 - EFCSN Compliance)
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+
+export interface PeerReview {
+	id: string;
+	fact_check_id: string;
+	reviewer_id: string;
+	approval_status: ApprovalStatus;
+	comments: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface PendingReviewItem {
+	id: string;
+	fact_check_id: string;
+	created_at: string;
+}
+
+export interface PendingReviewsResponse {
+	reviewer_id: string;
+	total_count: number;
+	reviews: PendingReviewItem[];
+}
+
+export interface PeerReviewStatusResponse {
+	fact_check_id: string;
+	consensus_reached: boolean;
+	approved: boolean;
+	total_reviews: number;
+	approved_count: number;
+	rejected_count: number;
+	pending_count: number;
+	needs_more_reviewers: boolean;
+	reviews: PeerReview[];
+}
+
+export interface PeerReviewSubmit {
+	approved: boolean;
+	comments?: string | null;
+}
+
+export interface PeerReviewInitiate {
+	reviewer_ids: string[];
+}
+
+export interface PeerReviewInitiateResponse {
+	fact_check_id: string;
+	reviews_created: number;
+	reviews: PeerReview[];
+}
+
+// Extended submission type with fact-check data for dashboard
+export interface SubmissionWithFactCheck extends Submission {
+	fact_check?: {
+		id: string;
+		claim_summary: string | null;
+		rating: FactCheckRatingValue | null;
+		created_at: string;
+	} | null;
+}
