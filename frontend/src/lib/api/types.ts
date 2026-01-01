@@ -374,3 +374,38 @@ export interface SubmissionWithFactCheck extends Submission {
 		created_at: string;
 	} | null;
 }
+
+// Source Types (Issue #73 - Source Management Interface)
+export type SourceType = 'official' | 'news' | 'social_media' | 'research' | 'other';
+
+export type SourceRelevance = 'supports' | 'contradicts' | 'contextualizes';
+
+export interface Source {
+	id: string;
+	url: string;
+	source_type: SourceType;
+	credibility_rating: number; // 1-5
+	relevance: SourceRelevance;
+	fact_check_id?: string;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface SourceCreate {
+	url: string;
+	source_type: SourceType;
+	credibility_rating: number;
+	relevance: SourceRelevance;
+}
+
+export interface SourceUpdate {
+	url?: string;
+	source_type?: SourceType;
+	credibility_rating?: number;
+	relevance?: SourceRelevance;
+}
+
+export interface SourceListResponse {
+	items: Source[];
+	total: number;
+}

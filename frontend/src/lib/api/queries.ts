@@ -11,6 +11,7 @@ import {
 } from './ratings';
 import { getDraft, saveDraft } from './drafts';
 import { getPendingReviews, getPeerReviewStatus, submitPeerReview } from './peer-review';
+import { getSources, createSource, updateSource, deleteSource } from './sources';
 import type {
 	SubmissionListResponse,
 	Submission,
@@ -30,7 +31,11 @@ import type {
 	PendingReviewsResponse,
 	PeerReviewStatusResponse,
 	PeerReviewSubmit,
-	PeerReview
+	PeerReview,
+	Source,
+	SourceCreate,
+	SourceUpdate,
+	SourceListResponse
 } from './types';
 
 /**
@@ -251,5 +256,55 @@ export function submitPeerReviewMutationOptions(
 ): MutationOptions<PeerReview, Error, PeerReviewSubmit> {
 	return {
 		mutationFn: (data: PeerReviewSubmit) => submitPeerReview(factCheckId, data)
+	};
+}
+
+/**
+ * Query options for fetching sources for a fact-check
+ */
+export function sourcesQueryOptions(
+	factCheckId: string,
+	enabled: boolean = true
+): QueryOptions<SourceListResponse> {
+	return {
+		queryKey: ['fact-checks', factCheckId, 'sources'],
+		queryFn: () => getSources(factCheckId),
+		staleTime: 30 * 1000, // 30 seconds
+		enabled: enabled && !!factCheckId
+	};
+}
+
+/**
+ * Mutation options for creating a source
+ */
+export function createSourceMutationOptions(
+	factCheckId: string
+): MutationOptions<Source, Error, SourceCreate> {
+	return {
+		mutationFn: (data: SourceCreate) => createSource(factCheckId, data)
+	};
+}
+
+/**
+ * Mutation options for updating a source
+ */
+export function updateSourceMutationOptions(
+	factCheckId: string,
+	sourceId: string
+): MutationOptions<Source, Error, SourceUpdate> {
+	return {
+		mutationFn: (data: SourceUpdate) => updateSource(factCheckId, sourceId, data)
+	};
+}
+
+/**
+ * Mutation options for deleting a source
+ */
+export function deleteSourceMutationOptions(
+	factCheckId: string,
+	sourceId: string
+): MutationOptions<void, Error, void> {
+	return {
+		mutationFn: () => deleteSource(factCheckId, sourceId)
 	};
 }

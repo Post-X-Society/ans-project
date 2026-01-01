@@ -340,6 +340,54 @@
     "showDefinition": "Toon beoordelingsdefinitie",
     "hideDefinition": "Verberg beoordelingsdefinitie"
   },
+  "sources": {
+    "title": "Bronnen",
+    "form": {
+      "urlLabel": "Bron URL of Referentie",
+      "urlPlaceholder": "https://voorbeeld.nl/artikel of tekstreferentie",
+      "typeLabel": "Brontype",
+      "typePlaceholder": "Selecteer brontype",
+      "credibilityLabel": "Betrouwbaarheidsbeoordeling",
+      "relevanceLabel": "Relevantie",
+      "relevancePlaceholder": "Selecteer relevantie",
+      "addSource": "Bron Toevoegen",
+      "updateSource": "Bron Bijwerken",
+      "adding": "Toevoegen...",
+      "updating": "Bijwerken..."
+    },
+    "types": {
+      "official": "Officieel",
+      "news": "Nieuws",
+      "social_media": "Sociale Media",
+      "research": "Onderzoek",
+      "other": "Overig"
+    },
+    "relevance": {
+      "supports": "Ondersteunt",
+      "contradicts": "Spreekt tegen",
+      "contextualizes": "Geeft context"
+    },
+    "rating": {
+      "star": "Beoordeel met {count} ster",
+      "stars": "Beoordeel met {count} sterren"
+    },
+    "warning": {
+      "title": "Minimaal 2 bronnen worden aanbevolen",
+      "sourceCount": "{count} bron toegevoegd",
+      "sourcesCount": "{count} bronnen toegevoegd"
+    },
+    "validation": {
+      "urlRequired": "Bron URL of referentie is verplicht",
+      "typeRequired": "Brontype is verplicht",
+      "credibilityRequired": "Betrouwbaarheidsbeoordeling is verplicht",
+      "relevanceRequired": "Relevantie is verplicht"
+    },
+    "list": {
+      "empty": "Nog geen bronnen toegevoegd",
+      "remove": "Bron verwijderen",
+      "edit": "Bron bewerken"
+    }
+  },
   "factCheckEditor": {
     "title": "Factcheck Editor",
     "loading": "Concept laden...",
