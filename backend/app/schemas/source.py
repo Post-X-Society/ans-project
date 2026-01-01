@@ -168,3 +168,56 @@ class SourceCredibilityResponse(BaseModel):
     average_credibility: Optional[float] = Field(
         None, description="Average credibility score (1-5), None if no scores"
     )
+
+
+# =============================================================================
+# Archive Schemas (Issue #72)
+# =============================================================================
+
+
+class ArchiveRequest(BaseModel):
+    """Schema for URL archive request.
+
+    Issue #72: Backend: Source CRUD API Endpoints (TDD)
+    EPIC #49: Evidence & Source Management
+    """
+
+    url: str = Field(
+        ...,
+        min_length=1,
+        description="The URL to archive via Wayback Machine",
+    )
+    source_id: Optional[UUID] = Field(
+        None,
+        description="Optional source ID to update with archived URL if archiving succeeds",
+    )
+
+    @field_validator("url")
+    @classmethod
+    def url_must_be_valid(cls, v: str) -> str:
+        """Validate URL format."""
+        v = v.strip()
+        if not v:
+            raise ValueError("URL cannot be empty")
+        if not v.startswith(("http://", "https://")):
+            raise ValueError("URL must start with http:// or https://")
+        return v
+
+
+class ArchiveResponse(BaseModel):
+    """Schema for URL archive response.
+
+    Issue #72: Backend: Source CRUD API Endpoints (TDD)
+    EPIC #49: Evidence & Source Management
+    """
+
+    success: bool = Field(..., description="Whether the archiving was successful")
+    original_url: str = Field(..., description="The original URL that was archived")
+    archived_url: Optional[str] = Field(None, description="The archived URL (if successful)")
+    archived_at: Optional[datetime] = Field(None, description="When the archive was created")
+    method: str = Field(..., description="The archiving method used (e.g., 'wayback')")
+    error: Optional[str] = Field(None, description="Error message if archiving failed")
+    source_updated: Optional[bool] = Field(
+        None,
+        description="Whether the source record was updated with the archived URL",
+    )

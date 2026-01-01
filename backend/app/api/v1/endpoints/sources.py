@@ -2,6 +2,7 @@
 Source API Endpoints for EFCSN-compliant evidence management.
 
 Issue #70: Backend: Source Management Service (TDD)
+Issue #72: Backend: Source CRUD API Endpoints (TDD) - Archive endpoint
 EPIC #49: Evidence & Source Management
 ADR 0005: EFCSN Compliance Architecture
 
@@ -14,6 +15,7 @@ Endpoints:
 - DELETE /sources/{id} - Delete source
 - GET /fact-checks/{id}/sources/validate - Validate minimum source count
 - GET /fact-checks/{id}/sources/credibility - Get credibility summary
+- POST /sources/archive - Archive URL via Wayback Machine (Issue #72)
 """
 
 from uuid import UUID
@@ -25,6 +27,8 @@ from app.core.database import get_db
 from app.core.dependencies import require_reviewer
 from app.models.user import User
 from app.schemas.source import (
+    ArchiveRequest,
+    ArchiveResponse,
     SourceCreate,
     SourceCredibilityResponse,
     SourceListResponse,
@@ -33,6 +37,10 @@ from app.schemas.source import (
     SourceUpdate,
     SourceValidationResponse,
     SourceWithCitationResponse,
+)
+from app.services.archive_service import (
+    ArchiveValidationError,
+    archive_url,
 )
 from app.services.source_service import (
     MINIMUM_SOURCES_REQUIRED,
@@ -345,4 +353,79 @@ async def get_high_credibility_sources(
         fact_check_id=fact_check_id,
         sources=[SourceResponse.model_validate(s) for s in sources],
         total_count=len(sources),
+    )
+
+
+# =============================================================================
+# Archive Endpoint (Issue #72)
+# =============================================================================
+
+
+@router.post(
+    "/sources/archive",
+    response_model=ArchiveResponse,
+    tags=["sources"],
+    summary="Archive URL via Wayback Machine",
+    description="Archive a URL using the Internet Archive Wayback Machine. "
+    "Optionally updates a source record with the archived URL.",
+)
+async def archive_source_url(
+    archive_request: ArchiveRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_reviewer),
+) -> ArchiveResponse:
+    """
+    Archive a URL via Wayback Machine.
+
+    Issue #72: Backend: Source CRUD API Endpoints (TDD)
+    EPIC #49: Evidence & Source Management
+    ADR 0005: EFCSN Compliance Architecture
+
+    This endpoint:
+    1. Archives the provided URL via Wayback Machine
+    2. Optionally updates a source record with the archived URL
+
+    Requires reviewer, admin, or super_admin role.
+    """
+    source_updated = False
+
+    # If source_id provided, verify source exists first
+    if archive_request.source_id:
+        try:
+            source = await get_source(db=db, source_id=archive_request.source_id)
+        except SourceValidationError as e:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e),
+            ) from e
+
+    # Attempt to archive the URL
+    try:
+        result = await archive_url(archive_request.url)
+    except ArchiveValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        ) from e
+
+    # If archiving succeeded and source_id was provided, update the source
+    if result.success and archive_request.source_id and result.archived_url:
+        try:
+            source = await get_source(db=db, source_id=archive_request.source_id)
+            source.archived_url = result.archived_url
+            await db.commit()
+            await db.refresh(source)
+            source_updated = True
+        except SourceValidationError:
+            # Source not found - already checked above, but handle edge case
+            pass
+
+    return ArchiveResponse(
+        success=result.success,
+        original_url=result.original_url,
+        archived_url=result.archived_url,
+        archived_at=result.archived_at,
+        method=result.method,
+        error=result.error,
+        source_updated=source_updated if archive_request.source_id else None,
     )
