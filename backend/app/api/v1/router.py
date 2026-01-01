@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     auth,
     drafts,
     health,
+    peer_review,
     ratings,
     reviewer_assignments,
     sources,
@@ -32,3 +33,4 @@ api_router.include_router(ratings.router, tags=["ratings"])
 api_router.include_router(workflow.router, tags=["workflow"])
 api_router.include_router(drafts.router, tags=["drafts"])
 api_router.include_router(sources.router, tags=["sources"])
+api_router.include_router(peer_review.router, tags=["peer-review"])

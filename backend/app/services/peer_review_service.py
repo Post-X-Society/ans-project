@@ -598,7 +598,15 @@ class PeerReviewService:
 
         Returns:
             List of created or existing PeerReview objects
+
+        Raises:
+            PeerReviewNotFoundError: If fact check doesn't exist
         """
+        # Verify fact check exists
+        fact_check = await self._get_fact_check(fact_check_id)
+        if fact_check is None:
+            raise PeerReviewNotFoundError(f"Fact check {fact_check_id} not found")
+
         reviews: list[PeerReview] = []
 
         for reviewer_id in reviewer_ids:
