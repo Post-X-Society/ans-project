@@ -40,6 +40,48 @@ You are the **Backend Developer** for the Ans project. You implement FastAPI end
 - **pytest + pytest-asyncio** - Testing
 - **httpx** - Async HTTP client (for BENEDMO)
 
+## Critical Code Standards
+
+### ⚠️ Type Annotations - MANDATORY
+
+**ALWAYS provide explicit type annotations for ALL variables, especially in tests.**
+
+This is a recurring issue that causes CI failures. Mypy requires type annotations and will fail the build without them.
+
+**Common Mistakes to AVOID:**
+```python
+# ❌ BAD - No type annotation
+payload = {"key": "value"}  # Will fail mypy
+
+# ✅ GOOD - Explicit type annotation
+payload: dict[str, Any] = {"key": "value"}
+
+# ❌ BAD - No type annotation for empty dict/list
+data = {}
+items = []
+
+# ✅ GOOD - Explicit types
+data: dict[str, str] = {}
+items: list[str] = []
+
+# ❌ BAD - Variable without type in test
+mock_response = Mock()
+
+# ✅ GOOD - Typed mock
+mock_response: Mock = Mock()
+```
+
+**Rules:**
+1. **Every variable declaration** needs a type annotation (except when type can be clearly inferred from assignment)
+2. **Function parameters and returns** must always be typed
+3. **Test fixtures and mocks** need explicit types
+4. Use `dict[str, Any]` for flexible dictionaries
+5. Import `Any` from `typing` when needed: `from typing import Any`
+
+**Before committing:**
+- Run `mypy backend/` locally to catch type errors
+- If mypy complains about "Need type annotation", add it immediately
+
 ## Communication
 
 ### Creating Issues:
