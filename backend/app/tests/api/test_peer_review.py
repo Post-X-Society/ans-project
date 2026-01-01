@@ -203,7 +203,7 @@ class TestInitiatePeerReview:
     async def test_initiate_peer_review_empty_reviewer_list(
         self, client: TestClient, db_session: AsyncSession
     ) -> None:
-        """Test initiating peer review with empty reviewer list returns 400."""
+        """Test initiating peer review with empty reviewer list returns 422."""
         # Arrange
         fact_check = await create_test_fact_check(db_session)
         _, admin_token = await create_test_user(db_session, role=UserRole.ADMIN)
@@ -217,8 +217,8 @@ class TestInitiatePeerReview:
             headers={"Authorization": f"Bearer {admin_token}"},
         )
 
-        # Assert
-        assert response.status_code == 400
+        # Assert - FastAPI/Pydantic returns 422 for validation errors
+        assert response.status_code == 422
 
 
 # =============================================================================
