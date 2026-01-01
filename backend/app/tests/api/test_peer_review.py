@@ -13,6 +13,7 @@ Endpoints:
 - PATCH /api/v1/peer-review/triggers - Update trigger configuration (admin only)
 """
 
+from typing import Any
 from uuid import uuid4
 
 import pytest
@@ -100,7 +101,7 @@ class TestInitiatePeerReview:
             db_session, role=UserRole.ADMIN, email="reviewer2@test.com"
         )
 
-        payload = {"reviewer_ids": [str(reviewer1.id), str(reviewer2.id)]}
+        payload: dict[str, Any] = {"reviewer_ids": [str(reviewer1.id), str(reviewer2.id)]}
 
         # Act
         response = client.post(
@@ -124,7 +125,7 @@ class TestInitiatePeerReview:
         # Arrange
         fact_check = await create_test_fact_check(db_session)
 
-        payload = {"reviewer_ids": [str(uuid4())]}
+        payload: dict[str, Any] = {"reviewer_ids": [str(uuid4())]}
 
         # Act - no auth header
         response = client.post(
@@ -144,7 +145,7 @@ class TestInitiatePeerReview:
         fact_check = await create_test_fact_check(db_session)
         _, submitter_token = await create_test_user(db_session, role=UserRole.SUBMITTER)
 
-        payload = {"reviewer_ids": [str(uuid4())]}
+        payload: dict[str, Any] = {"reviewer_ids": [str(uuid4())]}
 
         # Act
         response = client.post(
@@ -165,7 +166,7 @@ class TestInitiatePeerReview:
         fact_check = await create_test_fact_check(db_session)
         _, reviewer_token = await create_test_user(db_session, role=UserRole.REVIEWER)
 
-        payload = {"reviewer_ids": [str(uuid4())]}
+        payload: dict[str, Any] = {"reviewer_ids": [str(uuid4())]}
 
         # Act
         response = client.post(
@@ -186,7 +187,7 @@ class TestInitiatePeerReview:
         _, admin_token = await create_test_user(db_session, role=UserRole.ADMIN)
         fake_id = uuid4()
 
-        payload = {"reviewer_ids": [str(uuid4())]}
+        payload: dict[str, Any] = {"reviewer_ids": [str(uuid4())]}
 
         # Act
         response = client.post(
@@ -207,7 +208,7 @@ class TestInitiatePeerReview:
         fact_check = await create_test_fact_check(db_session)
         _, admin_token = await create_test_user(db_session, role=UserRole.ADMIN)
 
-        payload = {"reviewer_ids": []}
+        payload: dict[str, Any] = {"reviewer_ids": []}
 
         # Act
         response = client.post(
@@ -247,7 +248,7 @@ class TestSubmitPeerReview:
         db_session.add(review)
         await db_session.commit()
 
-        payload = {"approved": True, "comments": "LGTM - well researched"}
+        payload: dict[str, Any] = {"approved": True, "comments": "LGTM - well researched"}
 
         # Act
         response = client.post(
@@ -280,7 +281,7 @@ class TestSubmitPeerReview:
         db_session.add(review)
         await db_session.commit()
 
-        payload = {"approved": False, "comments": "Needs more sources"}
+        payload: dict[str, Any] = {"approved": False, "comments": "Needs more sources"}
 
         # Act
         response = client.post(
@@ -303,7 +304,7 @@ class TestSubmitPeerReview:
         # Arrange
         fact_check = await create_test_fact_check(db_session)
 
-        payload = {"approved": True}
+        payload: dict[str, Any] = {"approved": True}
 
         # Act - no auth header
         response = client.post(
@@ -323,7 +324,7 @@ class TestSubmitPeerReview:
         fact_check = await create_test_fact_check(db_session)
         _, submitter_token = await create_test_user(db_session, role=UserRole.SUBMITTER)
 
-        payload = {"approved": True}
+        payload: dict[str, Any] = {"approved": True}
 
         # Act
         response = client.post(
@@ -344,7 +345,7 @@ class TestSubmitPeerReview:
         _, admin_token = await create_test_user(db_session, role=UserRole.ADMIN)
         fake_id = uuid4()
 
-        payload = {"approved": True}
+        payload: dict[str, Any] = {"approved": True}
 
         # Act
         response = client.post(
@@ -664,7 +665,7 @@ class TestUpdatePeerReviewTriggers:
 
         _, admin_token = await create_test_user(db_session, role=UserRole.ADMIN)
 
-        payload = {
+        payload: dict[str, Any] = {
             "trigger_id": str(trigger.id),
             "enabled": False,
             "threshold_value": {"min_views": 20000},
@@ -700,7 +701,7 @@ class TestUpdatePeerReviewTriggers:
 
         _, reviewer_token = await create_test_user(db_session, role=UserRole.REVIEWER)
 
-        payload = {"trigger_id": str(trigger.id), "enabled": False}
+        payload: dict[str, Any] = {"trigger_id": str(trigger.id), "enabled": False}
 
         # Act
         response = client.patch(
@@ -721,7 +722,7 @@ class TestUpdatePeerReviewTriggers:
         _, admin_token = await create_test_user(db_session, role=UserRole.ADMIN)
         fake_id = uuid4()
 
-        payload = {"trigger_id": str(fake_id), "enabled": False}
+        payload: dict[str, Any] = {"trigger_id": str(fake_id), "enabled": False}
 
         # Act
         response = client.patch(
@@ -748,7 +749,7 @@ class TestUpdatePeerReviewTriggers:
         await db_session.commit()
         await db_session.refresh(trigger)
 
-        payload = {"trigger_id": str(trigger.id), "enabled": False}
+        payload: dict[str, Any] = {"trigger_id": str(trigger.id), "enabled": False}
 
         # Act - no auth header
         response = client.patch(
