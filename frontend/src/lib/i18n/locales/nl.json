@@ -502,5 +502,30 @@
     "reviewSubmitted": "Review succesvol ingediend!",
     "reviewFailed": "Review indienen mislukt",
     "viewSubmission": "Bekijk Inzending"
+  },
+  "citations": {
+    "ariaLabel": "Citatie {number}",
+    "viewSource": "Bekijk brondetails",
+    "popup": {
+      "title": "Brondetails",
+      "sourceType": "Brontype",
+      "author": "Auteur",
+      "publicationDate": "Publicatiedatum",
+      "publisher": "Uitgever",
+      "credibility": "Betrouwbaarheidsbeoordeling",
+      "relevance": "Relevantie",
+      "viewSource": "Bekijk Bron",
+      "close": "Sluiten"
+    },
+    "copy": {
+      "title": "Kopieer Citatie",
+      "apa": "Kopieer APA",
+      "mla": "Kopieer MLA",
+      "copied": "Gekopieerd!",
+      "copyFailed": "Kopiëren mislukt"
+    },
+    "noTitle": "Naamloze Bron",
+    "noAuthor": "Onbekende Auteur",
+    "invalidCitation": "Ongeldige citatieverwijzing"
   }
 }
