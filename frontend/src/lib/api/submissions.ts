@@ -27,16 +27,34 @@ export async function createSpotlightSubmission(
 }
 
 /**
- * Get list of submissions with pagination and optional status filtering
+ * Options for filtering submissions list
+ */
+export interface GetSubmissionsOptions {
+	page?: number;
+	page_size?: number;
+	status?: 'pending' | 'processing' | 'completed';
+	/**
+	 * Filter to show only submissions assigned to current user
+	 * Uses server-side filtering for optimal performance
+	 */
+	assigned_to_me?: boolean;
+}
+
+/**
+ * Get list of submissions with pagination and optional filtering
  */
 export async function getSubmissions(
 	page: number = 1,
 	page_size: number = 50,
-	status?: 'pending' | 'processing' | 'completed'
+	status?: 'pending' | 'processing' | 'completed',
+	assigned_to_me?: boolean
 ): Promise<SubmissionListResponse> {
 	const params: Record<string, any> = { page, page_size };
 	if (status) {
 		params.status = status;
+	}
+	if (assigned_to_me) {
+		params.assigned_to_me = true;
 	}
 	const response = await apiClient.get<SubmissionListResponse>('/api/v1/submissions', {
 		params

@@ -93,6 +93,13 @@
   "submissions": {
     "title": "Submissions",
     "newSubmission": "New Submission",
+    "filterTabs": {
+      "all": "All Submissions",
+      "myAssignments": "My Assignments",
+      "unassigned": "Unassigned",
+      "pendingReview": "Pending Review",
+      "ariaLabel": "Filter submissions"
+    },
     "detail": {
       "title": "Submission Details",
       "pageTitle": "Submission #{id}",
