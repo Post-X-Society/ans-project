@@ -93,6 +93,13 @@
   "submissions": {
     "title": "Inzendingen",
     "newSubmission": "Nieuwe inzending",
+    "filterTabs": {
+      "all": "Alle Inzendingen",
+      "myAssignments": "Mijn Toewijzingen",
+      "unassigned": "Niet Toegewezen",
+      "pendingReview": "Wacht op Review",
+      "ariaLabel": "Filter inzendingen"
+    },
     "detail": {
       "title": "Indiening Details",
       "pageTitle": "Indiening #{id}",
