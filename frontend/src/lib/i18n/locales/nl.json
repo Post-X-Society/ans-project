@@ -288,6 +288,19 @@
       "transitionBy": "door {actor}",
       "currentState": "Huidige status"
     },
+    "peerReview": {
+      "title": "Collegiale Toetsing",
+      "ariaLabel": "Status collegiale toetsing en beslissingen van reviewers",
+      "loading": "Collegiale toetsingen laden...",
+      "consensusReached": "Consensus Bereikt",
+      "awaitingReviews": "Wachten op Reviews",
+      "reviewerDecisions": "Reviewer Beslissingen",
+      "summary": "{approved} goedgekeurd, {rejected} afgewezen, {pending} in afwachting",
+      "approved": "Goedgekeurd",
+      "rejected": "Afgewezen",
+      "pending": "In Afwachting",
+      "noComments": "Geen opmerkingen gegeven"
+    },
     "states": {
       "submitted": "Ingediend",
       "queued": "In wachtrij",

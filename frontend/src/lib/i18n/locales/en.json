@@ -288,6 +288,19 @@
       "transitionBy": "by {actor}",
       "currentState": "Current state"
     },
+    "peerReview": {
+      "title": "Peer Review",
+      "ariaLabel": "Peer review status and reviewer decisions",
+      "loading": "Loading peer reviews...",
+      "consensusReached": "Consensus Reached",
+      "awaitingReviews": "Awaiting Reviews",
+      "reviewerDecisions": "Reviewer Decisions",
+      "summary": "{approved} approved, {rejected} rejected, {pending} pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "pending": "Pending",
+      "noComments": "No comments provided"
+    },
     "states": {
       "submitted": "Submitted",
       "queued": "Queued",
