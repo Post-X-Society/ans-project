@@ -591,11 +591,15 @@ GET    /api/v1/peer-review/{fact_check_id}  # Get review status
 ## Author
 System Architect (Claude) + Product Owner
 
+## Related ADRs
+- [ADR 0006: Collaborative Workflow UI/UX Architecture](./0006-collaborative-workflow-ui-ux.md) - Implements the user-facing workflow for submission review, self-assignment, personal dashboards, and multi-reviewer coordination
+
 ## Related EPICs
-- EPIC #6: EFCSN Rating System
-- EPIC #7: Multi-Tier Approval Workflow
-- EPIC #8: Evidence & Source Management
-- EPIC #9: Corrections & Complaints System
-- EPIC #10: Transparency & Methodology Pages
-- EPIC #11: Analytics & Compliance Dashboard
-- EPIC #12: GDPR & Data Retention
+- EPIC #47: Workflow State Machine & Versioning
+- EPIC #48: Multi-Tier Approval & Peer Review System
+- EPIC #49: Evidence & Source Management System
+- EPIC #50: Corrections & Complaints System
+- EPIC #51: Transparency & Methodology Pages
+- EPIC #52: Analytics & EFCSN Compliance Dashboard
+- EPIC #53: GDPR & Data Retention Compliance
+- EPIC #54: Email Notification System
