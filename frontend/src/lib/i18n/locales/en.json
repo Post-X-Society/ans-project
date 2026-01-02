@@ -340,6 +340,54 @@
     "showDefinition": "Show rating definition",
     "hideDefinition": "Hide rating definition"
   },
+  "sources": {
+    "title": "Sources",
+    "form": {
+      "urlLabel": "Source URL or Reference",
+      "urlPlaceholder": "https://example.com/article or text reference",
+      "typeLabel": "Source Type",
+      "typePlaceholder": "Select source type",
+      "credibilityLabel": "Credibility Rating",
+      "relevanceLabel": "Relevance",
+      "relevancePlaceholder": "Select relevance",
+      "addSource": "Add Source",
+      "updateSource": "Update Source",
+      "adding": "Adding...",
+      "updating": "Updating..."
+    },
+    "types": {
+      "official": "Official",
+      "news": "News",
+      "social_media": "Social Media",
+      "research": "Research",
+      "other": "Other"
+    },
+    "relevance": {
+      "supports": "Supports",
+      "contradicts": "Contradicts",
+      "contextualizes": "Contextualizes"
+    },
+    "rating": {
+      "star": "Rate {count} star",
+      "stars": "Rate {count} stars"
+    },
+    "warning": {
+      "title": "At least 2 sources are recommended",
+      "sourceCount": "{count} source added",
+      "sourcesCount": "{count} sources added"
+    },
+    "validation": {
+      "urlRequired": "Source URL or reference is required",
+      "typeRequired": "Source type is required",
+      "credibilityRequired": "Credibility rating is required",
+      "relevanceRequired": "Relevance is required"
+    },
+    "list": {
+      "empty": "No sources added yet",
+      "remove": "Remove source",
+      "edit": "Edit source"
+    }
+  },
   "factCheckEditor": {
     "title": "Fact-Check Editor",
     "loading": "Loading draft...",
