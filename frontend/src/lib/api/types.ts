@@ -285,6 +285,37 @@ export interface WorkflowTransitionRequest {
 	metadata?: Record<string, unknown>;
 }
 
+// Peer Review Types (EFCSN Compliance - Issue #66, #68)
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+
+export interface PeerReviewerInfo {
+	id: string;
+	email: string;
+}
+
+export interface PeerReview {
+	id: string;
+	fact_check_id: string;
+	reviewer_id: string;
+	reviewer?: PeerReviewerInfo;
+	approval_status: ApprovalStatus;
+	comments: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface PeerReviewStatusResponse {
+	fact_check_id: string;
+	consensus_reached: boolean;
+	approved: boolean;
+	total_reviews: number;
+	approved_count: number;
+	rejected_count: number;
+	pending_count: number;
+	needs_more_reviewers: boolean;
+	reviews: PeerReview[];
+}
+
 // Draft Types (Issue #122 - Fact-Check Editor Interface)
 export interface DraftContent {
 	claim_summary: string | null;

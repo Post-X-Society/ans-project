@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/svelte';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { locale, waitLocale } from 'svelte-i18n';
 import WorkflowTimeline from '../WorkflowTimeline.svelte';
-import type { WorkflowHistoryItem, WorkflowState } from '$lib/api/types';
+import type { WorkflowHistoryItem, WorkflowState, PeerReviewStatusResponse, PeerReview } from '$lib/api/types';
 
 // Mock data for testing
 const mockHistoryItems: WorkflowHistoryItem[] = [
@@ -392,6 +392,366 @@ describe('WorkflowTimeline', () => {
 
 				const indicator = screen.getByTestId('timeline-indicator');
 				expect(indicator.className).toContain(expectedClass);
+			});
+		});
+	});
+
+	// =============================================================================
+	// Issue #68: Peer Review Timeline Section Tests
+	// =============================================================================
+
+	describe('peer review section', () => {
+		// Mock peer review data
+		const mockPeerReviews: PeerReview[] = [
+			{
+				id: 'pr-1',
+				fact_check_id: 'fc-123',
+				reviewer_id: 'user-1',
+				reviewer: { id: 'user-1', email: 'reviewer1@example.com' },
+				approval_status: 'approved',
+				comments: 'Well researched and accurate sources.',
+				created_at: '2025-01-15T14:00:00Z',
+				updated_at: '2025-01-15T14:00:00Z'
+			},
+			{
+				id: 'pr-2',
+				fact_check_id: 'fc-123',
+				reviewer_id: 'user-2',
+				reviewer: { id: 'user-2', email: 'reviewer2@example.com' },
+				approval_status: 'approved',
+				comments: 'Agree with the conclusion.',
+				created_at: '2025-01-15T14:30:00Z',
+				updated_at: '2025-01-15T14:30:00Z'
+			},
+			{
+				id: 'pr-3',
+				fact_check_id: 'fc-123',
+				reviewer_id: 'user-3',
+				reviewer: { id: 'user-3', email: 'reviewer3@example.com' },
+				approval_status: 'pending',
+				comments: null,
+				created_at: '2025-01-15T15:00:00Z',
+				updated_at: '2025-01-15T15:00:00Z'
+			}
+		];
+
+		const mockPeerReviewStatus: PeerReviewStatusResponse = {
+			fact_check_id: 'fc-123',
+			consensus_reached: false,
+			approved: false,
+			total_reviews: 3,
+			approved_count: 2,
+			rejected_count: 0,
+			pending_count: 1,
+			needs_more_reviewers: false,
+			reviews: mockPeerReviews
+		};
+
+		const mockPeerReviewConsensusReached: PeerReviewStatusResponse = {
+			fact_check_id: 'fc-123',
+			consensus_reached: true,
+			approved: true,
+			total_reviews: 3,
+			approved_count: 3,
+			rejected_count: 0,
+			pending_count: 0,
+			needs_more_reviewers: false,
+			reviews: mockPeerReviews.map((r) => ({ ...r, approval_status: 'approved' as const }))
+		};
+
+		const peerReviewHistoryItems: WorkflowHistoryItem[] = [
+			...mockHistoryItems,
+			{
+				id: '5',
+				submission_id: 'sub-123',
+				from_state: 'in_research',
+				to_state: 'peer_review',
+				transitioned_by_id: 'user-2',
+				transitioned_by: { id: 'user-2', email: 'admin@example.com' },
+				reason: 'Submitted for peer review',
+				metadata: null,
+				created_at: '2025-01-15T16:00:00Z'
+			}
+		];
+
+		describe('peer review section visibility', () => {
+			it('should display peer review section when peerReviewStatus is provided and current state is peer_review', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				expect(screen.getByTestId('peer-review-section')).toBeInTheDocument();
+			});
+
+			it('should not display peer review section when peerReviewStatus is not provided', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review'
+					}
+				});
+
+				expect(screen.queryByTestId('peer-review-section')).not.toBeInTheDocument();
+			});
+
+			it('should display peer review section title', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				// Use heading role to specifically target the section title
+				expect(screen.getByRole('heading', { name: /peer review/i })).toBeInTheDocument();
+			});
+		});
+
+		describe('displaying reviewers and their decisions', () => {
+			it('should display all reviewer emails', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				expect(screen.getByText(/reviewer1@example.com/i)).toBeInTheDocument();
+				expect(screen.getByText(/reviewer2@example.com/i)).toBeInTheDocument();
+				expect(screen.getByText(/reviewer3@example.com/i)).toBeInTheDocument();
+			});
+
+			it('should display approval status for each reviewer', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				// Should have review cards with status badges
+				const reviewCards = screen.getAllByTestId('peer-review-card');
+				expect(reviewCards).toHaveLength(3);
+
+				// Check the summary has the right counts
+				const summary = screen.getByTestId('peer-review-summary');
+				expect(summary).toHaveTextContent(/2 approved/i);
+				expect(summary).toHaveTextContent(/1 pending/i);
+			});
+
+			it('should display review counts summary', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				// Should show counts in some format (e.g., "2 approved, 0 rejected, 1 pending")
+				expect(screen.getByTestId('peer-review-summary')).toBeInTheDocument();
+			});
+
+			it('should display rejected status when reviewer rejects', () => {
+				const rejectedReview: PeerReviewStatusResponse = {
+					...mockPeerReviewStatus,
+					rejected_count: 1,
+					approved_count: 1,
+					reviews: [
+						{
+							...mockPeerReviews[0],
+							approval_status: 'rejected',
+							comments: 'Sources are not reliable.'
+						},
+						mockPeerReviews[1],
+						mockPeerReviews[2]
+					]
+				};
+
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: rejectedReview
+					}
+				});
+
+				// Check that the summary includes rejected count
+				const summary = screen.getByTestId('peer-review-summary');
+				expect(summary).toHaveTextContent(/1 rejected/i);
+			});
+		});
+
+		describe('displaying deliberation comments', () => {
+			it('should display comments when reviewer has provided them', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				expect(screen.getByText(/Well researched and accurate sources/i)).toBeInTheDocument();
+				expect(screen.getByText(/Agree with the conclusion/i)).toBeInTheDocument();
+			});
+
+			it('should not display comments section for reviewers without comments', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				// Reviewer 3 has no comments - should not show empty comment section
+				const reviewCards = screen.getAllByTestId('peer-review-card');
+				const reviewer3Card = reviewCards.find(
+					(card) => card.textContent?.includes('reviewer3@example.com')
+				);
+				expect(reviewer3Card).toBeInTheDocument();
+				// The card should not contain a comment text
+				expect(reviewer3Card?.querySelector('[data-testid="review-comment"]')).toBeNull();
+			});
+		});
+
+		describe('highlighting consensus', () => {
+			it('should highlight when consensus is reached', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewConsensusReached
+					}
+				});
+
+				const consensusBadge = screen.getByTestId('consensus-badge');
+				expect(consensusBadge).toBeInTheDocument();
+				expect(consensusBadge).toHaveTextContent(/consensus reached/i);
+			});
+
+			it('should show consensus badge with approved styling when all approve', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewConsensusReached
+					}
+				});
+
+				const consensusBadge = screen.getByTestId('consensus-badge');
+				expect(consensusBadge.className).toContain('bg-green');
+			});
+
+			it('should not show consensus badge when consensus not reached', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				expect(screen.queryByTestId('consensus-badge')).not.toBeInTheDocument();
+			});
+
+			it('should show pending indicator when reviews are still pending', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				expect(screen.getByTestId('awaiting-reviews-indicator')).toBeInTheDocument();
+			});
+		});
+
+		describe('peer review loading state', () => {
+			it('should show loading state when peerReviewLoading is true', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewLoading: true
+					}
+				});
+
+				expect(screen.getByText(/loading peer reviews/i)).toBeInTheDocument();
+			});
+		});
+
+		describe('peer review multilingual support', () => {
+			it('should display peer review section in English', () => {
+				locale.set('en');
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewConsensusReached
+					}
+				});
+
+				// Use heading role to specifically target the section title
+				expect(screen.getByRole('heading', { name: /peer review/i })).toBeInTheDocument();
+				expect(screen.getByTestId('consensus-badge')).toHaveTextContent(/consensus reached/i);
+			});
+
+			it('should display peer review section in Dutch when locale is nl', async () => {
+				locale.set('nl');
+				await waitLocale();
+
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewConsensusReached
+					}
+				});
+
+				await waitFor(() => {
+					// Use heading role to specifically target the section title
+					expect(screen.getByRole('heading', { name: /collegiale toetsing/i })).toBeInTheDocument();
+					expect(screen.getByTestId('consensus-badge')).toHaveTextContent(/consensus bereikt/i);
+				});
+			});
+		});
+
+		describe('accessibility for peer review section', () => {
+			it('should have accessible region for peer review section', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				const peerReviewSection = screen.getByTestId('peer-review-section');
+				expect(peerReviewSection).toHaveAttribute('role', 'region');
+				expect(peerReviewSection).toHaveAttribute('aria-label');
+			});
+
+			it('should have accessible list for reviewers', () => {
+				render(WorkflowTimeline, {
+					props: {
+						history: peerReviewHistoryItems,
+						currentState: 'peer_review',
+						peerReviewStatus: mockPeerReviewStatus
+					}
+				});
+
+				const reviewersList = screen.getByTestId('peer-reviewers-list');
+				expect(reviewersList).toHaveAttribute('role', 'list');
 			});
 		});
 	});
