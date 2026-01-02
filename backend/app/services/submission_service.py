@@ -299,3 +299,28 @@ async def get_submission_reviewers(
     )
     result = await db.execute(stmt)
     return list(result.scalars().all())
+
+
+async def is_reviewer_assigned(
+    db: AsyncSession,
+    submission_id: UUID,
+    reviewer_id: UUID,
+) -> bool:
+    """
+    Check if a reviewer is already assigned to a submission
+
+    Args:
+        db: Database session
+        submission_id: Submission UUID
+        reviewer_id: Reviewer (user) UUID
+
+    Returns:
+        True if reviewer is already assigned, False otherwise
+    """
+    stmt = select(SubmissionReviewer).where(
+        SubmissionReviewer.submission_id == submission_id,
+        SubmissionReviewer.reviewer_id == reviewer_id,
+    )
+    result = await db.execute(stmt)
+    assignment = result.scalar_one_or_none()
+    return assignment is not None
