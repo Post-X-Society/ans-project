@@ -2,10 +2,11 @@
 Submissions API endpoints
 """
 
-from typing import Optional
+from typing import Optional, Union
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -227,6 +228,86 @@ async def create_spotlight_submission(
     await db.refresh(spotlight_content)
 
     return SpotlightContentResponse.model_validate(spotlight_content)
+
+
+@router.post(
+    "/{submission_id}/reviewers/me",
+    response_model=None,
+    status_code=status.HTTP_201_CREATED,
+    summary="Self-assign as reviewer",
+    description="Assign yourself as a reviewer to a submission (Reviewer/Admin/Super Admin)",
+    responses={
+        201: {"description": "Successfully assigned as reviewer"},
+        200: {"description": "Already assigned as reviewer (idempotent)"},
+        403: {"description": "Insufficient permissions"},
+        404: {"description": "Submission not found"},
+    },
+)
+async def self_assign_as_reviewer(
+    submission_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> Union[dict[str, str], Response]:
+    """
+    Self-assign as a reviewer to a submission (requires Reviewer+ role).
+
+    - **submission_id**: UUID of the submission to assign yourself to
+
+    This endpoint allows reviewers, admins, and super admins to assign themselves
+    to a submission without requiring admin intervention.
+
+    Returns:
+    - 201 Created: Successfully assigned as reviewer
+    - 200 OK: Already assigned (idempotent operation)
+    - 403 Forbidden: User lacks required role
+    - 404 Not Found: Submission does not exist
+    """
+    # Check permission: only reviewers, admins, and super admins can self-assign
+    if current_user.role not in [UserRole.REVIEWER, UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Insufficient permissions. Only reviewers, admins, and super admins can self-assign.",
+        )
+
+    # Verify submission exists
+    submission = await submission_service.get_submission(db, submission_id)
+    if not submission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Submission {submission_id} not found",
+        )
+
+    # Check if already assigned (for idempotent behavior)
+    is_already_assigned = await submission_service.is_reviewer_assigned(
+        db=db,
+        submission_id=submission_id,
+        reviewer_id=current_user.id,
+    )
+
+    if is_already_assigned:
+        # Return 200 OK for idempotent behavior
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "message": "Already assigned as reviewer",
+                "submission_id": str(submission_id),
+                "reviewer_id": str(current_user.id),
+            },
+        )
+
+    # Self-assign: assigned_by_id is the same as reviewer_id
+    await submission_service.assign_reviewer(
+        db=db,
+        submission_id=submission_id,
+        reviewer_id=current_user.id,
+        assigned_by_id=current_user.id,
+    )
+
+    return {
+        "message": "Successfully assigned as reviewer",
+        "submission_id": str(submission_id),
+        "reviewer_id": str(current_user.id),
+    }
 
 
 @router.post(
