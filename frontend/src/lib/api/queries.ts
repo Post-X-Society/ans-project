@@ -10,6 +10,7 @@ import {
 	type RatingAssignRequest
 } from './ratings';
 import { getDraft, saveDraft } from './drafts';
+import { getPendingReviews, getPeerReviewStatus, submitPeerReview } from './peer-review';
 import type {
 	SubmissionListResponse,
 	Submission,
@@ -25,7 +26,11 @@ import type {
 	CurrentRatingResponse,
 	RatingDefinitionListResponse,
 	DraftResponse,
-	DraftUpdate
+	DraftUpdate,
+	PendingReviewsResponse,
+	PeerReviewStatusResponse,
+	PeerReviewSubmit,
+	PeerReview
 } from './types';
 
 /**
@@ -207,5 +212,44 @@ export function saveDraftMutationOptions(
 ): MutationOptions<DraftResponse, Error, DraftUpdate> {
 	return {
 		mutationFn: (data: DraftUpdate) => saveDraft(factCheckId, data)
+	};
+}
+
+/**
+ * Query options for fetching pending peer reviews for the current user
+ */
+export function pendingReviewsQueryOptions(enabled: boolean = true): QueryOptions<PendingReviewsResponse> {
+	return {
+		queryKey: ['peer-reviews', 'pending'],
+		queryFn: () => getPendingReviews(),
+		staleTime: 30 * 1000, // 30 seconds - pending reviews can change
+		enabled
+	};
+}
+
+/**
+ * Query options for fetching peer review status for a fact-check
+ */
+export function peerReviewStatusQueryOptions(
+	factCheckId: string,
+	minReviewers: number = 1,
+	enabled: boolean = true
+): QueryOptions<PeerReviewStatusResponse> {
+	return {
+		queryKey: ['peer-reviews', factCheckId, 'status', { minReviewers }],
+		queryFn: () => getPeerReviewStatus(factCheckId, minReviewers),
+		staleTime: 30 * 1000, // 30 seconds
+		enabled: enabled && !!factCheckId
+	};
+}
+
+/**
+ * Mutation options for submitting a peer review decision
+ */
+export function submitPeerReviewMutationOptions(
+	factCheckId: string
+): MutationOptions<PeerReview, Error, PeerReviewSubmit> {
+	return {
+		mutationFn: (data: PeerReviewSubmit) => submitPeerReview(factCheckId, data)
 	};
 }
