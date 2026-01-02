@@ -232,6 +232,7 @@ async def create_spotlight_submission(
 
 @router.post(
     "/{submission_id}/reviewers/me",
+    response_model=None,
     status_code=status.HTTP_201_CREATED,
     summary="Self-assign as reviewer",
     description="Assign yourself as a reviewer to a submission (Reviewer/Admin/Super Admin)",
