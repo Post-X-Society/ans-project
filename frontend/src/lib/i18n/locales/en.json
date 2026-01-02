@@ -502,5 +502,30 @@
     "reviewSubmitted": "Review submitted successfully!",
     "reviewFailed": "Failed to submit review",
     "viewSubmission": "View Submission"
+  },
+  "citations": {
+    "ariaLabel": "Citation {number}",
+    "viewSource": "View source details",
+    "popup": {
+      "title": "Source Details",
+      "sourceType": "Source Type",
+      "author": "Author",
+      "publicationDate": "Publication Date",
+      "publisher": "Publisher",
+      "credibility": "Credibility Rating",
+      "relevance": "Relevance",
+      "viewSource": "View Source",
+      "close": "Close"
+    },
+    "copy": {
+      "title": "Copy Citation",
+      "apa": "Copy APA",
+      "mla": "Copy MLA",
+      "copied": "Copied!",
+      "copyFailed": "Failed to copy"
+    },
+    "noTitle": "Untitled Source",
+    "noAuthor": "Unknown Author",
+    "invalidCitation": "Invalid citation reference"
   }
 }

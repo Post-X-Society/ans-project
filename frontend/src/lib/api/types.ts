@@ -440,3 +440,17 @@ export interface SourceListResponse {
 	items: Source[];
 	total: number;
 }
+
+// Citation Types (Issue #74 - Citation Display Component)
+// Extended source with metadata for proper citation formatting
+export interface CitationSource extends Source {
+	title?: string;
+	author?: string;
+	publication_date?: string;
+	publisher?: string;
+}
+
+export interface CitationFormat {
+	apa: string;
+	mla: string;
+}
