@@ -3,6 +3,7 @@
 	import { currentUser } from '$lib/stores/auth';
 	import { selfAssignToSubmission } from '$lib/api/submissions';
 	import StatusBadge from './StatusBadge.svelte';
+	import ReviewerAvatar from './ReviewerAvatar.svelte';
 	import { t } from 'svelte-i18n';
 
 	interface Props {
@@ -116,6 +117,41 @@
 	}
 
 	/**
+	 * Get workflow status badge text and classes (if applicable)
+	 */
+	function getWorkflowBadge(): { text: string; classes: string } | null {
+		const state = submission.workflow_state;
+
+		if (!state) return null;
+
+		switch (state) {
+			case 'in_research':
+			case 'draft_ready':
+				return {
+					text: 'In Progress',
+					classes: 'bg-amber-100 text-amber-800'
+				};
+			case 'peer_review':
+				return {
+					text: 'Peer Review',
+					classes: 'bg-purple-100 text-purple-800'
+				};
+			case 'published':
+				return {
+					text: 'Published',
+					classes: 'bg-green-100 text-green-800'
+				};
+			case 'rejected':
+				return {
+					text: 'Rejected',
+					classes: 'bg-red-100 text-red-800'
+				};
+			default:
+				return null;
+		}
+	}
+
+	/**
 	 * Check if current user can self-assign
 	 */
 	function canSelfAssign(): boolean {
@@ -149,19 +185,28 @@
 	}
 
 	const assignmentBadge = $derived(getAssignmentBadge());
+	const workflowBadge = $derived(getWorkflowBadge());
 </script>
 
 <div
 	class="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow relative"
 >
 	<!-- Assignment Badge (top-right corner) -->
-	<div class="absolute top-4 right-4 z-10">
+	<div class="absolute top-4 right-4 z-10 flex flex-col items-end gap-1">
 		<span
 			data-testid="assignment-badge"
 			class="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold {assignmentBadge.classes}"
 		>
 			{assignmentBadge.text}
 		</span>
+		{#if workflowBadge}
+			<span
+				data-testid="workflow-badge"
+				class="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold {workflowBadge.classes}"
+			>
+				{workflowBadge.text}
+			</span>
+		{/if}
 	</div>
 
 	<a href="/submissions/{submission.id}" class="block">
@@ -264,25 +309,26 @@
 				</div>
 			{/if}
 
-			<!-- Assigned Reviewers -->
+			<!-- Assigned Reviewers with Avatars -->
 			{#if submission.reviewers && submission.reviewers.length > 0}
 				<div class="mb-3">
 					<div class="text-xs text-gray-500 mb-1">Assigned Reviewers:</div>
-					<div class="flex flex-wrap gap-1">
+					<div class="flex items-center gap-2">
+						<!-- Show first 3 reviewer avatars -->
 						{#each submission.reviewers.slice(0, 3) as reviewer}
-							<span
-								class={isCurrentUserReviewer(reviewer.id)
-									? 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300'
-									: 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700'}
-							>
-								{reviewer.email}
-							</span>
+							<ReviewerAvatar name={reviewer.name} email={reviewer.email} size="md" />
 						{/each}
+						<!-- Show +N more indicator if more than 3 reviewers -->
 						{#if submission.reviewers.length > 3}
 							<span
-								class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+								data-testid="more-reviewers"
+								class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+								title={submission.reviewers
+									.slice(3)
+									.map((r) => r.name || r.email)
+									.join(', ')}
 							>
-								+{submission.reviewers.length - 3} more
+								+{submission.reviewers.length - 3}
 							</span>
 						{/if}
 					</div>

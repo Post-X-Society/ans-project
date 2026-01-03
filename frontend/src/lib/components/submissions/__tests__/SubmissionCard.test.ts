@@ -311,4 +311,184 @@ describe('SubmissionCard - Self-Assignment UI', () => {
 			expect(badge).toHaveClass('bg-gray-100', 'text-gray-700');
 		});
 	});
+
+	describe('Workflow Status Badges', () => {
+		it('should show "In Progress" badge for in_research state', () => {
+			const submissionInResearch = {
+				...mockSubmission,
+				workflow_state: 'in_research'
+			};
+
+			const { container } = render(SubmissionCard, {
+				props: { submission: submissionInResearch }
+			});
+
+			const badge = container.querySelector('[data-testid="workflow-badge"]');
+			expect(badge).toBeInTheDocument();
+			expect(badge).toHaveTextContent('In Progress');
+			expect(badge).toHaveClass('bg-amber-100', 'text-amber-800');
+		});
+
+		it('should show "In Progress" badge for draft_ready state', () => {
+			const submissionDraftReady = {
+				...mockSubmission,
+				workflow_state: 'draft_ready'
+			};
+
+			const { container } = render(SubmissionCard, {
+				props: { submission: submissionDraftReady }
+			});
+
+			const badge = container.querySelector('[data-testid="workflow-badge"]');
+			expect(badge).toHaveTextContent('In Progress');
+			expect(badge).toHaveClass('bg-amber-100', 'text-amber-800');
+		});
+
+		it('should show "Peer Review" badge for peer_review state', () => {
+			const submissionPeerReview = {
+				...mockSubmission,
+				workflow_state: 'peer_review'
+			};
+
+			const { container } = render(SubmissionCard, {
+				props: { submission: submissionPeerReview }
+			});
+
+			const badge = container.querySelector('[data-testid="workflow-badge"]');
+			expect(badge).toHaveTextContent('Peer Review');
+			expect(badge).toHaveClass('bg-purple-100', 'text-purple-800');
+		});
+
+		it('should show "Published" badge for published state', () => {
+			const submissionPublished = {
+				...mockSubmission,
+				workflow_state: 'published'
+			};
+
+			const { container } = render(SubmissionCard, {
+				props: { submission: submissionPublished }
+			});
+
+			const badge = container.querySelector('[data-testid="workflow-badge"]');
+			expect(badge).toHaveTextContent('Published');
+			expect(badge).toHaveClass('bg-green-100', 'text-green-800');
+		});
+
+		it('should show "Rejected" badge for rejected state', () => {
+			const submissionRejected = {
+				...mockSubmission,
+				workflow_state: 'rejected'
+			};
+
+			const { container } = render(SubmissionCard, {
+				props: { submission: submissionRejected }
+			});
+
+			const badge = container.querySelector('[data-testid="workflow-badge"]');
+			expect(badge).toHaveTextContent('Rejected');
+			expect(badge).toHaveClass('bg-red-100', 'text-red-800');
+		});
+
+		it('should NOT show workflow badge for new submissions', () => {
+			const submissionNew = {
+				...mockSubmission,
+				workflow_state: 'new'
+			};
+
+			const { container } = render(SubmissionCard, {
+				props: { submission: submissionNew }
+			});
+
+			const badge = container.querySelector('[data-testid="workflow-badge"]');
+			expect(badge).not.toBeInTheDocument();
+		});
+	});
+
+	describe('Reviewer Avatars', () => {
+		it('should show reviewer avatars when reviewers assigned', () => {
+			const submissionWithReviewers = {
+				...mockSubmission,
+				reviewers: [
+					{ id: 'rev-1', email: 'john.doe@example.com', name: 'John Doe' },
+					{ id: 'rev-2', email: 'jane.smith@example.com', name: 'Jane Smith' }
+				]
+			};
+
+			const { container } = render(SubmissionCard, {
+				props: { submission: submissionWithReviewers }
+			});
+
+			const avatars = container.querySelectorAll('[data-testid="reviewer-avatar"]');
+			expect(avatars).toHaveLength(2);
+		});
+
+		it('should show first 3 reviewers as avatars', () => {
+			const submissionWithManyReviewers = {
+				...mockSubmission,
+				reviewers: [
+					{ id: 'rev-1', email: 'john.doe@example.com', name: 'John Doe' },
+					{ id: 'rev-2', email: 'jane.smith@example.com', name: 'Jane Smith' },
+					{ id: 'rev-3', email: 'bob.jones@example.com', name: 'Bob Jones' },
+					{ id: 'rev-4', email: 'mary.wilson@example.com', name: 'Mary Wilson' },
+					{ id: 'rev-5', email: 'tom.brown@example.com', name: 'Tom Brown' }
+				]
+			};
+
+			const { container } = render(SubmissionCard, {
+				props: { submission: submissionWithManyReviewers }
+			});
+
+			const avatars = container.querySelectorAll('[data-testid="reviewer-avatar"]');
+			expect(avatars).toHaveLength(3);
+		});
+
+		it('should show "+N more" indicator when more than 3 reviewers', () => {
+			const submissionWithManyReviewers = {
+				...mockSubmission,
+				reviewers: [
+					{ id: 'rev-1', email: 'john.doe@example.com', name: 'John Doe' },
+					{ id: 'rev-2', email: 'jane.smith@example.com', name: 'Jane Smith' },
+					{ id: 'rev-3', email: 'bob.jones@example.com', name: 'Bob Jones' },
+					{ id: 'rev-4', email: 'mary.wilson@example.com', name: 'Mary Wilson' },
+					{ id: 'rev-5', email: 'tom.brown@example.com', name: 'Tom Brown' }
+				]
+			};
+
+			const { container } = render(SubmissionCard, {
+				props: { submission: submissionWithManyReviewers }
+			});
+
+			const moreIndicator = container.querySelector('[data-testid="more-reviewers"]');
+			expect(moreIndicator).toBeInTheDocument();
+			expect(moreIndicator).toHaveTextContent('+2');
+		});
+
+		it('should show tooltip with full reviewer list on hover', () => {
+			const submissionWithManyReviewers = {
+				...mockSubmission,
+				reviewers: [
+					{ id: 'rev-1', email: 'john.doe@example.com', name: 'John Doe' },
+					{ id: 'rev-2', email: 'jane.smith@example.com', name: 'Jane Smith' },
+					{ id: 'rev-3', email: 'bob.jones@example.com', name: 'Bob Jones' },
+					{ id: 'rev-4', email: 'mary.wilson@example.com', name: 'Mary Wilson' }
+				]
+			};
+
+			const { container } = render(SubmissionCard, {
+				props: { submission: submissionWithManyReviewers }
+			});
+
+			const moreIndicator = container.querySelector('[data-testid="more-reviewers"]');
+			expect(moreIndicator?.getAttribute('title')).toContain('Mary Wilson');
+		});
+
+		it('should NOT show avatars when no reviewers assigned', () => {
+			const { container } = render(SubmissionCard, {
+				props: { submission: mockSubmission }
+			});
+
+			const avatars = container.querySelectorAll('[data-testid="reviewer-avatar"]');
+			expect(avatars).toHaveLength(0);
+		});
+	});
 });
