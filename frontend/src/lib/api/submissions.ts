@@ -105,3 +105,18 @@ export async function getSubmissionReviewers(submissionId: string): Promise<User
 	);
 	return response.data;
 }
+
+/**
+ * Self-assign current user as reviewer to a submission
+ * Idempotent operation - returns success if already assigned
+ */
+export async function selfAssignToSubmission(
+	submissionId: string
+): Promise<{ message: string; submission_id: string; reviewer_id: string }> {
+	const response = await apiClient.post<{
+		message: string;
+		submission_id: string;
+		reviewer_id: string;
+	}>(`/api/v1/submissions/${submissionId}/reviewers/me`);
+	return response.data;
+}

@@ -179,7 +179,18 @@
     "views": "{count} weergaven",
     "duration": "Duur:",
     "unknownCreator": "Onbekende maker",
-    "snapchatSpotlight": "Snapchat Spotlight"
+    "snapchatSpotlight": "Snapchat Spotlight",
+    "assignment": {
+      "unassigned": "Niet toegewezen",
+      "reviewers": "{count} Reviewers",
+      "reviewerSingular": "1 Reviewer",
+      "assignedToYou": "Aan jou toegewezen",
+      "assignToMe": "Wijs aan mij toe",
+      "assigning": "Toewijzen...",
+      "assignSuccess": "Je bent toegewezen aan deze inzending",
+      "assignError": "Toewijzen mislukt. Probeer het opnieuw.",
+      "ariaAssignToMe": "Wijs deze inzending aan jezelf toe"
+    }
   },
   "status": {
     "pending": "In afwachting",
