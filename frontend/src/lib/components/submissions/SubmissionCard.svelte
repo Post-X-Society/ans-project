@@ -1,13 +1,19 @@
 <script lang="ts">
 	import type { Submission } from '$lib/api/types';
 	import { currentUser } from '$lib/stores/auth';
+	import { selfAssignToSubmission } from '$lib/api/submissions';
 	import StatusBadge from './StatusBadge.svelte';
+	import { t } from 'svelte-i18n';
 
 	interface Props {
 		submission: Submission;
 	}
 
 	let { submission }: Props = $props();
+
+	// Self-assignment state
+	let isAssigning = $state(false);
+	let assignError = $state<string | null>(null);
 
 	/**
 	 * Format date to readable string
@@ -82,56 +88,171 @@
 	function isCurrentUserReviewer(reviewerId: string): boolean {
 		return $currentUser?.id === reviewerId;
 	}
+
+	/**
+	 * Get assignment badge text and classes
+	 */
+	function getAssignmentBadge(): { text: string; classes: string } {
+		if (submission.is_assigned_to_me) {
+			return {
+				text: $t('submissions.assignment.assignedToYou'),
+				classes: 'bg-green-100 text-green-800 border border-green-300'
+			};
+		}
+		if (!submission.reviewers || submission.reviewers.length === 0) {
+			return {
+				text: $t('submissions.assignment.unassigned'),
+				classes: 'bg-gray-100 text-gray-700'
+			};
+		}
+		const count = submission.reviewers.length;
+		return {
+			text:
+				count === 1
+					? $t('submissions.assignment.reviewerSingular')
+					: $t('submissions.assignment.reviewers', { values: { count } }),
+			classes: 'bg-blue-100 text-blue-800'
+		};
+	}
+
+	/**
+	 * Check if current user can self-assign
+	 */
+	function canSelfAssign(): boolean {
+		if (!$currentUser) return false;
+		if (submission.is_assigned_to_me) return false;
+		const allowedRoles = ['reviewer', 'admin', 'super_admin'];
+		return allowedRoles.includes($currentUser.role);
+	}
+
+	/**
+	 * Handle self-assignment
+	 */
+	async function handleSelfAssign(event: Event) {
+		event.preventDefault();
+		event.stopPropagation();
+
+		if (!canSelfAssign()) return;
+
+		isAssigning = true;
+		assignError = null;
+
+		try {
+			await selfAssignToSubmission(submission.id);
+			// Reload the page to reflect the assignment
+			window.location.reload();
+		} catch (error) {
+			console.error('Failed to self-assign:', error);
+			assignError = $t('submissions.assignment.assignError');
+			isAssigning = false;
+		}
+	}
+
+	const assignmentBadge = $derived(getAssignmentBadge());
 </script>
 
-<a
-	href="/submissions/{submission.id}"
-	class="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+<div
+	class="block bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow relative"
 >
-	<!-- Spotlight Video Thumbnail (if applicable) -->
-	{#if submission.submission_type === 'spotlight' && submission.spotlight_content}
-		<div class="relative bg-gray-900 aspect-video">
-			<img
-				src={submission.spotlight_content.thumbnail_url}
-				alt="Spotlight thumbnail"
-				class="w-full h-full object-contain"
-			/>
-			<div
-				class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded"
-			>
-				Snapchat Spotlight
-			</div>
-			{#if submission.spotlight_content.duration_ms}
-				<div
-					class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded"
-				>
-					{formatDuration(submission.spotlight_content.duration_ms)}
-				</div>
-			{/if}
-		</div>
-	{/if}
+	<!-- Assignment Badge (top-right corner) -->
+	<div class="absolute top-4 right-4 z-10">
+		<span
+			data-testid="assignment-badge"
+			class="inline-flex items-center px-2 py-1 rounded-md text-xs font-semibold {assignmentBadge.classes}"
+		>
+			{assignmentBadge.text}
+		</span>
+	</div>
 
-	<div class="p-4">
-		<!-- Header: Type and Status -->
-		<div class="flex items-center justify-between mb-3">
-			<div class="flex items-center space-x-2">
-				<span class={getTypeBadgeClasses(submission.submission_type)}>
-					{submission.submission_type}
-				</span>
-			</div>
-			<StatusBadge status={submission.status} />
-		</div>
-
-		<!-- Spotlight Creator Info -->
+	<a href="/submissions/{submission.id}" class="block">
+		<!-- Spotlight Video Thumbnail (if applicable) -->
 		{#if submission.submission_type === 'spotlight' && submission.spotlight_content}
-			<div class="mb-3">
-				<div class="flex items-center space-x-2">
-					<svg
-						class="w-5 h-5 text-gray-400"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
+			<div class="relative bg-gray-900 aspect-video">
+				<img
+					src={submission.spotlight_content.thumbnail_url}
+					alt="Spotlight thumbnail"
+					class="w-full h-full object-contain"
+				/>
+				<div
+					class="absolute top-2 left-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded"
+				>
+					Snapchat Spotlight
+				</div>
+				{#if submission.spotlight_content.duration_ms}
+					<div
+						class="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded"
 					>
+						{formatDuration(submission.spotlight_content.duration_ms)}
+					</div>
+				{/if}
+			</div>
+		{/if}
+
+		<div class="p-4">
+			<!-- Header: Type and Status -->
+			<div class="flex items-center justify-between mb-3">
+				<div class="flex items-center space-x-2">
+					<span class={getTypeBadgeClasses(submission.submission_type)}>
+						{submission.submission_type}
+					</span>
+				</div>
+				<StatusBadge status={submission.status} />
+			</div>
+
+			<!-- Spotlight Creator Info -->
+			{#if submission.submission_type === 'spotlight' && submission.spotlight_content}
+				<div class="mb-3">
+					<div class="flex items-center space-x-2">
+						<svg
+							class="w-5 h-5 text-gray-400"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+							/>
+						</svg>
+						<span class="font-medium text-gray-900">
+							{submission.spotlight_content.creator_name ||
+								submission.spotlight_content.creator_username ||
+								'Unknown Creator'}
+						</span>
+					</div>
+					{#if submission.spotlight_content.view_count}
+						<div class="flex items-center space-x-2 mt-1 text-sm text-gray-600">
+							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+								/>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+								/>
+							</svg>
+							<span>{formatViewCount(submission.spotlight_content.view_count)} views</span>
+						</div>
+					{/if}
+				</div>
+			{:else}
+				<!-- Content Preview for non-Spotlight submissions -->
+				<p class="text-gray-700 mb-3 line-clamp-2">
+					{truncateContent(submission.content)}
+				</p>
+			{/if}
+
+			<!-- Submitter Info -->
+			{#if submission.user}
+				<div class="flex items-center space-x-2 mb-3 text-sm text-gray-600">
+					<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -139,96 +260,74 @@
 							d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
 						/>
 					</svg>
-					<span class="font-medium text-gray-900">
-						{submission.spotlight_content.creator_name ||
-							submission.spotlight_content.creator_username ||
-							'Unknown Creator'}
-					</span>
+					<span>Submitted by {submission.user.email}</span>
 				</div>
-				{#if submission.spotlight_content.view_count}
-					<div class="flex items-center space-x-2 mt-1 text-sm text-gray-600">
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-							/>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-							/>
-						</svg>
-						<span>{formatViewCount(submission.spotlight_content.view_count)} views</span>
-					</div>
-				{/if}
-			</div>
-		{:else}
-			<!-- Content Preview for non-Spotlight submissions -->
-			<p class="text-gray-700 mb-3 line-clamp-2">
-				{truncateContent(submission.content)}
-			</p>
-		{/if}
+			{/if}
 
-		<!-- Submitter Info -->
-		{#if submission.user}
-			<div class="flex items-center space-x-2 mb-3 text-sm text-gray-600">
-				<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<!-- Assigned Reviewers -->
+			{#if submission.reviewers && submission.reviewers.length > 0}
+				<div class="mb-3">
+					<div class="text-xs text-gray-500 mb-1">Assigned Reviewers:</div>
+					<div class="flex flex-wrap gap-1">
+						{#each submission.reviewers.slice(0, 3) as reviewer}
+							<span
+								class={isCurrentUserReviewer(reviewer.id)
+									? 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300'
+									: 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700'}
+							>
+								{reviewer.email}
+							</span>
+						{/each}
+						{#if submission.reviewers.length > 3}
+							<span
+								class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+							>
+								+{submission.reviewers.length - 3} more
+							</span>
+						{/if}
+					</div>
+				</div>
+			{/if}
+
+			<!-- Footer: Date -->
+			<div class="flex items-center text-sm text-gray-500">
+				<svg
+					class="w-4 h-4 mr-1"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+					xmlns="http://www.w3.org/2000/svg"
+				>
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
 						stroke-width="2"
-						d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+						d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 					/>
 				</svg>
-				<span>Submitted by {submission.user.email}</span>
+				{formatDate(submission.created_at)}
 			</div>
-		{/if}
-
-		<!-- Assigned Reviewers -->
-		{#if submission.reviewers && submission.reviewers.length > 0}
-			<div class="mb-3">
-				<div class="text-xs text-gray-500 mb-1">Assigned Reviewers:</div>
-				<div class="flex flex-wrap gap-1">
-					{#each submission.reviewers.slice(0, 3) as reviewer}
-						<span
-							class={isCurrentUserReviewer(reviewer.id)
-								? 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300'
-								: 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-700'}
-						>
-							{reviewer.email}
-						</span>
-					{/each}
-					{#if submission.reviewers.length > 3}
-						<span
-							class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
-						>
-							+{submission.reviewers.length - 3} more
-						</span>
-					{/if}
-				</div>
-			</div>
-		{/if}
-
-		<!-- Footer: Date -->
-		<div class="flex items-center text-sm text-gray-500">
-			<svg
-				class="w-4 h-4 mr-1"
-				fill="none"
-				stroke="currentColor"
-				viewBox="0 0 24 24"
-				xmlns="http://www.w3.org/2000/svg"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-				/>
-			</svg>
-			{formatDate(submission.created_at)}
 		</div>
-	</div>
-</a>
+	</a>
+
+	<!-- Self-Assignment Button (bottom of card, outside link) -->
+	{#if canSelfAssign()}
+		<div class="px-4 pb-4">
+			<button
+				type="button"
+				onclick={handleSelfAssign}
+				disabled={isAssigning}
+				aria-label={$t('submissions.assignment.ariaAssignToMe')}
+				class="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium text-sm"
+			>
+				{isAssigning ? $t('submissions.assignment.assigning') : $t('submissions.assignment.assignToMe')}
+			</button>
+
+			{#if assignError}
+				<p class="mt-2 text-sm text-red-600 text-center">
+					{assignError}
+				</p>
+			{/if}
+		</div>
+	{/if}
+</div>

@@ -179,7 +179,18 @@
     "views": "{count} views",
     "duration": "Duration:",
     "unknownCreator": "Unknown Creator",
-    "snapchatSpotlight": "Snapchat Spotlight"
+    "snapchatSpotlight": "Snapchat Spotlight",
+    "assignment": {
+      "unassigned": "Unassigned",
+      "reviewers": "{count} Reviewers",
+      "reviewerSingular": "1 Reviewer",
+      "assignedToYou": "Assigned to you",
+      "assignToMe": "Assign to Me",
+      "assigning": "Assigning...",
+      "assignSuccess": "You have been assigned to this submission",
+      "assignError": "Failed to assign. Please try again.",
+      "ariaAssignToMe": "Assign this submission to yourself"
+    }
   },
   "status": {
     "pending": "Pending",
