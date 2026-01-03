@@ -1,28 +1,49 @@
-<script lang="ts">
+<!--
+  Submission Detail Page
 
+  Issue #154: Fixed TanStack Query v6 reactivity issue with Svelte 5
+  by migrating to manual $state + onMount pattern.
+
+  This page has been modularized into smaller components:
+  - SubmissionOverviewTab: Displays submission info, spotlight data, workflow timeline
+  - SubmissionRatingTab: Rating form, current rating, workflow transitions, history
+  - WorkflowTransitionModal: Modal for confirming workflow state changes
+
+  The page now uses direct API calls with $state instead of TanStack Query,
+  matching the working pattern used in /admin/peer-review/+page.svelte.
+-->
+<script lang="ts">
+	import { onMount } from 'svelte';
 	import { t } from '$lib/i18n';
-	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 	import { authStore } from '$lib/stores/auth';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import WorkflowTimeline from '$lib/components/WorkflowTimeline.svelte';
-	import RatingBadge from '$lib/components/RatingBadge.svelte';
-	import RatingDefinition from '$lib/components/RatingDefinition.svelte';
-	import FactCheckEditor from '$lib/components/FactCheckEditor.svelte';
 	import TabNavigation from '$lib/components/TabNavigation.svelte';
 	import SourceManagementInterface from '$lib/components/sources/SourceManagementInterface.svelte';
 	import {
-		submissionQueryOptions,
-		workflowHistoryQueryOptions,
-		workflowCurrentStateQueryOptions,
-		workflowTransitionMutationOptions,
-		submissionRatingsQueryOptions,
-		currentRatingQueryOptions,
-		ratingDefinitionsQueryOptions,
-		assignRatingMutationOptions
-	} from '$lib/api/queries';
+		SubmissionOverviewTab,
+		SubmissionRatingTab,
+		WorkflowTransitionModal
+	} from '$lib/components/submission-detail';
+	import { getSubmission } from '$lib/api/submissions';
+	import { getWorkflowHistory, getWorkflowCurrentState, transitionWorkflowState } from '$lib/api/workflow';
+	import {
+		getSubmissionRatings,
+		getCurrentRating,
+		assignRating,
+		getRatingDefinitions
+	} from '$lib/api/ratings';
 	import type { PageData } from './$types';
-	import type { FactCheckRatingValue, WorkflowState } from '$lib/api/types';
+	import type {
+		Submission,
+		WorkflowHistoryResponse,
+		WorkflowCurrentStateResponse,
+		FactCheckRating,
+		CurrentRatingResponse,
+		RatingDefinition,
+		WorkflowState,
+		FactCheckRatingValue
+	} from '$lib/api/types';
 
 	interface Props {
 		data: PageData;
@@ -30,7 +51,6 @@
 
 	let { data }: Props = $props();
 	let auth = $derived($authStore);
-	const queryClient = useQueryClient();
 
 	// Derive the submission ID for reactivity
 	let submissionId = $derived(data.id);
@@ -38,75 +58,30 @@
 	// Tab state management
 	let currentTab = $derived($page.url.searchParams.get('tab') || 'overview');
 
-	// Query for submission details
-	// Query options now include enabled check to prevent queries when ID is empty/undefined
-	const submissionQuery = createQuery(() => submissionQueryOptions(submissionId));
+	// Data state (using $state instead of TanStack Query)
+	let submission = $state<Submission | null>(null);
+	let workflowHistory = $state<WorkflowHistoryResponse | null>(null);
+	let workflowState = $state<WorkflowCurrentStateResponse | null>(null);
+	let ratings = $state<FactCheckRating[]>([]);
+	let currentRating = $state<CurrentRatingResponse | null>(null);
+	let ratingDefinitions = $state<RatingDefinition[]>([]);
 
-	// Query for workflow history
-	const workflowHistoryQuery = createQuery(() => workflowHistoryQueryOptions(submissionId));
+	// Loading states
+	let isLoading = $state(true);
+	let isLoadingHistory = $state(false);
+	let isLoadingRating = $state(false);
 
-	// Query for current workflow state and valid transitions
-	const workflowStateQuery = createQuery(() => workflowCurrentStateQueryOptions(submissionId));
+	// Error states
+	let hasError = $state(false);
+	let errorMessage = $state('');
 
-	// Query for rating history
-	const ratingsQuery = createQuery(() => submissionRatingsQueryOptions(submissionId));
+	// Mutation states
+	let isSubmittingRating = $state(false);
+	let isSubmittingTransition = $state(false);
 
-	// Query for current rating
-	const currentRatingQuery = createQuery(() => currentRatingQueryOptions(submissionId));
-
-	// Query for rating definitions (no submissionId dependency)
-	const ratingDefinitionsQuery = createQuery(() => ratingDefinitionsQueryOptions());
-
-	// Mutation for workflow transition
-	const workflowTransitionMutation = createMutation(() => workflowTransitionMutationOptions(submissionId));
-
-	// Mutation for assigning rating
-	const assignRatingMutation = createMutation(() => assignRatingMutationOptions(submissionId));
-
-	// Form state for rating assignment
-	let selectedRating = $state<FactCheckRatingValue | ''>('');
-	let justification = $state('');
-	let ratingFormError = $state('');
-
-	// Form state for workflow transition
-	let selectedTransition = $state<WorkflowState | null>(null);
-	let transitionReason = $state('');
+	// Modal state for workflow transition
 	let showTransitionModal = $state(false);
-
-	// Derived values (v6: no $ prefix needed, queries are signals)
-	let submission = $derived(submissionQuery.data);
-	let workflowHistory = $derived(workflowHistoryQuery.data);
-	let workflowState = $derived(workflowStateQuery.data);
-	let ratings = $derived(ratingsQuery.data ?? []);
-	let currentRating = $derived(currentRatingQuery.data);
-	let ratingDefinitions = $derived(ratingDefinitionsQuery.data?.items ?? []);
-
-	let isLoading = $derived(
-		submissionQuery.isPending ||
-			workflowHistoryQuery.isPending ||
-			workflowStateQuery.isPending
-	);
-
-	let hasError = $derived(submissionQuery.isError);
-	let errorMessage = $derived(
-		submissionQuery.error?.message ?? $t('submissions.detail.error')
-	);
-
-	// Check if user can assign ratings (reviewer, admin, super_admin)
-	let canAssignRating = $derived(
-		auth.user &&
-			['reviewer', 'admin', 'super_admin'].includes(auth.user.role) &&
-			workflowState?.current_state &&
-			!['published', 'rejected', 'archived'].includes(workflowState.current_state)
-	);
-
-	// Check if user can transition workflow (admin, super_admin)
-	let canTransition = $derived(
-		auth.user &&
-			['admin', 'super_admin'].includes(auth.user.role) &&
-			workflowState?.valid_transitions &&
-			workflowState.valid_transitions.length > 0
-	);
+	let selectedTransition = $state<WorkflowState | null>(null);
 
 	// Check if fact-check editor should be shown (in_research or draft_ready state)
 	let showFactCheckEditor = $derived(
@@ -125,6 +100,90 @@
 	]);
 
 	/**
+	 * Load all submission data
+	 */
+	async function loadData() {
+		if (!submissionId) return;
+
+		isLoading = true;
+		hasError = false;
+		errorMessage = '';
+
+		try {
+			// Load submission and workflow state in parallel
+			const [submissionData, workflowStateData] = await Promise.all([
+				getSubmission(submissionId),
+				getWorkflowCurrentState(submissionId)
+			]);
+
+			submission = submissionData;
+			workflowState = workflowStateData;
+
+			// Load additional data in parallel
+			await Promise.all([
+				loadWorkflowHistory(),
+				loadRatings(),
+				loadRatingDefinitions()
+			]);
+		} catch (err: unknown) {
+			console.error('Error loading submission data:', err);
+			hasError = true;
+			errorMessage = err instanceof Error ? err.message : $t('submissions.detail.error');
+		} finally {
+			isLoading = false;
+		}
+	}
+
+	/**
+	 * Load workflow history
+	 */
+	async function loadWorkflowHistory() {
+		if (!submissionId) return;
+
+		isLoadingHistory = true;
+		try {
+			workflowHistory = await getWorkflowHistory(submissionId);
+		} catch (err: unknown) {
+			console.error('Error loading workflow history:', err);
+		} finally {
+			isLoadingHistory = false;
+		}
+	}
+
+	/**
+	 * Load ratings data
+	 */
+	async function loadRatings() {
+		if (!submissionId) return;
+
+		isLoadingRating = true;
+		try {
+			const [ratingsData, currentRatingData] = await Promise.all([
+				getSubmissionRatings(submissionId),
+				getCurrentRating(submissionId)
+			]);
+			ratings = ratingsData;
+			currentRating = currentRatingData;
+		} catch (err: unknown) {
+			console.error('Error loading ratings:', err);
+		} finally {
+			isLoadingRating = false;
+		}
+	}
+
+	/**
+	 * Load rating definitions
+	 */
+	async function loadRatingDefinitions() {
+		try {
+			const response = await getRatingDefinitions();
+			ratingDefinitions = response.items;
+		} catch (err: unknown) {
+			console.error('Error loading rating definitions:', err);
+		}
+	}
+
+	/**
 	 * Handle tab change with URL state management
 	 */
 	function handleTabChange(tabId: string) {
@@ -134,86 +193,21 @@
 	}
 
 	/**
-	 * Format date for display
-	 */
-	function formatDate(dateString: string): string {
-		return new Date(dateString).toLocaleString();
-	}
-
-	/**
-	 * Format duration from milliseconds
-	 */
-	function formatDuration(ms: number | undefined | null): string {
-		if (!ms) return '-';
-		const seconds = Math.floor(ms / 1000);
-		const minutes = Math.floor(seconds / 60);
-		const remainingSeconds = seconds % 60;
-		return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-	}
-
-	/**
-	 * Format view count
-	 */
-	function formatViewCount(count: number | undefined | null): string {
-		if (!count) return '0';
-		return count.toLocaleString();
-	}
-
-	/**
-	 * Get content type label
-	 */
-	function getContentTypeLabel(type: string): string {
-		return $t(`submissions.snapchatSpotlight`) || type;
-	}
-
-	/**
-	 * Get translated workflow state label
-	 */
-	function getStateLabel(state: WorkflowState): string {
-		return $t(`workflow.states.${state}`) || state;
-	}
-
-	/**
-	 * Validate rating form
-	 */
-	function validateRatingForm(): boolean {
-		if (!selectedRating) {
-			ratingFormError = $t('submissions.rating.selectRatingError');
-			return false;
-		}
-		if (justification.length < 50) {
-			ratingFormError = $t('submissions.rating.justificationMinLength');
-			return false;
-		}
-		ratingFormError = '';
-		return true;
-	}
-
-	/**
 	 * Handle rating submission
 	 */
-	async function handleRatingSubmit() {
-		if (!validateRatingForm() || !selectedRating) return;
+	async function handleRatingSubmit(rating: FactCheckRatingValue, justification: string) {
+		if (!submissionId) return;
 
-		assignRatingMutation.mutate(
-			{
-				rating: selectedRating,
-				justification
-			},
-			{
-				onSuccess: () => {
-					// Reset form
-					selectedRating = '';
-					justification = '';
-					ratingFormError = '';
-					// Invalidate queries to refresh data
-					queryClient.invalidateQueries({ queryKey: ['submissions', data.id, 'ratings'] });
-				},
-				onError: (error) => {
-					ratingFormError = error.message || $t('submissions.rating.ratingError');
-				}
-			}
-		);
+		isSubmittingRating = true;
+		try {
+			await assignRating(submissionId, { rating, justification });
+			// Refresh ratings data
+			await loadRatings();
+		} catch (err: unknown) {
+			console.error('Error submitting rating:', err);
+		} finally {
+			isSubmittingRating = false;
+		}
 	}
 
 	/**
@@ -221,43 +215,66 @@
 	 */
 	function openTransitionModal(state: WorkflowState) {
 		selectedTransition = state;
-		transitionReason = '';
 		showTransitionModal = true;
 	}
 
 	/**
 	 * Handle workflow transition
 	 */
-	async function handleTransition() {
-		if (!selectedTransition) return;
+	async function handleTransition(reason: string) {
+		if (!selectedTransition || !submissionId) return;
 
-		workflowTransitionMutation.mutate(
-			{
+		isSubmittingTransition = true;
+		try {
+			await transitionWorkflowState(submissionId, {
 				to_state: selectedTransition,
-				reason: transitionReason || undefined
-			},
-			{
-				onSuccess: () => {
-					showTransitionModal = false;
-					selectedTransition = null;
-					transitionReason = '';
-					// Invalidate queries to refresh data
-					queryClient.invalidateQueries({ queryKey: ['workflow', data.id] });
-				}
-			}
-		);
+				reason: reason || undefined
+			});
+			showTransitionModal = false;
+			selectedTransition = null;
+			// Refresh workflow data
+			const [newWorkflowState, newWorkflowHistory] = await Promise.all([
+				getWorkflowCurrentState(submissionId),
+				getWorkflowHistory(submissionId)
+			]);
+			workflowState = newWorkflowState;
+			workflowHistory = newWorkflowHistory;
+		} catch (err: unknown) {
+			console.error('Error transitioning workflow:', err);
+		} finally {
+			isSubmittingTransition = false;
+		}
+	}
+
+	/**
+	 * Handle fact-check submission for review
+	 */
+	async function handleFactCheckSubmit() {
+		// Refresh workflow data after fact-check submission
+		if (!submissionId) return;
+		try {
+			const [newWorkflowState, newWorkflowHistory] = await Promise.all([
+				getWorkflowCurrentState(submissionId),
+				getWorkflowHistory(submissionId)
+			]);
+			workflowState = newWorkflowState;
+			workflowHistory = newWorkflowHistory;
+		} catch (err: unknown) {
+			console.error('Error refreshing workflow data:', err);
+		}
 	}
 
 	/**
 	 * Retry loading data
 	 */
 	function handleRetry() {
-		submissionQuery.refetch();
-		workflowHistoryQuery.refetch();
-		workflowStateQuery.refetch();
-		ratingsQuery.refetch();
-		currentRatingQuery.refetch();
+		loadData();
 	}
+
+	// Load data on mount
+	onMount(() => {
+		loadData();
+	});
 </script>
 
 <div class="container mx-auto px-4 py-8" data-testid="submission-detail-container">
@@ -327,363 +344,41 @@
 			</div>
 
 			<!-- Tab Navigation -->
-			<TabNavigation {tabs} {currentTab} onTabChange={handleTabChange} />
+			<TabNavigation {tabs} activeTab={currentTab} onTabChange={handleTabChange} />
 
 			<!-- Tab Content -->
 			<div class="mt-6" data-testid="submission-detail-layout">
 				<!-- Overview Tab -->
 				{#if currentTab === 'overview'}
-					<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-				<!-- Left Column: Submission Details -->
-				<div class="lg:col-span-2 space-y-6">
-					<!-- Submission Info Card -->
-					<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-						<h2 class="text-xl font-semibold text-gray-900 mb-4">
-							{$t('submissions.detail.title')}
-						</h2>
-
-						<dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-							<!-- Content Type -->
-							<div>
-								<dt class="text-sm font-medium text-gray-500">
-									{$t('submissions.detail.contentType')}
-								</dt>
-								<dd class="mt-1">
-									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-										{getContentTypeLabel(submission.submission_type)}
-									</span>
-								</dd>
-							</div>
-
-							<!-- Current Status -->
-							<div>
-								<dt class="text-sm font-medium text-gray-500">
-									{$t('submissions.detail.currentStatus')}
-								</dt>
-								<dd class="mt-1">
-									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-										{workflowState ? getStateLabel(workflowState.current_state) : submission.status}
-									</span>
-								</dd>
-							</div>
-
-							<!-- Submitted By -->
-							<div>
-								<dt class="text-sm font-medium text-gray-500">
-									{$t('submissions.detail.submittedBy')}
-								</dt>
-								<dd class="mt-1 text-gray-900">
-									{submission.user?.email ?? '-'}
-								</dd>
-							</div>
-
-							<!-- Submitted At -->
-							<div>
-								<dt class="text-sm font-medium text-gray-500">
-									{$t('submissions.detail.submittedAt')}
-								</dt>
-								<dd class="mt-1 text-gray-900">
-									<time datetime={submission.created_at}>
-										{formatDate(submission.created_at)}
-									</time>
-								</dd>
-							</div>
-
-							<!-- Last Updated -->
-							<div>
-								<dt class="text-sm font-medium text-gray-500">
-									{$t('submissions.detail.lastUpdated')}
-								</dt>
-								<dd class="mt-1 text-gray-900">
-									<time datetime={submission.updated_at}>
-										{formatDate(submission.updated_at)}
-									</time>
-								</dd>
-							</div>
-
-						</dl>
-
-						<!-- Content URL -->
-						<div class="mt-4 pt-4 border-t border-gray-100">
-							<dt class="text-sm font-medium text-gray-500 mb-1">Content</dt>
-							<dd class="text-gray-900 break-all">{submission.content}</dd>
-						</div>
-					</div>
-
-					<!-- Spotlight Info Card (if applicable) -->
-					{#if submission.spotlight_content}
-						<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-							<h2 class="text-xl font-semibold text-gray-900 mb-4">
-								{$t('submissions.detail.spotlightInfo')}
-							</h2>
-
-							<div class="flex flex-col sm:flex-row gap-6">
-								<!-- Thumbnail -->
-								{#if submission.spotlight_content.thumbnail_url}
-									<div class="flex-shrink-0">
-										<img
-											src={submission.spotlight_content.thumbnail_url}
-											alt={$t('submissions.detail.thumbnail')}
-											class="w-32 h-56 object-cover rounded-lg"
-										/>
-									</div>
-								{/if}
-
-								<!-- Metadata -->
-								<dl class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-									<div>
-										<dt class="text-sm font-medium text-gray-500">
-											{$t('submissions.detail.creator')}
-										</dt>
-										<dd class="mt-1 text-gray-900">
-											{submission.spotlight_content.creator_name || submission.spotlight_content.creator_username || $t('submissions.unknownCreator')}
-										</dd>
-									</div>
-
-									<div>
-										<dt class="text-sm font-medium text-gray-500">
-											{$t('submissions.detail.viewCount')}
-										</dt>
-										<dd class="mt-1 text-gray-900">
-											{formatViewCount(submission.spotlight_content.view_count)}
-										</dd>
-									</div>
-
-									<div>
-										<dt class="text-sm font-medium text-gray-500">
-											{$t('submissions.detail.duration')}
-										</dt>
-										<dd class="mt-1 text-gray-900">
-											{formatDuration(submission.spotlight_content.duration_ms)}
-										</dd>
-									</div>
-								</dl>
-							</div>
-						</div>
-					{/if}
-
-					<!-- Workflow Timeline -->
-					<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-						<h2 class="text-xl font-semibold text-gray-900 mb-4">
-							{$t('workflow.timeline.title')}
-						</h2>
-
-						<WorkflowTimeline
-							history={workflowHistory?.items ?? []}
-							currentState={workflowState?.current_state ?? 'submitted'}
-							isLoading={workflowHistoryQuery.isPending}
-							error={workflowHistoryQuery.error?.message}
-						/>
-					</div>
-				</div>
-
-				<!-- Right Column: Assigned Reviewers -->
-				<div class="space-y-6">
-					<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-						<h2 class="text-xl font-semibold text-gray-900 mb-4">
-							{$t('submissions.detail.assignedReviewers')}
-						</h2>
-						{#if submission.reviewers && submission.reviewers.length > 0}
-							<div class="flex flex-wrap gap-2">
-								{#each submission.reviewers as reviewer}
-									<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-										{reviewer.email}
-									</span>
-								{/each}
-							</div>
-						{:else}
-							<p class="text-gray-500 text-sm">{$t('submissions.detail.noReviewers')}</p>
-						{/if}
-					</div>
-				</div>
-			</div>
+					<SubmissionOverviewTab
+						{submission}
+						{workflowHistory}
+						{workflowState}
+						{isLoadingHistory}
+						historyError={null}
+					/>
 
 				<!-- Rating & Review Tab -->
 				{:else if currentTab === 'rating'}
-					<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-						<!-- Left Column: Rating Assignment & Fact-Check Editor -->
-						<div class="lg:col-span-2 space-y-6">
-							<!-- Fact-Check Editor (shown in in_research or draft_ready states) -->
-							{#if showFactCheckEditor}
-								<FactCheckEditor
-									factCheckId={submissionId}
-									claimText={submission.content}
-									onSubmitForReview={() => {
-										queryClient.invalidateQueries({ queryKey: ['workflow', submissionId] });
-									}}
-								/>
-							{/if}
-
-							<!-- Rating Assignment Form -->
-							{#if canAssignRating}
-								<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-									<h2 class="text-xl font-semibold text-gray-900 mb-4">
-										{$t('submissions.rating.assignRating')}
-									</h2>
-
-									<form onsubmit={(e) => { e.preventDefault(); handleRatingSubmit(); }}>
-										<!-- Rating Select -->
-										<div class="mb-4">
-											<label for="rating-select" class="block text-sm font-medium text-gray-700 mb-1">
-												{$t('submissions.rating.title')}
-											</label>
-											<select
-												id="rating-select"
-												bind:value={selectedRating}
-												class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-											>
-												<option value="">{$t('submissions.rating.selectRating')}</option>
-												{#each ratingDefinitions as def}
-													<option value={def.rating}>
-														{$t(`ratings.${def.rating}.name`)}
-													</option>
-												{/each}
-												{#if ratingDefinitions.length === 0}
-													<option value="true">{$t('ratings.true.name')}</option>
-													<option value="partly_false">{$t('ratings.partly_false.name')}</option>
-													<option value="false">{$t('ratings.false.name')}</option>
-													<option value="missing_context">{$t('ratings.missing_context.name')}</option>
-													<option value="altered">{$t('ratings.altered.name')}</option>
-													<option value="satire">{$t('ratings.satire.name')}</option>
-													<option value="unverifiable">{$t('ratings.unverifiable.name')}</option>
-												{/if}
-											</select>
-										</div>
-
-										<!-- Justification Textarea -->
-										<div class="mb-4">
-											<label for="justification" class="block text-sm font-medium text-gray-700 mb-1">
-												{$t('submissions.rating.justification')}
-											</label>
-											<textarea
-												id="justification"
-												bind:value={justification}
-												rows="4"
-												placeholder={$t('submissions.rating.justificationPlaceholder')}
-												class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-											></textarea>
-											<p class="mt-1 text-xs text-gray-500">
-												{justification.length}/50 {$t('submissions.rating.justificationMinLength').replace('Justification must be at least 50 characters', 'characters minimum')}
-											</p>
-										</div>
-
-										<!-- Error Message -->
-										{#if ratingFormError}
-											<p class="text-red-600 text-sm mb-4">{ratingFormError}</p>
-										{/if}
-
-										<!-- Submit Button -->
-										<button
-											type="submit"
-											disabled={assignRatingMutation.isPending}
-											class="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-										>
-											{assignRatingMutation.isPending ? $t('submissions.rating.submitting') : $t('submissions.rating.submitRating')}
-										</button>
-									</form>
-								</div>
-							{/if}
-						</div>
-
-						<!-- Right Column: Current Rating, History, & Transitions -->
-						<div class="space-y-6">
-							<!-- Current Rating Card -->
-							<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<h2 class="text-xl font-semibold text-gray-900 mb-4">
-									{$t('submissions.rating.current')}
-								</h2>
-
-								{#if currentRatingQuery.isPending}
-									<div class="flex items-center text-gray-500">
-										<svg class="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
-											<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-											<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-										</svg>
-										{$t('submissions.detail.loadingRatings')}
-									</div>
-								{:else if currentRating?.rating}
-									<div class="space-y-4">
-										<RatingDefinition
-											rating={currentRating.rating.rating}
-											size="lg"
-										/>
-										<div class="text-sm text-gray-600">
-											<p class="font-medium mb-1">{$t('submissions.rating.justification')}:</p>
-											<p class="text-gray-700">{currentRating.rating.justification}</p>
-										</div>
-										<p class="text-xs text-gray-500" data-testid="rating-timestamp">
-											<time datetime={currentRating.rating.created_at}>
-												{formatDate(currentRating.rating.created_at)}
-											</time>
-										</p>
-									</div>
-								{:else}
-									<p class="text-gray-500" role="status" aria-live="polite">
-										{$t('submissions.rating.noRating')}
-									</p>
-								{/if}
-							</div>
-
-							<!-- Workflow Transitions -->
-							{#if canTransition && workflowState}
-								<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-									<h2 class="text-xl font-semibold text-gray-900 mb-4">
-										{$t('submissions.transition.title')}
-									</h2>
-
-									<p class="text-sm text-gray-600 mb-4">
-										{$t('submissions.transition.validTransitions')}
-									</p>
-
-									<div class="space-y-2">
-										{#each workflowState.valid_transitions as transition}
-											<button
-												onclick={() => openTransitionModal(transition)}
-												class="w-full px-4 py-2 text-left border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-between"
-											>
-												<span>{getStateLabel(transition)}</span>
-												<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-													<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-												</svg>
-											</button>
-										{/each}
-									</div>
-								</div>
-							{/if}
-
-							<!-- Rating History -->
-							{#if ratings.length > 0}
-								<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-									<h2 class="text-xl font-semibold text-gray-900 mb-4">
-										{$t('submissions.rating.history')}
-									</h2>
-
-									<div class="space-y-4">
-										{#each ratings as rating}
-											<div class="border-l-4 border-gray-200 pl-4 py-2" class:border-primary-500={rating.is_current}>
-												<div class="flex items-center justify-between mb-2">
-													<RatingBadge rating={rating.rating} size="sm" />
-													<span class="text-xs text-gray-500">
-														{$t('submissions.rating.version', { values: { version: rating.version } })}
-													</span>
-												</div>
-												<p class="text-sm text-gray-700 mb-1">{rating.justification}</p>
-												<p class="text-xs text-gray-500" data-testid="rating-timestamp">
-													<time datetime={rating.created_at}>
-														{formatDate(rating.created_at)}
-													</time>
-												</p>
-											</div>
-										{/each}
-									</div>
-								</div>
-							{/if}
-						</div>
-					</div>
+					<SubmissionRatingTab
+						{submission}
+						{submissionId}
+						{workflowState}
+						{currentRating}
+						{ratings}
+						{ratingDefinitions}
+						user={auth.user}
+						{isLoadingRating}
+						showFactCheckEditor={showFactCheckEditor ?? false}
+						onRatingSubmit={handleRatingSubmit}
+						onTransitionClick={openTransitionModal}
+						{isSubmittingRating}
+						onFactCheckSubmit={handleFactCheckSubmit}
+					/>
 
 				<!-- Sources Tab -->
 				{:else if currentTab === 'sources'}
-					<SourceManagementInterface factCheckId={submission.fact_check_id} />
+					<SourceManagementInterface factCheckId={submission.fact_check_id ?? submissionId} />
 
 				<!-- Peer Reviews Tab -->
 				{:else if currentTab === 'peer-reviews'}
@@ -699,46 +394,11 @@
 	{/if}
 </div>
 
-<!-- Transition Modal -->
-{#if showTransitionModal && selectedTransition}
-	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-		<div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-			<h3 class="text-lg font-semibold text-gray-900 mb-4">
-				{$t('submissions.transition.title')}
-			</h3>
-
-			<p class="text-gray-600 mb-4">
-				Transition to: <strong>{getStateLabel(selectedTransition)}</strong>
-			</p>
-
-			<div class="mb-4">
-				<label for="transition-reason" class="block text-sm font-medium text-gray-700 mb-1">
-					{$t('submissions.transition.reason')}
-				</label>
-				<textarea
-					id="transition-reason"
-					bind:value={transitionReason}
-					rows="3"
-					placeholder={$t('submissions.transition.reasonPlaceholder')}
-					class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-				></textarea>
-			</div>
-
-			<div class="flex gap-3">
-				<button
-					onclick={() => { showTransitionModal = false; selectedTransition = null; }}
-					class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-				>
-					{$t('common.cancel')}
-				</button>
-				<button
-					onclick={handleTransition}
-					disabled={workflowTransitionMutation.isPending}
-					class="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition"
-				>
-					{workflowTransitionMutation.isPending ? $t('submissions.transition.confirming') : $t('submissions.transition.confirm')}
-				</button>
-			</div>
-		</div>
-	</div>
-{/if}
+<!-- Workflow Transition Modal -->
+<WorkflowTransitionModal
+	show={showTransitionModal}
+	targetState={selectedTransition}
+	isSubmitting={isSubmittingTransition}
+	onConfirm={handleTransition}
+	onCancel={() => { showTransitionModal = false; selectedTransition = null; }}
+/>
