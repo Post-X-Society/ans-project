@@ -93,6 +93,12 @@
   "submissions": {
     "title": "Submissions",
     "newSubmission": "New Submission",
+    "tabs": {
+      "overview": "Overview",
+      "rating": "Rating & Review",
+      "sources": "Sources",
+      "peerReviews": "Peer Reviews"
+    },
     "filterTabs": {
       "all": "All Submissions",
       "myAssignments": "My Assignments",
