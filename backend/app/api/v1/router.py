@@ -6,6 +6,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     auth,
+    corrections,
     drafts,
     health,
     peer_review,
@@ -34,3 +35,4 @@ api_router.include_router(workflow.router, tags=["workflow"])
 api_router.include_router(drafts.router, tags=["drafts"])
 api_router.include_router(sources.router, tags=["sources"])
 api_router.include_router(peer_review.router, tags=["peer-review"])
+api_router.include_router(corrections.router, tags=["corrections"])
