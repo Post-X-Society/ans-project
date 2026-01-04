@@ -7,9 +7,12 @@ ADR 0005: EFCSN Compliance Architecture
 
 Endpoints:
 - POST /corrections - Submit correction request (public, no auth)
-- GET /corrections/{id} - Get correction by ID
-- GET /corrections/fact-check/{fact_check_id} - Get corrections for fact-check
 - GET /corrections/pending - List pending corrections (admin only)
+- GET /corrections/fact-check/{fact_check_id} - Get corrections for fact-check
+- GET /corrections/{id} - Get correction by ID
+
+NOTE: Static routes (like /pending) MUST be defined BEFORE parameterized routes
+(like /{correction_id}) to prevent FastAPI from treating path segments as UUIDs.
 """
 
 from typing import Optional
@@ -96,32 +99,50 @@ async def submit_correction(
         ) from e
 
 
-@router.get(
-    "/corrections/{correction_id}",
-    response_model=CorrectionResponse,
-    tags=["corrections"],
-    summary="Get correction by ID",
-    description="Retrieve a correction request by its ID. Public endpoint.",
-)
-async def get_correction(
-    correction_id: UUID,
-    db: AsyncSession = Depends(get_db),
-) -> CorrectionResponse:
-    """
-    Get a correction request by ID.
+# =============================================================================
+# Admin Endpoints (Authentication Required)
+# NOTE: These MUST come BEFORE parameterized routes like /{correction_id}
+# =============================================================================
 
-    This is a PUBLIC endpoint - no authentication required.
+
+@router.get(
+    "/corrections/pending",
+    response_model=CorrectionPendingListResponse,
+    tags=["corrections"],
+    summary="List pending corrections",
+    description="List all pending correction requests for triage. Admin only.",
+)
+async def list_pending_corrections(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(require_admin),
+) -> CorrectionPendingListResponse:
+    """
+    List all pending corrections for admin triage.
+
+    Returns corrections prioritized by type (substantial first)
+    and age (older first).
+
+    Requires admin or super_admin role.
     """
     service = CorrectionService(db)
-    correction = await service.get_correction_by_id(correction_id)
 
-    if correction is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Correction {correction_id} not found",
-        )
+    # Get prioritized pending corrections
+    pending = await service.get_prioritized_pending_corrections()
 
-    return CorrectionResponse.model_validate(correction)
+    # Count overdue corrections
+    overdue = await service.get_overdue_corrections()
+    overdue_count: int = len(overdue)
+
+    return CorrectionPendingListResponse(
+        corrections=[CorrectionResponse.model_validate(c) for c in pending],
+        total_count=len(pending),
+        overdue_count=overdue_count,
+    )
+
+
+# =============================================================================
+# Static Path Endpoints (Must come before parameterized routes)
+# =============================================================================
 
 
 @router.get(
@@ -159,40 +180,33 @@ async def get_corrections_for_fact_check(
 
 
 # =============================================================================
-# Admin Endpoints (Authentication Required)
+# Parameterized Endpoints (Must come LAST to avoid matching static paths)
 # =============================================================================
 
 
 @router.get(
-    "/corrections/pending",
-    response_model=CorrectionPendingListResponse,
+    "/corrections/{correction_id}",
+    response_model=CorrectionResponse,
     tags=["corrections"],
-    summary="List pending corrections",
-    description="List all pending correction requests for triage. Admin only.",
+    summary="Get correction by ID",
+    description="Retrieve a correction request by its ID. Public endpoint.",
 )
-async def list_pending_corrections(
+async def get_correction(
+    correction_id: UUID,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_admin),
-) -> CorrectionPendingListResponse:
+) -> CorrectionResponse:
     """
-    List all pending corrections for admin triage.
+    Get a correction request by ID.
 
-    Returns corrections prioritized by type (substantial first)
-    and age (older first).
-
-    Requires admin or super_admin role.
+    This is a PUBLIC endpoint - no authentication required.
     """
     service = CorrectionService(db)
+    correction = await service.get_correction_by_id(correction_id)
 
-    # Get prioritized pending corrections
-    pending = await service.get_prioritized_pending_corrections()
+    if correction is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Correction {correction_id} not found",
+        )
 
-    # Count overdue corrections
-    overdue = await service.get_overdue_corrections()
-    overdue_count: int = len(overdue)
-
-    return CorrectionPendingListResponse(
-        corrections=[CorrectionResponse.model_validate(c) for c in pending],
-        total_count=len(pending),
-        overdue_count=overdue_count,
-    )
+    return CorrectionResponse.model_validate(correction)
