@@ -25,6 +25,10 @@ export interface Submission {
 	user?: UserBasic;
 	spotlight_content?: SpotlightContentBasic;
 	reviewers: UserBasic[];
+	/** ID of associated fact-check (if any) */
+	fact_check_id?: string;
+	/** Whether peer review has been triggered for this submission */
+	peer_review_triggered?: boolean;
 }
 
 export interface SubmissionCreate {
