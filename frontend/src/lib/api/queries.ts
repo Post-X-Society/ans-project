@@ -21,7 +21,8 @@ import {
 	acceptCorrection,
 	rejectCorrection,
 	applyCorrection,
-	getCorrectionHistory
+	getCorrectionHistory,
+	getPublicCorrectionsLog
 } from './corrections';
 import type {
 	SubmissionListResponse,
@@ -58,7 +59,8 @@ import type {
 	CorrectionApplicationResponse,
 	CorrectionHistoryResponse,
 	CorrectionStatus,
-	CorrectionType
+	CorrectionType,
+	PublicLogListResponse
 } from './types';
 
 /**
@@ -456,5 +458,25 @@ export function applyCorrectionMutationOptions(): MutationOptions<
 > {
 	return {
 		mutationFn: ({ correctionId, data }) => applyCorrection(correctionId, data)
+	};
+}
+
+// =============================================================================
+// Public Corrections Log Query Options (Issue #81)
+// =============================================================================
+
+/**
+ * Query options for fetching public corrections log.
+ * Returns only accepted substantial and update corrections from the last 24 months.
+ * This is a public endpoint - no authentication required.
+ */
+export function publicCorrectionsLogQueryOptions(
+	limit: number = 10,
+	offset: number = 0
+): QueryOptions<PublicLogListResponse> {
+	return {
+		queryKey: ['corrections', 'public-log', { limit, offset }],
+		queryFn: () => getPublicCorrectionsLog({ limit, offset }),
+		staleTime: 5 * 60 * 1000 // 5 minutes - corrections don't change frequently
 	};
 }

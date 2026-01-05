@@ -3,6 +3,7 @@
     "appName": "Ans",
     "tagline": "Community-based factchecking voor SnapChat",
     "welcome": "Welkom bij Ans",
+    "home": "Home",
     "welcomeBack": "Welkom terug,",
     "loading": "Laden...",
     "error": "Fout",
@@ -659,6 +660,68 @@
         "rejectFailed": "Correctie afwijzen mislukt",
         "applyFailed": "Correctie toepassen mislukt"
       }
+    }
+  },
+  "correctionsLog": {
+    "title": "Correctielogboek",
+    "description": "Deze pagina toont alle substantiële correcties en updates aan onze factchecks van de afgelopen 24 maanden, conform de EFCSN-transparantievereisten.",
+    "meta": {
+      "title": "Correctielogboek",
+      "description": "Openbaar logboek van substantiële correcties aan factchecks op het Ans Fact-Checking platform."
+    },
+    "types": {
+      "substantial": "Substantieel",
+      "update": "Update",
+      "minor": "Klein"
+    },
+    "status": {
+      "accepted": "Geaccepteerd",
+      "rejected": "Afgewezen",
+      "pending": "In afwachting"
+    },
+    "card": {
+      "correctionApplied": "Correctie Toegepast",
+      "changesApplied": "Toegepaste wijzigingen",
+      "viewFactCheck": "Bekijk originele factcheck"
+    },
+    "list": {
+      "period": "Correcties van de afgelopen {months} maanden",
+      "totalCount": "{count} correcties",
+      "loading": "Correcties laden...",
+      "errorTitle": "Correcties laden mislukt",
+      "errorMessage": "Er is een fout opgetreden bij het laden van het correctielogboek. Probeer het opnieuw.",
+      "retry": "Opnieuw proberen",
+      "emptyTitle": "Geen correcties",
+      "emptyMessage": "Er zijn geen substantiële correcties gedaan in de afgelopen 24 maanden.",
+      "ariaLabel": "Lijst van correcties"
+    },
+    "filters": {
+      "all": "Alle",
+      "substantial": "Substantieel",
+      "update": "Updates"
+    },
+    "pagination": {
+      "ariaLabel": "Paginering",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "page": "Pagina {current} van {total}",
+      "showing": "Weergave {start} tot {end} van {total} correcties"
+    },
+    "rss": {
+      "title": "Ans Correcties RSS Feed",
+      "feedLink": "RSS Feed",
+      "subscribe": "Abonneer op correctiefeed"
+    },
+    "efcsn": {
+      "title": "EFCSN Transparantievereiste",
+      "notice": "Conform de EFCSN Code of Principles houden wij een openbaar register bij van alle substantiële correcties aan onze factchecks van de afgelopen 24 maanden."
+    },
+    "footer": {
+      "aboutTitle": "Over Ons Correctieproces",
+      "aboutText": "Wij zetten ons in voor transparantie en nauwkeurigheid. Wanneer fouten worden geïdentificeerd in onze factchecks, corrigeren wij deze direct en documenteren alle wijzigingen hier.",
+      "methodologyLink": "Onze Methodologie",
+      "policyLink": "Correctiebeleid",
+      "efcsnLink": "EFCSN Code of Principles"
     }
   }
 }
