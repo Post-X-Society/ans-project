@@ -41,6 +41,9 @@ class User(TimeStampedModel):
         default=UserRole.SUBMITTER,
     )
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    email_opt_out: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, index=True
+    )  # User preference to opt out of email notifications
 
     # Relationships
     submissions: Mapped[List["Submission"]] = relationship(

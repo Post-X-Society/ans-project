@@ -72,6 +72,35 @@ services:
     networks:
       - ans-network
 
+  # Celery Worker for async tasks (email queue)
+  celery-worker:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: ans-celery-worker
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ans_dev
+      - REDIS_URL=redis://redis:6379/0
+      - DEBUG=true
+      - SMTP_HOST=${SMTP_HOST:-smtp.strato.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-server@postxsociety.org}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-AnsCheckt}
+      - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
+    volumes:
+      - ../backend:/app
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ans-network
+    restart: unless-stopped
+
   # Frontend (Svelte 5)
   frontend:
     build:
