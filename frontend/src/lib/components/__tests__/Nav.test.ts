@@ -105,10 +105,12 @@ describe('Nav', () => {
 			const adminButton = screen.getByRole('button', { name: /admin/i });
 			await fireEvent.click(adminButton);
 
-			// Check for corrections link in dropdown
-			const correctionsLink = screen.getByRole('link', { name: /corrections/i });
+			// Check for corrections link in dropdown using href to distinguish from main nav "Corrections Log"
+			const allCorrectionsLinks = screen.getAllByRole('link', { name: /corrections/i });
+			const correctionsLink = allCorrectionsLinks.find(
+				(link) => link.getAttribute('href') === '/admin/corrections'
+			);
 			expect(correctionsLink).toBeInTheDocument();
-			expect(correctionsLink).toHaveAttribute('href', '/admin/corrections');
 		});
 
 		it('should show User Management link in admin dropdown', async () => {
