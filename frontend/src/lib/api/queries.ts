@@ -24,6 +24,14 @@ import {
 	getCorrectionHistory,
 	getPublicCorrectionsLog
 } from './corrections';
+import {
+	getEmailTemplates,
+	getEmailTemplate,
+	createEmailTemplate,
+	updateEmailTemplate,
+	deactivateEmailTemplate,
+	renderEmailTemplate
+} from './email-templates';
 import type {
 	SubmissionListResponse,
 	Submission,
@@ -60,7 +68,13 @@ import type {
 	CorrectionHistoryResponse,
 	CorrectionStatus,
 	CorrectionType,
-	PublicLogListResponse
+	PublicLogListResponse,
+	EmailTemplate,
+	EmailTemplateCreate,
+	EmailTemplateUpdate,
+	EmailTemplateRenderRequest,
+	EmailTemplateRenderResponse,
+	EmailTemplateType
 } from './types';
 
 /**
@@ -478,5 +492,86 @@ export function publicCorrectionsLogQueryOptions(
 		queryKey: ['corrections', 'public-log', { limit, offset }],
 		queryFn: () => getPublicCorrectionsLog({ limit, offset }),
 		staleTime: 5 * 60 * 1000 // 5 minutes - corrections don't change frequently
+	};
+}
+
+// =============================================================================
+// Email Template Admin Management Query Options (Issue #167)
+// =============================================================================
+
+/**
+ * Query options for fetching all email templates (admin only)
+ */
+export function emailTemplatesQueryOptions(
+	includeInactive: boolean = false,
+	templateType?: EmailTemplateType
+): QueryOptions<EmailTemplate[]> {
+	return {
+		queryKey: ['email-templates', { includeInactive, templateType }],
+		queryFn: () => getEmailTemplates(includeInactive, templateType),
+		staleTime: 2 * 60 * 1000 // 2 minutes - templates don't change often
+	};
+}
+
+/**
+ * Query options for fetching a single email template by key (admin only)
+ */
+export function emailTemplateQueryOptions(
+	templateKey: string,
+	enabled: boolean = true
+): QueryOptions<EmailTemplate> {
+	return {
+		queryKey: ['email-templates', templateKey],
+		queryFn: () => getEmailTemplate(templateKey),
+		staleTime: 2 * 60 * 1000, // 2 minutes
+		enabled: enabled && !!templateKey
+	};
+}
+
+/**
+ * Mutation options for creating a new email template (admin only)
+ */
+export function createEmailTemplateMutationOptions(): MutationOptions<
+	EmailTemplate,
+	Error,
+	EmailTemplateCreate
+> {
+	return {
+		mutationFn: (data: EmailTemplateCreate) => createEmailTemplate(data)
+	};
+}
+
+/**
+ * Mutation options for updating an email template (admin only)
+ */
+export function updateEmailTemplateMutationOptions(
+	templateKey: string
+): MutationOptions<EmailTemplate, Error, EmailTemplateUpdate> {
+	return {
+		mutationFn: (data: EmailTemplateUpdate) => updateEmailTemplate(templateKey, data)
+	};
+}
+
+/**
+ * Mutation options for deactivating an email template (admin only)
+ */
+export function deactivateEmailTemplateMutationOptions(
+	templateKey: string
+): MutationOptions<void, Error, void> {
+	return {
+		mutationFn: () => deactivateEmailTemplate(templateKey)
+	};
+}
+
+/**
+ * Mutation options for rendering/previewing an email template (admin only)
+ */
+export function renderEmailTemplateMutationOptions(): MutationOptions<
+	EmailTemplateRenderResponse,
+	Error,
+	EmailTemplateRenderRequest
+> {
+	return {
+		mutationFn: (request: EmailTemplateRenderRequest) => renderEmailTemplate(request)
 	};
 }

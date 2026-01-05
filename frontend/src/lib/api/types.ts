@@ -590,3 +590,110 @@ export interface PublicLogListResponse {
 	corrections: PublicLogCorrectionResponse[];
 	total_count: number;
 }
+
+// =============================================================================
+// Issue #167: Email Template Admin Management UI Types
+// =============================================================================
+
+/**
+ * Email template type enumeration (matches backend EmailTemplateType)
+ */
+export type EmailTemplateType =
+	| 'submission_received'
+	| 'reviewer_assigned'
+	| 'review_assigned'
+	| 'review_completed'
+	| 'workflow_update'
+	| 'workflow_submitted'
+	| 'workflow_queued'
+	| 'workflow_assigned'
+	| 'workflow_in_research'
+	| 'workflow_draft_ready'
+	| 'workflow_admin_review'
+	| 'workflow_peer_review'
+	| 'workflow_final_approval'
+	| 'workflow_published'
+	| 'workflow_rejected'
+	| 'correction_request_received'
+	| 'correction_approved'
+	| 'correction_rejected'
+	| 'correction_resolution'
+	| 'peer_review_request'
+	| 'peer_review_completed'
+	| 'fact_check_published'
+	| 'draft_reminder'
+	| 'transparency_page_review_reminder'
+	| 'system_notification'
+	| 'weekly_digest'
+	| 'password_reset'
+	| 'welcome_email'
+	| 'account_verification';
+
+/**
+ * Email template response from API
+ */
+export interface EmailTemplate {
+	id: string;
+	template_key: string;
+	template_type: EmailTemplateType;
+	name: Record<string, string>;
+	description: Record<string, string>;
+	subject: Record<string, string>;
+	body_text: Record<string, string>;
+	body_html: Record<string, string>;
+	variables: Record<string, string>;
+	is_active: boolean;
+	version: number;
+	last_modified_by: string | null;
+	notes: string | null;
+	created_at: string;
+	updated_at: string;
+}
+
+/**
+ * Request to create a new email template
+ */
+export interface EmailTemplateCreate {
+	template_key: string;
+	template_type: EmailTemplateType;
+	name: Record<string, string>;
+	description: Record<string, string>;
+	subject: Record<string, string>;
+	body_text: Record<string, string>;
+	body_html: Record<string, string>;
+	variables: Record<string, string>;
+	is_active?: boolean;
+	notes?: string;
+}
+
+/**
+ * Request to update an email template
+ */
+export interface EmailTemplateUpdate {
+	name?: Record<string, string>;
+	description?: Record<string, string>;
+	subject?: Record<string, string>;
+	body_text?: Record<string, string>;
+	body_html?: Record<string, string>;
+	variables?: Record<string, string>;
+	is_active?: boolean;
+	notes?: string;
+}
+
+/**
+ * Request to render/preview a template
+ */
+export interface EmailTemplateRenderRequest {
+	template_key: string;
+	context: Record<string, string>;
+	language: 'en' | 'nl';
+}
+
+/**
+ * Response from rendering a template
+ */
+export interface EmailTemplateRenderResponse {
+	subject: string;
+	body_text: string;
+	body_html: string;
+}

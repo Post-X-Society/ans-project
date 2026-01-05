@@ -147,6 +147,14 @@
 									>
 										{$t('nav.transparencyPages')}
 									</a>
+									<a
+										href="/admin/email-templates"
+										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+										class:bg-gray-100={currentPath.startsWith('/admin/email-templates')}
+										onclick={closeAdminDropdown}
+									>
+										{$t('nav.emailTemplates')}
+									</a>
 								</div>
 							</div>
 						{/if}
