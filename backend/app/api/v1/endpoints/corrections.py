@@ -401,7 +401,7 @@ async def apply_correction(
         application = await service.apply_correction(
             correction_id=correction_id,
             applied_by_id=current_user.id,
-            changes=apply_data.changes,  # type: ignore[arg-type]
+            changes=apply_data.changes,
             changes_summary=apply_data.changes_summary,
         )
         return CorrectionApplicationResponse.model_validate(application)

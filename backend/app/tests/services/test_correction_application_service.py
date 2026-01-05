@@ -392,7 +392,8 @@ class TestCorrectionApplicationServiceMinor:
         await db_session.refresh(fact_check)
         assert fact_check.reasoning == "Original reasoning with typo fixed"
         # MINOR corrections should NOT have a correction_notice field populated
-        assert not hasattr(fact_check, "correction_notice") or fact_check.correction_notice is None  # type: ignore[union-attr]
+        # FactCheck model doesn't have correction_notice attribute
+        assert not hasattr(fact_check, "correction_notice")
 
     @pytest.mark.asyncio
     async def test_minor_correction_creates_version_record(self, db_session: AsyncSession) -> None:
