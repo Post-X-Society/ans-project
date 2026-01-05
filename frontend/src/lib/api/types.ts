@@ -458,3 +458,49 @@ export interface CitationFormat {
 	apa: string;
 	mla: string;
 }
+
+// Correction Types (Issue #79 - Correction Request Form)
+// EFCSN-compliant corrections system
+
+export type CorrectionType = 'minor' | 'update' | 'substantial';
+
+export type CorrectionStatus = 'pending' | 'accepted' | 'rejected';
+
+export interface CorrectionCreate {
+	fact_check_id: string;
+	correction_type: CorrectionType;
+	request_details: string;
+	requester_email?: string;
+}
+
+export interface CorrectionResponse {
+	id: string;
+	fact_check_id: string;
+	correction_type: CorrectionType;
+	request_details: string;
+	requester_email?: string;
+	status: CorrectionStatus;
+	reviewed_by_id?: string;
+	reviewed_at?: string;
+	resolution_notes?: string;
+	sla_deadline?: string;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface CorrectionSubmitResponse {
+	id: string;
+	fact_check_id: string;
+	correction_type: CorrectionType;
+	status: CorrectionStatus;
+	requester_email?: string;
+	sla_deadline?: string;
+	acknowledgment_sent: boolean;
+	created_at: string;
+}
+
+export interface CorrectionListResponse {
+	fact_check_id?: string;
+	corrections: CorrectionResponse[];
+	total_count: number;
+}

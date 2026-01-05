@@ -545,5 +545,49 @@
     "noTitle": "Naamloze Bron",
     "noAuthor": "Onbekende Auteur",
     "invalidCitation": "Ongeldige citatieverwijzing"
+  },
+  "corrections": {
+    "title": "Correctie Aanvragen",
+    "description": "Als u denkt dat deze factcheck een fout bevat, kunt u een correctieverzoek indienen. Wij beoordelen uw verzoek binnen 7 dagen volgens EFCSN-richtlijnen.",
+    "form": {
+      "factCheckReference": "Factcheck Referentie",
+      "errorTypeLabel": "Type Fout",
+      "errorTypePlaceholder": "Selecteer het type fout",
+      "detailsLabel": "Bewijs en Details",
+      "detailsPlaceholder": "Beschrijf de fout en geef ondersteunend bewijs (minimaal 10 tekens)...",
+      "emailLabel": "Uw E-mail (optioneel)",
+      "emailPlaceholder": "u@voorbeeld.nl",
+      "emailHelp": "Geef uw e-mail op om updates over uw correctieverzoek te ontvangen",
+      "submit": "Correctieverzoek Indienen",
+      "submitting": "Indienen..."
+    },
+    "types": {
+      "minor": "Kleine Fout",
+      "minorDescription": "Typefouten, grammatica of opmaakproblemen (geen publieke melding)",
+      "update": "Nieuwe Informatie",
+      "updateDescription": "Extra bronnen of bijgewerkte informatie (toegevoegde notitie)",
+      "substantial": "Substantiële Fout",
+      "substantialDescription": "Wijziging oordeel of grote feitelijke fout (prominente melding)"
+    },
+    "validation": {
+      "typeRequired": "Selecteer een fouttype",
+      "detailsRequired": "Geef details over de fout",
+      "detailsMinLength": "Details moeten minimaal 10 tekens bevatten",
+      "emailInvalid": "Voer een geldig e-mailadres in"
+    },
+    "success": {
+      "title": "Correctieverzoek Ingediend",
+      "message": "Bedankt voor uw feedback. Wij beoordelen uw verzoek binnen 7 dagen en informeren u over onze beslissing.",
+      "slaNote": "Verwachte reactie voor: {deadline}",
+      "acknowledgmentSent": "Een bevestigingsmail is naar uw adres gestuurd."
+    },
+    "error": {
+      "submitFailed": "Correctieverzoek indienen mislukt. Probeer het opnieuw.",
+      "notFound": "De genoemde factcheck is niet gevonden."
+    },
+    "efcsn": {
+      "escalateLink": "Niet tevreden? Escaleer naar EFCSN",
+      "escalateDescription": "Als u niet tevreden bent met ons antwoord, kunt u uw klacht escaleren naar het European Fact-Checking Standards Network."
+    }
   }
 }

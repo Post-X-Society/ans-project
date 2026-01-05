@@ -12,6 +12,7 @@ import {
 import { getDraft, saveDraft } from './drafts';
 import { getPendingReviews, getPeerReviewStatus, submitPeerReview } from './peer-review';
 import { getSources, createSource, updateSource, deleteSource } from './sources';
+import { submitCorrectionRequest, getCorrectionsForFactCheck } from './corrections';
 import type {
 	SubmissionListResponse,
 	Submission,
@@ -35,7 +36,10 @@ import type {
 	Source,
 	SourceCreate,
 	SourceUpdate,
-	SourceListResponse
+	SourceListResponse,
+	CorrectionCreate,
+	CorrectionSubmitResponse,
+	CorrectionListResponse
 } from './types';
 
 /**
@@ -306,5 +310,36 @@ export function deleteSourceMutationOptions(
 ): MutationOptions<void, Error, void> {
 	return {
 		mutationFn: () => deleteSource(factCheckId, sourceId)
+	};
+}
+
+// =============================================================================
+// Correction Request Query Options (Issue #79)
+// =============================================================================
+
+/**
+ * Query options for fetching corrections for a fact-check
+ */
+export function correctionsForFactCheckQueryOptions(
+	factCheckId: string,
+	enabled: boolean = true
+): QueryOptions<CorrectionListResponse> {
+	return {
+		queryKey: ['corrections', 'fact-check', factCheckId],
+		queryFn: () => getCorrectionsForFactCheck(factCheckId),
+		enabled: enabled && !!factCheckId
+	};
+}
+
+/**
+ * Mutation options for submitting a correction request
+ */
+export function submitCorrectionMutationOptions(): MutationOptions<
+	CorrectionSubmitResponse,
+	Error,
+	CorrectionCreate
+> {
+	return {
+		mutationFn: (data: CorrectionCreate) => submitCorrectionRequest(data)
 	};
 }
