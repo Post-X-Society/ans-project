@@ -13,6 +13,7 @@ from app.models.correction import (
     CorrectionType,
 )
 from app.models.email_log import EmailLog, EmailStatus
+from app.models.email_template import EmailTemplate, EmailTemplateType
 from app.models.fact_check import FactCheck
 from app.models.fact_check_rating import FactCheckRating
 from app.models.peer_review import ApprovalStatus, PeerReview
@@ -53,6 +54,8 @@ __all__ = [
     "CorrectionStatus",
     "EmailLog",
     "EmailStatus",
+    "EmailTemplate",
+    "EmailTemplateType",
     "PeerReview",
     "ApprovalStatus",
     "PeerReviewTrigger",
