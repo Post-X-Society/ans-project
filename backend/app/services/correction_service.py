@@ -397,3 +397,104 @@ class CorrectionService:
         stmt = select(FactCheck).where(FactCheck.id == fact_check_id)
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
+
+    # ==========================================================================
+    # Issue #78: Additional Service Methods for Correction API Endpoints
+    # ==========================================================================
+
+    async def list_all_corrections(
+        self,
+        status: Optional[CorrectionStatus] = None,
+        correction_type: Optional[CorrectionType] = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> tuple[list[Correction], int]:
+        """
+        List all corrections with optional filtering and pagination.
+
+        Admin-only endpoint for viewing all corrections regardless of status.
+
+        Args:
+            status: Optional filter by correction status
+            correction_type: Optional filter by correction type
+            limit: Maximum number of corrections to return (default 50)
+            offset: Number of corrections to skip (default 0)
+
+        Returns:
+            Tuple of (list of corrections, total count)
+        """
+        from sqlalchemy import func as sql_func
+
+        # Build base query
+        stmt = select(Correction)
+
+        # Apply filters
+        if status is not None:
+            stmt = stmt.where(Correction.status == status)
+
+        if correction_type is not None:
+            stmt = stmt.where(Correction.correction_type == correction_type)
+
+        # Get total count before pagination
+        count_stmt = select(sql_func.count()).select_from(stmt.subquery())
+        total_result = await self.db.execute(count_stmt)
+        total_count: int = total_result.scalar() or 0
+
+        # Apply ordering and pagination
+        stmt = stmt.order_by(Correction.created_at.desc())
+        stmt = stmt.limit(limit).offset(offset)
+
+        result = await self.db.execute(stmt)
+        corrections: list[Correction] = list(result.scalars().all())
+
+        return corrections, total_count
+
+    async def get_public_log(
+        self,
+        limit: int = 100,
+        offset: int = 0,
+    ) -> tuple[list[Correction], int]:
+        """
+        Get public corrections log for EFCSN transparency.
+
+        Returns only ACCEPTED corrections of type SUBSTANTIAL or UPDATE.
+        MINOR corrections are excluded as they don't require public notice.
+
+        Per EFCSN requirements:
+        - SUBSTANTIAL: Prominent correction notice required
+        - UPDATE: Appended explanatory note required
+        - MINOR: No public notice required (excluded from public log)
+
+        Args:
+            limit: Maximum number of corrections to return (default 100)
+            offset: Number of corrections to skip (default 0)
+
+        Returns:
+            Tuple of (list of corrections, total count)
+        """
+        from sqlalchemy import func as sql_func
+        from sqlalchemy import or_
+
+        # Build query for public log
+        # Only ACCEPTED corrections of type SUBSTANTIAL or UPDATE
+        stmt = select(Correction).where(
+            Correction.status == CorrectionStatus.ACCEPTED,
+            or_(
+                Correction.correction_type == CorrectionType.SUBSTANTIAL,
+                Correction.correction_type == CorrectionType.UPDATE,
+            ),
+        )
+
+        # Get total count
+        count_stmt = select(sql_func.count()).select_from(stmt.subquery())
+        total_result = await self.db.execute(count_stmt)
+        total_count: int = total_result.scalar() or 0
+
+        # Order by reviewed_at (newest first) for public visibility
+        stmt = stmt.order_by(Correction.reviewed_at.desc())
+        stmt = stmt.limit(limit).offset(offset)
+
+        result = await self.db.execute(stmt)
+        corrections: list[Correction] = list(result.scalars().all())
+
+        return corrections, total_count
