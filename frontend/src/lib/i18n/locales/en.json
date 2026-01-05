@@ -551,5 +551,49 @@
     "noTitle": "Untitled Source",
     "noAuthor": "Unknown Author",
     "invalidCitation": "Invalid citation reference"
+  },
+  "corrections": {
+    "title": "Request a Correction",
+    "description": "If you believe this fact-check contains an error, please submit a correction request. We will review your request within 7 days per EFCSN guidelines.",
+    "form": {
+      "factCheckReference": "Fact-Check Reference",
+      "errorTypeLabel": "Type of Error",
+      "errorTypePlaceholder": "Select the type of error",
+      "detailsLabel": "Evidence and Details",
+      "detailsPlaceholder": "Please describe the error and provide supporting evidence (minimum 10 characters)...",
+      "emailLabel": "Your Email (optional)",
+      "emailPlaceholder": "you@example.com",
+      "emailHelp": "Provide your email to receive updates on your correction request",
+      "submit": "Submit Correction Request",
+      "submitting": "Submitting..."
+    },
+    "types": {
+      "minor": "Minor Error",
+      "minorDescription": "Typos, grammar, or formatting issues (no public notice)",
+      "update": "New Information",
+      "updateDescription": "Additional sources or updated information (appended note)",
+      "substantial": "Substantial Error",
+      "substantialDescription": "Rating change or major factual error (prominent notice)"
+    },
+    "validation": {
+      "typeRequired": "Please select an error type",
+      "detailsRequired": "Please provide details about the error",
+      "detailsMinLength": "Details must be at least 10 characters",
+      "emailInvalid": "Please enter a valid email address"
+    },
+    "success": {
+      "title": "Correction Request Submitted",
+      "message": "Thank you for your feedback. We will review your request within 7 days and notify you of our decision.",
+      "slaNote": "Expected response by: {deadline}",
+      "acknowledgmentSent": "A confirmation email has been sent to your address."
+    },
+    "error": {
+      "submitFailed": "Failed to submit correction request. Please try again.",
+      "notFound": "The referenced fact-check was not found."
+    },
+    "efcsn": {
+      "escalateLink": "Not satisfied? Escalate to EFCSN",
+      "escalateDescription": "If you are not satisfied with our response, you may escalate your complaint to the European Fact-Checking Standards Network."
+    }
   }
 }
