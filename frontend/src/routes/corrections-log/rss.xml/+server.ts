@@ -7,7 +7,8 @@
  */
 
 import type { RequestHandler } from './$types';
-import { getPublicCorrectionsLog } from '$lib/api/corrections';
+import type { PublicLogListResponse } from '$lib/api/types';
+import { env } from '$env/dynamic/private';
 
 // Site configuration
 const SITE_URL = 'https://ans.amsterdam';
@@ -51,10 +52,31 @@ function getCorrectionTypeLabel(type: string): string {
 	}
 }
 
+/**
+ * Server-side fetch for corrections log (doesn't use browser-based apiClient)
+ */
+async function fetchPublicCorrectionsLog(limit: number, offset: number): Promise<PublicLogListResponse> {
+	const apiUrl = env.VITE_API_URL || 'http://localhost:8000';
+	const url = `${apiUrl}/api/v1/corrections/public-log?limit=${limit}&offset=${offset}`;
+
+	const response = await fetch(url, {
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to fetch corrections: ${response.status}`);
+	}
+
+	return response.json();
+}
+
 export const GET: RequestHandler = async ({ url }) => {
 	try {
 		// Fetch recent corrections (limit to 50 for RSS feed)
-		const response = await getPublicCorrectionsLog({ limit: 50, offset: 0 });
+		// Using server-safe fetch instead of browser-based apiClient
+		const response = await fetchPublicCorrectionsLog(50, 0);
 		const corrections = response.corrections;
 
 		// Build RSS XML
