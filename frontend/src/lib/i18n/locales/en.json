@@ -3,6 +3,7 @@
     "appName": "Ans",
     "tagline": "Community based fact-checking for SnapChat",
     "welcome": "Welcome to Ans",
+    "home": "Home",
     "welcomeBack": "Welcome back,",
     "loading": "Loading...",
     "error": "Error",
@@ -665,6 +666,68 @@
         "rejectFailed": "Failed to reject correction",
         "applyFailed": "Failed to apply correction"
       }
+    }
+  },
+  "correctionsLog": {
+    "title": "Corrections Log",
+    "description": "This page lists all substantial corrections and updates made to our fact-checks over the last 24 months, in compliance with EFCSN transparency requirements.",
+    "meta": {
+      "title": "Corrections Log",
+      "description": "Public log of substantial corrections made to fact-checks on Ans Fact-Checking platform."
+    },
+    "types": {
+      "substantial": "Substantial",
+      "update": "Update",
+      "minor": "Minor"
+    },
+    "status": {
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    },
+    "card": {
+      "correctionApplied": "Correction Applied",
+      "changesApplied": "Changes applied",
+      "viewFactCheck": "View original fact-check"
+    },
+    "list": {
+      "period": "Corrections from the last {months} months",
+      "totalCount": "{count} corrections",
+      "loading": "Loading corrections...",
+      "errorTitle": "Failed to load corrections",
+      "errorMessage": "There was an error loading the corrections log. Please try again.",
+      "retry": "Retry",
+      "emptyTitle": "No corrections",
+      "emptyMessage": "No substantial corrections have been made in the last 24 months.",
+      "ariaLabel": "List of corrections"
+    },
+    "filters": {
+      "all": "All",
+      "substantial": "Substantial",
+      "update": "Updates"
+    },
+    "pagination": {
+      "ariaLabel": "Pagination",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {current} of {total}",
+      "showing": "Showing {start} to {end} of {total} corrections"
+    },
+    "rss": {
+      "title": "Ans Corrections RSS Feed",
+      "feedLink": "RSS Feed",
+      "subscribe": "Subscribe to corrections feed"
+    },
+    "efcsn": {
+      "title": "EFCSN Transparency Requirement",
+      "notice": "Per EFCSN Code of Principles, we maintain a public record of all substantial corrections made to our fact-checks for the past 24 months."
+    },
+    "footer": {
+      "aboutTitle": "About Our Corrections Process",
+      "aboutText": "We are committed to transparency and accuracy. When errors are identified in our fact-checks, we promptly correct them and document all changes here.",
+      "methodologyLink": "Our Methodology",
+      "policyLink": "Corrections Policy",
+      "efcsnLink": "EFCSN Code of Principles"
     }
   }
 }
