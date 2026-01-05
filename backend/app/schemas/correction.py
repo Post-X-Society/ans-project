@@ -257,3 +257,65 @@ class CorrectionHistoryResponse(BaseModel):
     fact_check_id: UUID
     applications: list[CorrectionApplicationResponse]
     total_versions: int
+
+
+# =============================================================================
+# Issue #78: Additional Schemas for Correction API Endpoints
+# =============================================================================
+
+
+class CorrectionAllListResponse(BaseModel):
+    """Schema for listing all corrections (admin endpoint).
+
+    Includes pagination metadata for handling large result sets.
+    Issue #78: Backend Correction API Endpoints
+    """
+
+    corrections: list[CorrectionResponse]
+    total_count: int
+    limit: int = Field(
+        default=50,
+        description="Maximum number of corrections returned per page",
+    )
+    offset: int = Field(
+        default=0,
+        description="Number of corrections skipped",
+    )
+
+
+class PublicLogCorrectionResponse(BaseModel):
+    """Schema for correction in public log (privacy-aware).
+
+    This schema omits sensitive information like requester_email
+    for GDPR compliance and privacy protection.
+
+    Issue #78: Backend Correction API Endpoints
+    EFCSN Requirement: Public corrections log
+    """
+
+    id: UUID
+    fact_check_id: UUID
+    correction_type: CorrectionType
+    request_details: str
+    # requester_email intentionally omitted for privacy
+    status: CorrectionStatus
+    reviewed_at: Optional[datetime] = None
+    resolution_notes: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class PublicLogListResponse(BaseModel):
+    """Schema for public corrections log response.
+
+    Returns only accepted substantial and update corrections
+    for EFCSN transparency requirements.
+
+    Issue #78: Backend Correction API Endpoints
+    EFCSN Requirement: Public corrections log (last 2 years minimum)
+    """
+
+    corrections: list[PublicLogCorrectionResponse]
+    total_count: int
