@@ -20,6 +20,7 @@
 	import { goto } from '$app/navigation';
 	import TabNavigation from '$lib/components/TabNavigation.svelte';
 	import SourceManagementInterface from '$lib/components/sources/SourceManagementInterface.svelte';
+	import CorrectionRequestForm from '$lib/components/CorrectionRequestForm.svelte';
 	import {
 		SubmissionOverviewTab,
 		SubmissionRatingTab,
@@ -90,6 +91,9 @@
 			workflowState?.current_state &&
 			['in_research', 'draft_ready'].includes(workflowState.current_state)
 	);
+
+	// Check if correction request form should be shown (published state only)
+	let isPublished = $derived(workflowState?.current_state === 'published');
 
 	// Define tabs
 	let tabs = $derived([
@@ -357,6 +361,15 @@
 						{isLoadingHistory}
 						historyError={null}
 					/>
+
+					<!-- Correction Request Form (shown only for published fact-checks) -->
+					{#if isPublished && submission.fact_check_id}
+						<div class="mt-8" data-testid="correction-request-section">
+							<CorrectionRequestForm
+								factCheckId={submission.fact_check_id}
+							/>
+						</div>
+					{/if}
 
 				<!-- Rating & Review Tab -->
 				{:else if currentTab === 'rating'}

@@ -122,6 +122,14 @@
 										{$t('nav.userManagement')}
 									</a>
 									<a
+										href="/admin/corrections"
+										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+										class:bg-gray-100={currentPath.startsWith('/admin/corrections')}
+										onclick={closeAdminDropdown}
+									>
+										{$t('nav.corrections')}
+									</a>
+									<a
 										href="/admin/transparency"
 										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
 										class:bg-gray-100={currentPath.startsWith('/admin/transparency')}
