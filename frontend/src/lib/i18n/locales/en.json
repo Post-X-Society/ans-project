@@ -594,6 +594,77 @@
     "efcsn": {
       "escalateLink": "Not satisfied? Escalate to EFCSN",
       "escalateDescription": "If you are not satisfied with our response, you may escalate your complaint to the European Fact-Checking Standards Network."
+    },
+    "admin": {
+      "dashboardTitle": "Correction Review Dashboard",
+      "loading": "Loading corrections...",
+      "pendingCount": "{count} pending",
+      "overdueCount": "{count} overdue",
+      "noPending": "No pending corrections",
+      "noPendingDescription": "All correction requests have been reviewed.",
+      "retry": "Retry",
+      "loadFailed": "Failed to load corrections",
+      "filterAll": "All",
+      "filterSubstantial": "Substantial",
+      "filterUpdate": "Update",
+      "filterMinor": "Minor",
+      "listAriaLabel": "Pending corrections",
+      "correctionItem": "Correction request for fact-check {factCheckId}",
+      "submittedAt": "Submitted {date}",
+      "requesterEmail": "Requester: {email}",
+      "noEmail": "No email provided",
+      "sla": {
+        "daysRemaining": "{days} days remaining",
+        "dayRemaining": "1 day remaining",
+        "daysOverdue": "{days} days overdue",
+        "dayOverdue": "1 day overdue",
+        "dueToday": "Due today"
+      },
+      "actions": {
+        "review": "Review",
+        "viewDetails": "View Details",
+        "applyCorrection": "Apply Correction",
+        "confirmApply": "Confirm Apply"
+      },
+      "reviewModal": {
+        "title": "Review Correction Request",
+        "resolutionNotesLabel": "Resolution Notes",
+        "resolutionNotesPlaceholder": "Explain your decision (minimum 10 characters)...",
+        "resolutionNotesMinLength": "Resolution notes must be at least 10 characters",
+        "accept": "Accept",
+        "reject": "Reject",
+        "accepting": "Accepting...",
+        "rejecting": "Rejecting...",
+        "cancel": "Cancel"
+      },
+      "applyModal": {
+        "title": "Apply Correction",
+        "description": "Apply the accepted correction to the fact-check. This will create a new version.",
+        "changesSummaryLabel": "Changes Summary",
+        "changesSummaryPlaceholder": "Describe the changes being applied (minimum 10 characters)...",
+        "changesSummaryMinLength": "Changes summary must be at least 10 characters",
+        "applying": "Applying...",
+        "cancel": "Cancel"
+      },
+      "detailsPanel": {
+        "originalRequest": "Original Request",
+        "correctionType": "Type",
+        "requestDetails": "Request Details",
+        "requester": "Requester",
+        "submittedDate": "Submitted",
+        "slaDeadline": "SLA Deadline",
+        "close": "Close"
+      },
+      "success": {
+        "accepted": "Correction accepted",
+        "rejected": "Correction rejected",
+        "applied": "Correction applied successfully"
+      },
+      "error": {
+        "acceptFailed": "Failed to accept correction",
+        "rejectFailed": "Failed to reject correction",
+        "applyFailed": "Failed to apply correction"
+      }
     }
   }
 }

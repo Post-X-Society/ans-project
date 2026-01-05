@@ -12,7 +12,17 @@ import {
 import { getDraft, saveDraft } from './drafts';
 import { getPendingReviews, getPeerReviewStatus, submitPeerReview } from './peer-review';
 import { getSources, createSource, updateSource, deleteSource } from './sources';
-import { submitCorrectionRequest, getCorrectionsForFactCheck } from './corrections';
+import {
+	submitCorrectionRequest,
+	getCorrectionsForFactCheck,
+	getPendingCorrections,
+	getAllCorrections,
+	getCorrectionById,
+	acceptCorrection,
+	rejectCorrection,
+	applyCorrection,
+	getCorrectionHistory
+} from './corrections';
 import type {
 	SubmissionListResponse,
 	Submission,
@@ -39,7 +49,16 @@ import type {
 	SourceListResponse,
 	CorrectionCreate,
 	CorrectionSubmitResponse,
-	CorrectionListResponse
+	CorrectionListResponse,
+	CorrectionPendingListResponse,
+	CorrectionAllListResponse,
+	CorrectionResponse,
+	CorrectionReviewRequest,
+	CorrectionApplyRequest,
+	CorrectionApplicationResponse,
+	CorrectionHistoryResponse,
+	CorrectionStatus,
+	CorrectionType
 } from './types';
 
 /**
@@ -341,5 +360,101 @@ export function submitCorrectionMutationOptions(): MutationOptions<
 > {
 	return {
 		mutationFn: (data: CorrectionCreate) => submitCorrectionRequest(data)
+	};
+}
+
+// =============================================================================
+// Admin Correction Review Dashboard Query Options (Issue #80)
+// =============================================================================
+
+/**
+ * Query options for fetching pending corrections (admin triage)
+ */
+export function pendingCorrectionsQueryOptions(): QueryOptions<CorrectionPendingListResponse> {
+	return {
+		queryKey: ['corrections', 'pending'],
+		queryFn: () => getPendingCorrections()
+	};
+}
+
+/**
+ * Query options for fetching all corrections with filtering (admin)
+ */
+export function allCorrectionsQueryOptions(options?: {
+	status?: CorrectionStatus;
+	correction_type?: CorrectionType;
+	limit?: number;
+	offset?: number;
+}): QueryOptions<CorrectionAllListResponse> {
+	return {
+		queryKey: ['corrections', 'all', options],
+		queryFn: () => getAllCorrections(options)
+	};
+}
+
+/**
+ * Query options for fetching a single correction by ID
+ */
+export function correctionByIdQueryOptions(
+	correctionId: string,
+	enabled: boolean = true
+): QueryOptions<CorrectionResponse> {
+	return {
+		queryKey: ['corrections', correctionId],
+		queryFn: () => getCorrectionById(correctionId),
+		enabled: enabled && !!correctionId
+	};
+}
+
+/**
+ * Query options for fetching correction history for a fact-check
+ */
+export function correctionHistoryQueryOptions(
+	factCheckId: string,
+	enabled: boolean = true
+): QueryOptions<CorrectionHistoryResponse> {
+	return {
+		queryKey: ['corrections', 'history', factCheckId],
+		queryFn: () => getCorrectionHistory(factCheckId),
+		enabled: enabled && !!factCheckId
+	};
+}
+
+/**
+ * Mutation options for accepting a correction
+ */
+export function acceptCorrectionMutationOptions(): MutationOptions<
+	CorrectionResponse,
+	Error,
+	{ correctionId: string; data: CorrectionReviewRequest }
+> {
+	return {
+		mutationFn: ({ correctionId, data }) => acceptCorrection(correctionId, data)
+	};
+}
+
+/**
+ * Mutation options for rejecting a correction
+ */
+export function rejectCorrectionMutationOptions(): MutationOptions<
+	CorrectionResponse,
+	Error,
+	{ correctionId: string; data: CorrectionReviewRequest }
+> {
+	return {
+		mutationFn: ({ correctionId, data }) => rejectCorrection(correctionId, data)
+	};
+}
+
+/**
+ * Mutation options for applying a correction
+ */
+export function applyCorrectionMutationOptions(): MutationOptions<
+	CorrectionApplicationResponse,
+	Error,
+	{ correctionId: string; data: CorrectionApplyRequest }
+> {
+	return {
+		mutationFn: ({ correctionId, data }) => applyCorrection(correctionId, data)
 	};
 }
