@@ -12,6 +12,7 @@ from app.models.correction import (
     CorrectionStatus,
     CorrectionType,
 )
+from app.models.email_log import EmailLog, EmailStatus
 from app.models.fact_check import FactCheck
 from app.models.fact_check_rating import FactCheckRating
 from app.models.peer_review import ApprovalStatus, PeerReview
@@ -50,6 +51,8 @@ __all__ = [
     "CorrectionApplication",
     "CorrectionType",
     "CorrectionStatus",
+    "EmailLog",
+    "EmailStatus",
     "PeerReview",
     "ApprovalStatus",
     "PeerReviewTrigger",
