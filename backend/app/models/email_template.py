@@ -21,12 +21,14 @@ from app.models.base import TimeStampedModel
 class EmailTemplateType(str, enum.Enum):
     """Email template type enumeration"""
 
+    # Submission & Review
     SUBMISSION_RECEIVED = "submission_received"
     REVIEWER_ASSIGNED = "reviewer_assigned"
-    PEER_REVIEW_REQUEST = "peer_review_request"
-    CORRECTION_REQUEST_RECEIVED = "correction_request_received"
-    CORRECTION_RESOLUTION = "correction_resolution"
-    TRANSPARENCY_PAGE_REVIEW_REMINDER = "transparency_page_review_reminder"
+    REVIEW_ASSIGNED = "review_assigned"
+    REVIEW_COMPLETED = "review_completed"
+
+    # Workflow Status Updates
+    WORKFLOW_UPDATE = "workflow_update"
     WORKFLOW_SUBMITTED = "workflow_submitted"
     WORKFLOW_QUEUED = "workflow_queued"
     WORKFLOW_ASSIGNED = "workflow_assigned"
@@ -37,7 +39,30 @@ class EmailTemplateType(str, enum.Enum):
     WORKFLOW_FINAL_APPROVAL = "workflow_final_approval"
     WORKFLOW_PUBLISHED = "workflow_published"
     WORKFLOW_REJECTED = "workflow_rejected"
+
+    # Corrections
+    CORRECTION_REQUEST_RECEIVED = "correction_request_received"
+    CORRECTION_APPROVED = "correction_approved"
+    CORRECTION_REJECTED = "correction_rejected"
+    CORRECTION_RESOLUTION = "correction_resolution"
+
+    # Peer Review
+    PEER_REVIEW_REQUEST = "peer_review_request"
+    PEER_REVIEW_COMPLETED = "peer_review_completed"
+
+    # Publishing
     FACT_CHECK_PUBLISHED = "fact_check_published"
+
+    # Drafts & Reminders
+    DRAFT_REMINDER = "draft_reminder"
+    TRANSPARENCY_PAGE_REVIEW_REMINDER = "transparency_page_review_reminder"
+
+    # System & User Management
+    SYSTEM_NOTIFICATION = "system_notification"
+    WEEKLY_DIGEST = "weekly_digest"
+    PASSWORD_RESET = "password_reset"
+    WELCOME_EMAIL = "welcome_email"
+    ACCOUNT_VERIFICATION = "account_verification"
 
 
 class EmailTemplate(TimeStampedModel):

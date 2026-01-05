@@ -4,7 +4,7 @@ Celery tasks for email delivery
 Handles async email sending with retry logic and delivery tracking
 """
 
-from typing import Any, Optional
+from typing import Optional
 
 from celery import Task  # type: ignore[import-not-found]
 

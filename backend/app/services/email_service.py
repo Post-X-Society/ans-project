@@ -200,31 +200,36 @@ class EmailService:
         to_email: str,
         context: dict[str, Any],
         db: Optional[AsyncSession] = None,
+        language: str = "en",
     ) -> bool:
         """
-        Send email using template.
+        Send email using database-backed template with multilingual support.
 
-        Issue #94: Template-based email sending
+        Issue #95: Database-backed multilingual templates
 
         Args:
-            template: Email template identifier
+            template: Email template identifier (template_key)
             to_email: Recipient email address
             context: Template variables
-            db: Database session for logging (optional)
+            db: Database session for logging and template retrieval (required)
+            language: Language code (en, nl) - defaults to en
 
         Returns:
             True if email sent successfully, False otherwise
         """
-        from app.services.email_templates import EmailTemplate, render_template
+        from app.services.email_template_service import EmailTemplateService
+
+        if db is None:
+            logger.error("Database session required for template email sending")
+            return False
 
         try:
-            # Convert string to enum if needed
-            if isinstance(template, str):
-                template_enum = EmailTemplate(template)
-            else:
-                template_enum = template
+            # Use database-backed template service
+            template_service = EmailTemplateService()
 
-            subject, body_text, body_html = render_template(template_enum, context)
+            subject, body_text, body_html = await template_service.render_template(
+                db, template, context, language
+            )
 
             return await self.send_email_async(
                 to_email=to_email,
@@ -232,7 +237,7 @@ class EmailService:
                 body_text=body_text,
                 body_html=body_html,
                 db=db,
-                template=template_enum.value,
+                template=template,
             )
         except Exception as e:
             logger.error(f"Template email send failed: {e}")
