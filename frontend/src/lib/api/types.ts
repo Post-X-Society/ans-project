@@ -504,3 +504,89 @@ export interface CorrectionListResponse {
 	corrections: CorrectionResponse[];
 	total_count: number;
 }
+
+// =============================================================================
+// Issue #80: Admin Correction Review Dashboard Types
+// =============================================================================
+
+/**
+ * Response for pending corrections list (admin triage).
+ * Includes overdue count for SLA monitoring.
+ */
+export interface CorrectionPendingListResponse {
+	corrections: CorrectionResponse[];
+	total_count: number;
+	overdue_count: number;
+}
+
+/**
+ * Response for listing all corrections with pagination (admin).
+ */
+export interface CorrectionAllListResponse {
+	corrections: CorrectionResponse[];
+	total_count: number;
+	limit: number;
+	offset: number;
+}
+
+/**
+ * Request for reviewing (accepting/rejecting) a correction.
+ */
+export interface CorrectionReviewRequest {
+	resolution_notes: string;
+}
+
+/**
+ * Request for applying an accepted correction to a fact-check.
+ */
+export interface CorrectionApplyRequest {
+	changes: Record<string, string | number | string[] | null>;
+	changes_summary: string;
+}
+
+/**
+ * Response after successfully applying a correction.
+ */
+export interface CorrectionApplicationResponse {
+	id: string;
+	correction_id: string;
+	applied_by_id: string;
+	version: number;
+	applied_at: string;
+	changes_summary: string;
+	previous_content: Record<string, string | number | string[] | null>;
+	new_content: Record<string, string | number | string[] | null>;
+	is_current: boolean;
+}
+
+/**
+ * Response for correction history (version audit trail).
+ */
+export interface CorrectionHistoryResponse {
+	fact_check_id: string;
+	applications: CorrectionApplicationResponse[];
+	total_versions: number;
+}
+
+/**
+ * Public log correction response (privacy-aware, no email).
+ */
+export interface PublicLogCorrectionResponse {
+	id: string;
+	fact_check_id: string;
+	correction_type: CorrectionType;
+	request_details: string;
+	status: CorrectionStatus;
+	reviewed_at?: string;
+	resolution_notes?: string;
+	created_at: string;
+	updated_at: string;
+}
+
+/**
+ * Public corrections log response.
+ */
+export interface PublicLogListResponse {
+	corrections: PublicLogCorrectionResponse[];
+	total_count: number;
+}

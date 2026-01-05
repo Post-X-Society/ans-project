@@ -588,6 +588,77 @@
     "efcsn": {
       "escalateLink": "Niet tevreden? Escaleer naar EFCSN",
       "escalateDescription": "Als u niet tevreden bent met ons antwoord, kunt u uw klacht escaleren naar het European Fact-Checking Standards Network."
+    },
+    "admin": {
+      "dashboardTitle": "Correctie Review Dashboard",
+      "loading": "Correcties laden...",
+      "pendingCount": "{count} in afwachting",
+      "overdueCount": "{count} te laat",
+      "noPending": "Geen openstaande correcties",
+      "noPendingDescription": "Alle correctieverzoeken zijn beoordeeld.",
+      "retry": "Opnieuw proberen",
+      "loadFailed": "Correcties laden mislukt",
+      "filterAll": "Alle",
+      "filterSubstantial": "Substantieel",
+      "filterUpdate": "Update",
+      "filterMinor": "Klein",
+      "listAriaLabel": "Openstaande correcties",
+      "correctionItem": "Correctieverzoek voor factcheck {factCheckId}",
+      "submittedAt": "Ingediend {date}",
+      "requesterEmail": "Aanvrager: {email}",
+      "noEmail": "Geen e-mail opgegeven",
+      "sla": {
+        "daysRemaining": "{days} dagen resterend",
+        "dayRemaining": "1 dag resterend",
+        "daysOverdue": "{days} dagen te laat",
+        "dayOverdue": "1 dag te laat",
+        "dueToday": "Vandaag verlopen"
+      },
+      "actions": {
+        "review": "Bekijken",
+        "viewDetails": "Details bekijken",
+        "applyCorrection": "Correctie toepassen",
+        "confirmApply": "Bevestig toepassen"
+      },
+      "reviewModal": {
+        "title": "Correctieverzoek Beoordelen",
+        "resolutionNotesLabel": "Resolutie Notities",
+        "resolutionNotesPlaceholder": "Leg uw beslissing uit (minimaal 10 tekens)...",
+        "resolutionNotesMinLength": "Resolutie notities moeten minimaal 10 tekens bevatten",
+        "accept": "Accepteren",
+        "reject": "Afwijzen",
+        "accepting": "Accepteren...",
+        "rejecting": "Afwijzen...",
+        "cancel": "Annuleren"
+      },
+      "applyModal": {
+        "title": "Correctie Toepassen",
+        "description": "Pas de geaccepteerde correctie toe op de factcheck. Dit maakt een nieuwe versie aan.",
+        "changesSummaryLabel": "Wijzigingen Samenvatting",
+        "changesSummaryPlaceholder": "Beschrijf de toegepaste wijzigingen (minimaal 10 tekens)...",
+        "changesSummaryMinLength": "Wijzigingen samenvatting moet minimaal 10 tekens bevatten",
+        "applying": "Toepassen...",
+        "cancel": "Annuleren"
+      },
+      "detailsPanel": {
+        "originalRequest": "Oorspronkelijk Verzoek",
+        "correctionType": "Type",
+        "requestDetails": "Verzoek Details",
+        "requester": "Aanvrager",
+        "submittedDate": "Ingediend",
+        "slaDeadline": "SLA Deadline",
+        "close": "Sluiten"
+      },
+      "success": {
+        "accepted": "Correctie geaccepteerd",
+        "rejected": "Correctie afgewezen",
+        "applied": "Correctie succesvol toegepast"
+      },
+      "error": {
+        "acceptFailed": "Correctie accepteren mislukt",
+        "rejectFailed": "Correctie afwijzen mislukt",
+        "applyFailed": "Correctie toepassen mislukt"
+      }
     }
   }
 }
