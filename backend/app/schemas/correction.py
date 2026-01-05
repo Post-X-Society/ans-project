@@ -144,3 +144,116 @@ class CorrectionFilterParams(BaseModel):
         None,
         description="Filter to show only overdue corrections",
     )
+
+
+# =============================================================================
+# Issue #77: Correction Application Schemas
+# =============================================================================
+
+
+class CorrectionReviewRequest(BaseModel):
+    """Schema for reviewing (accepting/rejecting) a correction request.
+
+    Admin-only endpoint for processing pending corrections.
+    """
+
+    resolution_notes: str = Field(
+        ...,
+        min_length=10,
+        max_length=5000,
+        description="Explanation of the review decision",
+    )
+
+    @field_validator("resolution_notes")
+    @classmethod
+    def resolution_notes_not_empty_whitespace(cls, v: str) -> str:
+        """Ensure resolution_notes is not just whitespace."""
+        stripped: str = v.strip()
+        if not stripped:
+            raise ValueError("Resolution notes cannot be empty or only whitespace")
+        if len(stripped) < 10:
+            raise ValueError("Resolution notes must be at least 10 characters")
+        return stripped
+
+
+class CorrectionApplyRequest(BaseModel):
+    """Schema for applying an accepted correction to a fact-check.
+
+    Admin-only endpoint for applying corrections after acceptance.
+    """
+
+    changes: dict[str, str | int | float | list[str] | None] = Field(
+        ...,
+        description="Dictionary of field changes to apply to the fact-check. "
+        "Valid fields: verdict, confidence, reasoning, sources",
+    )
+    changes_summary: str = Field(
+        ...,
+        min_length=10,
+        max_length=1000,
+        description="Human-readable summary of the changes being applied",
+    )
+
+    @field_validator("changes")
+    @classmethod
+    def changes_not_empty(
+        cls, v: dict[str, str | int | float | list[str] | None]
+    ) -> dict[str, str | int | float | list[str] | None]:
+        """Ensure changes dict is not empty."""
+        if not v:
+            raise ValueError("Changes must include at least one field to update")
+        # Validate field names
+        valid_fields: set[str] = {
+            "verdict",
+            "confidence",
+            "reasoning",
+            "sources",
+            "correction_notice",
+        }
+        for field in v.keys():
+            if field not in valid_fields:
+                raise ValueError(
+                    f"Invalid field '{field}'. Valid fields: {', '.join(valid_fields)}"
+                )
+        return v
+
+    @field_validator("changes_summary")
+    @classmethod
+    def changes_summary_not_empty_whitespace(cls, v: str) -> str:
+        """Ensure changes_summary is not just whitespace."""
+        stripped: str = v.strip()
+        if not stripped:
+            raise ValueError("Changes summary cannot be empty or only whitespace")
+        if len(stripped) < 10:
+            raise ValueError("Changes summary must be at least 10 characters")
+        return stripped
+
+
+class CorrectionApplicationResponse(BaseModel):
+    """Schema for correction application response.
+
+    Returned after successfully applying a correction.
+    """
+
+    id: UUID
+    correction_id: UUID
+    applied_by_id: UUID
+    version: int
+    applied_at: datetime
+    changes_summary: str
+    previous_content: dict[str, str | int | float | list[str] | None]
+    new_content: dict[str, str | int | float | list[str] | None]
+    is_current: bool
+
+    model_config = {"from_attributes": True}
+
+
+class CorrectionHistoryResponse(BaseModel):
+    """Schema for correction history response.
+
+    Returns the full version history of corrections applied to a fact-check.
+    """
+
+    fact_check_id: UUID
+    applications: list[CorrectionApplicationResponse]
+    total_versions: int
