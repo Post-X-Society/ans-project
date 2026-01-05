@@ -196,7 +196,7 @@ AnsCheckt Team""",
 Your submission (ID: {{submission_id}}) has a status update.
 
 New Status: {{new_status}}
-{{#status_message}}Message: {{status_message}}{{/status_message}}
+{% if status_message %}Message: {{status_message}}{% endif %}
 
 View details: {{submission_url}}
 
@@ -210,7 +210,7 @@ To stop receiving these emails, visit: {{opt_out_url}}""",
 Uw inzending (ID: {{submission_id}}) heeft een status update.
 
 Nieuwe Status: {{new_status}}
-{{#status_message}}Bericht: {{status_message}}{{/status_message}}
+{% if status_message %}Bericht: {{status_message}}{% endif %}
 
 Bekijk details: {{submission_url}}
 
@@ -228,7 +228,7 @@ Om deze e-mails niet meer te ontvangen, bezoek: {{opt_out_url}}""",
     <p>Your submission has a status update.</p>
     <p><strong>Submission ID:</strong> {{submission_id}}</p>
     <p><strong>New Status:</strong> <span style="background: #dbeafe; padding: 0.25em 0.5em; border-radius: 0.25em;">{{new_status}}</span></p>
-    {{#status_message}}<p><strong>Message:</strong> {{status_message}}</p>{{/status_message}}
+    {% if status_message %}<p><strong>Message:</strong> {{status_message}}</p>{% endif %}
     <p><a href="{{submission_url}}" style="color: #2563eb;">View Submission</a></p>
     <p>Best regards,<br><strong>AnsCheckt Team</strong></p>
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 2em 0;">
@@ -244,7 +244,7 @@ Om deze e-mails niet meer te ontvangen, bezoek: {{opt_out_url}}""",
     <p>Uw inzending heeft een status update.</p>
     <p><strong>Inzending ID:</strong> {{submission_id}}</p>
     <p><strong>Nieuwe Status:</strong> <span style="background: #dbeafe; padding: 0.25em 0.5em; border-radius: 0.25em;">{{new_status}}</span></p>
-    {{#status_message}}<p><strong>Bericht:</strong> {{status_message}}</p>{{/status_message}}
+    {% if status_message %}<p><strong>Bericht:</strong> {{status_message}}</p>{% endif %}
     <p><a href="{{submission_url}}" style="color: #2563eb;">Bekijk Inzending</a></p>
     <p>Met vriendelijke groet,<br><strong>AnsCheckt Team</strong></p>
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 2em 0;">
@@ -619,7 +619,7 @@ AnsCheckt Team""",
 The review of your submission (ID: {{submission_id}}) has been completed.
 
 Verdict: {{verdict}}
-{{#reviewer_notes}}Notes: {{reviewer_notes}}{{/reviewer_notes}}
+{% if reviewer_notes %}Notes: {{reviewer_notes}}{% endif %}
 
 View the full review: {{submission_url}}
 
@@ -633,7 +633,7 @@ To stop receiving these emails, visit: {{opt_out_url}}""",
 De beoordeling van uw inzending (ID: {{submission_id}}) is voltooid.
 
 Oordeel: {{verdict}}
-{{#reviewer_notes}}Notities: {{reviewer_notes}}{{/reviewer_notes}}
+{% if reviewer_notes %}Notities: {{reviewer_notes}}{% endif %}
 
 Bekijk de volledige beoordeling: {{submission_url}}
 
@@ -651,12 +651,12 @@ Om deze e-mails niet meer te ontvangen, bezoek: {{opt_out_url}}""",
     <p>The review of your submission has been completed.</p>
     <p><strong>Submission ID:</strong> {{submission_id}}</p>
     <p><strong>Verdict:</strong> <span style="background: #dbeafe; padding: 0.25em 0.5em; border-radius: 0.25em; font-weight: bold;">{{verdict}}</span></p>
-    {{#reviewer_notes}}
+    {% if reviewer_notes %}
     <div style="background: #f9fafb; border-left: 4px solid #6b7280; padding: 1em; margin: 1em 0;">
         <p style="margin: 0;"><strong>Reviewer Notes:</strong></p>
         <p style="margin: 0.5em 0 0 0;">{{reviewer_notes}}</p>
     </div>
-    {{/reviewer_notes}}
+    {% endif %}
     <p><a href="{{submission_url}}" style="color: #2563eb;">View Full Review</a></p>
     <p>Best regards,<br><strong>AnsCheckt Team</strong></p>
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 2em 0;">
@@ -672,12 +672,12 @@ Om deze e-mails niet meer te ontvangen, bezoek: {{opt_out_url}}""",
     <p>De beoordeling van uw inzending is voltooid.</p>
     <p><strong>Inzending ID:</strong> {{submission_id}}</p>
     <p><strong>Oordeel:</strong> <span style="background: #dbeafe; padding: 0.25em 0.5em; border-radius: 0.25em; font-weight: bold;">{{verdict}}</span></p>
-    {{#reviewer_notes}}
+    {% if reviewer_notes %}
     <div style="background: #f9fafb; border-left: 4px solid #6b7280; padding: 1em; margin: 1em 0;">
         <p style="margin: 0;"><strong>Reviewer Notities:</strong></p>
         <p style="margin: 0.5em 0 0 0;">{{reviewer_notes}}</p>
     </div>
-    {{/reviewer_notes}}
+    {% endif %}
     <p><a href="{{submission_url}}" style="color: #2563eb;">Bekijk Volledige Beoordeling</a></p>
     <p>Met vriendelijke groet,<br><strong>AnsCheckt Team</strong></p>
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 2em 0;">
@@ -1027,7 +1027,7 @@ AnsCheckt Team""",
 
 {{notification_message}}
 
-{{#action_url}}Take action: {{action_url}}{{/action_url}}
+{% if action_url %}Take action: {{action_url}}{% endif %}
 
 Best regards,
 AnsCheckt Team
@@ -1038,7 +1038,7 @@ To stop receiving these emails, visit: {{opt_out_url}}""",
 
 {{notification_message}}
 
-{{#action_url}}Actie ondernemen: {{action_url}}{{/action_url}}
+{% if action_url %}Actie ondernemen: {{action_url}}{% endif %}
 
 Met vriendelijke groet,
 AnsCheckt Team
@@ -1054,9 +1054,9 @@ Om deze e-mails niet meer te ontvangen, bezoek: {{opt_out_url}}""",
     <div style="background: #f9fafb; border-left: 4px solid #2563eb; padding: 1em; margin: 1em 0;">
         {{notification_message}}
     </div>
-    {{#action_url}}
+    {% if action_url %}
     <p><a href="{{action_url}}" style="display: inline-block; background: #2563eb; color: white; padding: 0.75em 1.5em; text-decoration: none; border-radius: 0.5em;">Take Action</a></p>
-    {{/action_url}}
+    {% endif %}
     <p>Best regards,<br><strong>AnsCheckt Team</strong></p>
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 2em 0;">
     <p style="font-size: 0.875em; color: #6b7280;">
@@ -1071,9 +1071,9 @@ Om deze e-mails niet meer te ontvangen, bezoek: {{opt_out_url}}""",
     <div style="background: #f9fafb; border-left: 4px solid #2563eb; padding: 1em; margin: 1em 0;">
         {{notification_message}}
     </div>
-    {{#action_url}}
+    {% if action_url %}
     <p><a href="{{action_url}}" style="display: inline-block; background: #2563eb; color: white; padding: 0.75em 1.5em; text-decoration: none; border-radius: 0.5em;">Actie Ondernemen</a></p>
-    {{/action_url}}
+    {% endif %}
     <p>Met vriendelijke groet,<br><strong>AnsCheckt Team</strong></p>
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 2em 0;">
     <p style="font-size: 0.875em; color: #6b7280;">
@@ -1111,10 +1111,10 @@ Submissions This Week: {{submission_count}}
 Reviews Completed: {{review_count}}
 Fact-Checks Published: {{published_count}}
 
-{{#top_fact_checks}}
+{% if top_fact_checks %}
 Top Fact-Checks This Week:
 {{top_fact_checks}}
-{{/top_fact_checks}}
+{% endif %}
 
 View your dashboard: {{dashboard_url}}
 
@@ -1131,10 +1131,10 @@ Inzendingen Deze Week: {{submission_count}}
 Reviews Voltooid: {{review_count}}
 Fact-Checks Gepubliceerd: {{published_count}}
 
-{{#top_fact_checks}}
+{% if top_fact_checks %}
 Top Fact-Checks Deze Week:
 {{top_fact_checks}}
-{{/top_fact_checks}}
+{% endif %}
 
 Bekijk uw dashboard: {{dashboard_url}}
 
@@ -1155,12 +1155,12 @@ Om deze e-mails niet meer te ontvangen, bezoek: {{opt_out_url}}""",
         <p style="margin: 0.5em 0;"><strong>Reviews Completed:</strong> {{review_count}}</p>
         <p style="margin: 0.5em 0;"><strong>Fact-Checks Published:</strong> {{published_count}}</p>
     </div>
-    {{#top_fact_checks}}
+    {% if top_fact_checks %}
     <h3 style="color: #2563eb;">Top Fact-Checks This Week</h3>
     <div style="background: #eff6ff; padding: 1em; border-radius: 0.5em; margin: 1em 0;">
         {{top_fact_checks}}
     </div>
-    {{/top_fact_checks}}
+    {% endif %}
     <p><a href="{{dashboard_url}}" style="display: inline-block; background: #2563eb; color: white; padding: 0.75em 1.5em; text-decoration: none; border-radius: 0.5em;">View Dashboard</a></p>
     <p>Best regards,<br><strong>AnsCheckt Team</strong></p>
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 2em 0;">
@@ -1179,12 +1179,12 @@ Om deze e-mails niet meer te ontvangen, bezoek: {{opt_out_url}}""",
         <p style="margin: 0.5em 0;"><strong>Reviews Voltooid:</strong> {{review_count}}</p>
         <p style="margin: 0.5em 0;"><strong>Fact-Checks Gepubliceerd:</strong> {{published_count}}</p>
     </div>
-    {{#top_fact_checks}}
+    {% if top_fact_checks %}
     <h3 style="color: #2563eb;">Top Fact-Checks Deze Week</h3>
     <div style="background: #eff6ff; padding: 1em; border-radius: 0.5em; margin: 1em 0;">
         {{top_fact_checks}}
     </div>
-    {{/top_fact_checks}}
+    {% endif %}
     <p><a href="{{dashboard_url}}" style="display: inline-block; background: #2563eb; color: white; padding: 0.75em 1.5em; text-decoration: none; border-radius: 0.5em;">Bekijk Dashboard</a></p>
     <p>Met vriendelijke groet,<br><strong>AnsCheckt Team</strong></p>
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 2em 0;">
