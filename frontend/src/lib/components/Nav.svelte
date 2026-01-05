@@ -57,6 +57,16 @@
 						{$t('nav.about')}
 					</a>
 				</li>
+				<li>
+					<a
+						href="/corrections-log"
+						class="text-gray-700 hover:text-primary-600 transition"
+						class:font-bold={currentPath.startsWith('/corrections-log')}
+						class:text-primary-600={currentPath.startsWith('/corrections-log')}
+					>
+						{$t('nav.correctionsLog')}
+					</a>
+				</li>
 				{#if auth.isAuthenticated}
 					<li>
 						<a

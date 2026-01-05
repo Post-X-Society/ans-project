@@ -30,6 +30,7 @@
   "nav": {
     "home": "Home",
     "about": "About",
+    "correctionsLog": "Corrections",
     "submit": "Submit",
     "submissions": "Submissions",
     "admin": "Admin",
