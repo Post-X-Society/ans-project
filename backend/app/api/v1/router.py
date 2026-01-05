@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     auth,
     corrections,
     drafts,
+    email_templates,
     health,
     peer_review,
     ratings,
@@ -36,3 +37,6 @@ api_router.include_router(drafts.router, tags=["drafts"])
 api_router.include_router(sources.router, tags=["sources"])
 api_router.include_router(peer_review.router, tags=["peer-review"])
 api_router.include_router(corrections.router, tags=["corrections"])
+api_router.include_router(
+    email_templates.router, prefix="/email-templates", tags=["email-templates"]
+)
