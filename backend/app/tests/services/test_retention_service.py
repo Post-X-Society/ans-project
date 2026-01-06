@@ -5,19 +5,8 @@ Issue #91: Data Retention Policies & Auto-Cleanup
 Tests written FIRST following TDD approach
 """
 
-import pytest
-from datetime import datetime, timedelta, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.services.retention_service import RetentionService
 from app.core.config import settings
-from app.models.submission import Submission
-from app.models.workflow_transition import WorkflowState
-from app.models.correction import Correction, CorrectionStatus
-from app.models.user import User, UserRole
-
-
-@pytest.mark.asyncio
+from app.services.retention_service import RetentionService
 class TestRetentionServiceConfiguration:
     """Test that retention service reads configuration correctly"""
 
