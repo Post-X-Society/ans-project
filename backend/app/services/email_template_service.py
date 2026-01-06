@@ -185,32 +185,21 @@ class EmailTemplateService:
             raise ValueError(f"Template with key '{template_key}' not found")
 
         # Validate Jinja2 syntax if updating templates
-        if subject:
-            self._validate_template_syntax(subject)
-        if body_text:
-            self._validate_template_syntax(body_text)
-        if body_html:
-            self._validate_template_syntax(body_html)
+        self._validate_template_updates(subject, body_text, body_html)
 
-        # Update fields
-        if name is not None:
-            template.name = name
-        if description is not None:
-            template.description = description
-        if subject is not None:
-            template.subject = subject
-        if body_text is not None:
-            template.body_text = body_text
-        if body_html is not None:
-            template.body_html = body_html
-        if variables is not None:
-            template.variables = variables
-        if is_active is not None:
-            template.is_active = is_active
-        if last_modified_by is not None:
-            template.last_modified_by = last_modified_by
-        if notes is not None:
-            template.notes = notes
+        # Update fields using helper method
+        self._apply_template_updates(
+            template,
+            name=name,
+            description=description,
+            subject=subject,
+            body_text=body_text,
+            body_html=body_html,
+            variables=variables,
+            is_active=is_active,
+            last_modified_by=last_modified_by,
+            notes=notes,
+        )
 
         # Increment version
         template.version += 1
@@ -219,6 +208,50 @@ class EmailTemplateService:
         await db.refresh(template)
 
         return template
+
+    def _validate_template_updates(
+        self,
+        subject: Optional[dict[str, str]],
+        body_text: Optional[dict[str, str]],
+        body_html: Optional[dict[str, str]],
+    ) -> None:
+        """Validate Jinja2 syntax for template updates"""
+        if subject:
+            self._validate_template_syntax(subject)
+        if body_text:
+            self._validate_template_syntax(body_text)
+        if body_html:
+            self._validate_template_syntax(body_html)
+
+    def _apply_template_updates(
+        self,
+        template: EmailTemplate,
+        name: Optional[dict[str, str]],
+        description: Optional[dict[str, str]],
+        subject: Optional[dict[str, str]],
+        body_text: Optional[dict[str, str]],
+        body_html: Optional[dict[str, str]],
+        variables: Optional[dict[str, str]],
+        is_active: Optional[bool],
+        last_modified_by: Optional[str],
+        notes: Optional[str],
+    ) -> None:
+        """Apply updates to template fields"""
+        updates = {
+            "name": name,
+            "description": description,
+            "subject": subject,
+            "body_text": body_text,
+            "body_html": body_html,
+            "variables": variables,
+            "is_active": is_active,
+            "last_modified_by": last_modified_by,
+            "notes": notes,
+        }
+
+        for field, value in updates.items():
+            if value is not None:
+                setattr(template, field, value)
 
     async def deactivate_template(self, db: AsyncSession, template_key: str) -> EmailTemplate:
         """
