@@ -872,5 +872,36 @@
       "bodyTextRequired": "Platte tekst body is verplicht",
       "bodyHtmlRequired": "HTML body is verplicht"
     }
+  },
+  "cookieConsent": {
+    "banner": {
+      "title": "Cookie Toestemming",
+      "message": "Wij gebruiken cookies om je ervaring te verbeteren. Door deze site te blijven bezoeken ga je akkoord met ons cookiebeleid.",
+      "privacyPolicy": "Privacybeleid",
+      "acceptAll": "Alles Accepteren",
+      "rejectAll": "Alles Weigeren",
+      "customize": "Aanpassen",
+      "ariaLabel": "Cookie toestemming dialoog"
+    },
+    "preferences": {
+      "title": "Privacy Voorkeuren",
+      "description": "Kies welke cookies je wilt accepteren. Essentiële cookies zijn altijd actief omdat ze nodig zijn voor het functioneren van de website.",
+      "savePreferences": "Voorkeuren Opslaan",
+      "categories": {
+        "essential": {
+          "title": "Essentieel",
+          "description": "Vereist voor het functioneren van de website. Kan niet worden uitgeschakeld.",
+          "alwaysActive": "Altijd Actief"
+        },
+        "analytics": {
+          "title": "Analytisch",
+          "description": "Helpen ons te begrijpen hoe bezoekers omgaan met de website door anoniem informatie te verzamelen en rapporteren."
+        },
+        "marketing": {
+          "title": "Marketing",
+          "description": "Gebruikt om bezoekers te volgen op websites om relevante advertenties te tonen."
+        }
+      }
+    }
   }
 }

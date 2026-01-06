@@ -4,6 +4,7 @@
 	import Header from '$lib/components/Header.svelte';
 	import Nav from '$lib/components/Nav.svelte';
 	import Footer from '$lib/components/Footer.svelte';
+	import CookieConsentBanner from '$lib/components/gdpr/CookieConsentBanner.svelte';
 	import { initI18n } from '$lib/i18n';
 	import type { Snippet } from 'svelte';
 
@@ -36,4 +37,5 @@
 		</main>
 		<Footer />
 	</div>
+	<CookieConsentBanner />
 </QueryClientProvider>
