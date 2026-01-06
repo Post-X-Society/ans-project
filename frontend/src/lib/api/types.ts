@@ -697,3 +697,97 @@ export interface EmailTemplateRenderResponse {
 	body_text: string;
 	body_html: string;
 }
+
+// ============================================================================
+// RTBF (Right to be Forgotten) Types
+// Issue #92: Backend: Right to be Forgotten Workflow (TDD)
+// EPIC #53: GDPR & Data Retention Compliance
+// ============================================================================
+
+/**
+ * RTBF request status
+ */
+export type RTBFRequestStatus = 'pending' | 'processing' | 'completed' | 'rejected';
+
+/**
+ * RTBF Request
+ */
+export interface RTBFRequest {
+	id: string;
+	user_id: string;
+	reason: string;
+	status: RTBFRequestStatus;
+	requester_date_of_birth?: string;
+	processed_by_id?: string;
+	completed_at?: string;
+	rejection_reason?: string;
+	deletion_summary?: Record<string, number>;
+	notification_email?: string;
+	created_at: string;
+	updated_at: string;
+}
+
+/**
+ * Request to create an RTBF request
+ */
+export interface RTBFRequestCreate {
+	reason: string;
+	date_of_birth?: string;
+}
+
+/**
+ * Response when listing RTBF requests (admin)
+ */
+export interface RTBFRequestListResponse {
+	items: RTBFRequest[];
+	total: number;
+	pending_count: number;
+	processing_count: number;
+}
+
+/**
+ * Result from processing an RTBF request
+ */
+export interface RTBFRequestProcessResult {
+	success: boolean;
+	request_id: string;
+	summary: Record<string, number>;
+	message: string;
+}
+
+/**
+ * User data export response
+ */
+export interface DataExportResponse {
+	user_id: string;
+	email: string;
+	full_name: string;
+	created_at: string;
+	submissions: Array<{
+		id: string;
+		claim_text: string;
+		workflow_state: string;
+		created_at: string;
+	}>;
+	corrections: Array<{
+		id: string;
+		correction_text: string;
+		status: string;
+		created_at: string;
+	}>;
+	ratings: Array<{
+		id: string;
+		rating: number;
+		created_at: string;
+	}>;
+}
+
+/**
+ * Summary of user data for deletion preview
+ */
+export interface UserDataSummary {
+	submissions_count: number;
+	corrections_count: number;
+	ratings_count: number;
+	published_submissions_count: number;
+}

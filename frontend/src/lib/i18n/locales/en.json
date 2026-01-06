@@ -38,6 +38,7 @@
     "corrections": "Corrections",
     "transparencyPages": "Transparency Pages",
     "emailTemplates": "Email Templates",
+    "rtbfRequests": "RTBF Requests",
     "login": "Login",
     "logout": "Logout",
     "register": "Register"
@@ -877,6 +878,63 @@
       "subjectRequired": "Subject line is required",
       "bodyTextRequired": "Plain text body is required",
       "bodyHtmlRequired": "HTML body is required"
+    }
+  },
+  "rtbf": {
+    "title": "Right to be Forgotten",
+    "requestDeletion": "Request Account Deletion",
+    "exportData": "Export My Data",
+    "privacySection": {
+      "title": "Your Data Rights",
+      "description": "Under GDPR, you have the right to request deletion of your personal data or export a copy of all data we hold about you.",
+      "note": "Please note: Account deletion requests will be reviewed by administrators. Published fact-checks will be anonymized to preserve their integrity."
+    },
+    "form": {
+      "title": "Request Account Deletion",
+      "description": "Submit a request to delete your account and associated personal data in compliance with GDPR Article 17 (Right to be Forgotten).",
+      "reasonLabel": "Reason for deletion",
+      "reasonPlaceholder": "Please explain why you wish to delete your account...",
+      "reasonRequired": "Please provide a reason for deletion",
+      "dateOfBirthLabel": "Date of Birth (optional)",
+      "dateOfBirthHelp": "Requests from users under 18 are automatically approved",
+      "confirmLabel": "I understand that this action cannot be undone",
+      "confirmRequired": "You must confirm before proceeding",
+      "submit": "Submit Deletion Request",
+      "cancel": "Cancel",
+      "success": "Your deletion request has been submitted and will be reviewed by administrators.",
+      "error": "Failed to submit deletion request. Please try again."
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "completed": "Completed",
+      "rejected": "Rejected"
+    },
+    "admin": {
+      "title": "RTBF Requests",
+      "description": "Manage Right to be Forgotten requests from users",
+      "noPending": "No pending requests",
+      "filterAll": "All",
+      "filterPending": "Pending",
+      "filterProcessing": "Processing",
+      "filterCompleted": "Completed",
+      "filterRejected": "Rejected",
+      "user": "User",
+      "reason": "Reason",
+      "requestedAt": "Requested",
+      "status": "Status",
+      "actions": "Actions",
+      "process": "Process",
+      "reject": "Reject",
+      "view": "View",
+      "processConfirm": "Are you sure you want to process this deletion request? This will permanently delete or anonymize the user's data.",
+      "processSuccess": "Request processed successfully",
+      "processError": "Failed to process request",
+      "rejectReason": "Reason for rejection",
+      "rejectPlaceholder": "Explain why this request is being rejected...",
+      "rejectSubmit": "Reject Request",
+      "rejectSuccess": "Request rejected",
+      "rejectError": "Failed to reject request"
     }
   }
 }

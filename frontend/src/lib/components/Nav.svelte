@@ -155,6 +155,14 @@
 									>
 										{$t('nav.emailTemplates')}
 									</a>
+									<a
+										href="/admin/rtbf"
+										class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition"
+										class:bg-gray-100={currentPath.startsWith('/admin/rtbf')}
+										onclick={closeAdminDropdown}
+									>
+										{$t('nav.rtbfRequests')}
+									</a>
 								</div>
 							</div>
 						{/if}

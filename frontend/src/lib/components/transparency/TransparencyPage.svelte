@@ -128,6 +128,35 @@
 				<!-- eslint-disable-next-line svelte/no-at-html-tags -- sanitized with DOMPurify -->
 				{@html renderedContent()}
 			</div>
+
+			<!-- RTBF Section for Privacy Policy -->
+			{#if slug === 'privacy-policy'}
+				<div class="mt-8 pt-8 border-t border-gray-200">
+					<h2 class="text-xl font-semibold text-gray-900 mb-4">
+						{$t('rtbf.privacySection.title')}
+					</h2>
+					<p class="text-gray-600 mb-4">
+						{$t('rtbf.privacySection.description')}
+					</p>
+					<div class="flex flex-col sm:flex-row gap-4">
+						<a
+							href="/account/delete"
+							class="inline-flex items-center justify-center px-6 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium"
+						>
+							{$t('rtbf.requestDeletion')}
+						</a>
+						<a
+							href="/api/v1/rtbf/export"
+							class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
+						>
+							{$t('rtbf.exportData')}
+						</a>
+					</div>
+					<p class="text-sm text-gray-500 mt-4">
+						{$t('rtbf.privacySection.note')}
+					</p>
+				</div>
+			{/if}
 		</div>
 	</article>
 {:else}
