@@ -74,23 +74,23 @@
 </script>
 
 <article
-	class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+	class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
 >
 	<!-- Header: Name and Status -->
 	<div class="mb-3 flex items-start justify-between">
 		<div class="flex-1">
-			<h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+			<h3 class="text-lg font-semibold text-gray-900">
 				{getLocalizedText(template.name, template.template_key)}
 			</h3>
-			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+			<p class="mt-1 text-sm text-gray-500">
 				{getLocalizedText(template.description, '')}
 			</p>
 		</div>
 		<span
 			data-testid="status-badge"
 			class="ml-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium {template.is_active
-				? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-				: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'}"
+				? 'bg-green-100 text-green-800'
+				: 'bg-gray-100 text-gray-800'}"
 		>
 			{template.is_active ? $t('status.active') : $t('status.inactive')}
 		</span>
@@ -99,14 +99,14 @@
 	<!-- Template Type Badge -->
 	<div class="mb-3">
 		<span
-			class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-900/30 dark:text-blue-300 dark:ring-blue-400/30"
+			class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10"
 		>
 			{getTemplateTypeLabel(template.template_type)}
 		</span>
 	</div>
 
 	<!-- Metadata -->
-	<div class="mb-4 space-y-1 text-xs text-gray-500 dark:text-gray-400">
+	<div class="mb-4 space-y-1 text-xs text-gray-500">
 		<div class="flex items-center gap-2">
 			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
@@ -151,11 +151,11 @@
 	</div>
 
 	<!-- Actions -->
-	<div class="flex flex-wrap gap-2 border-t border-gray-100 pt-3 dark:border-gray-700">
+	<div class="flex flex-wrap gap-2 border-t border-gray-100 pt-3">
 		<button
 			type="button"
 			onclick={handleView}
-			class="inline-flex items-center rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+			class="inline-flex items-center rounded-md bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-200"
 		>
 			<svg class="mr-1.5 h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
@@ -177,7 +177,7 @@
 		<button
 			type="button"
 			onclick={handleEdit}
-			class="inline-flex items-center rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:hover:bg-blue-900"
+			class="inline-flex items-center rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-200"
 		>
 			<svg class="mr-1.5 h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
@@ -193,7 +193,7 @@
 		<button
 			type="button"
 			onclick={handlePreview}
-			class="inline-flex items-center rounded-md bg-purple-100 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-200 dark:bg-purple-900/50 dark:text-purple-300 dark:hover:bg-purple-900"
+			class="inline-flex items-center rounded-md bg-purple-100 px-3 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-200"
 		>
 			<svg class="mr-1.5 h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
@@ -210,8 +210,8 @@
 			type="button"
 			onclick={handleToggleActive}
 			class="inline-flex items-center rounded-md px-3 py-1.5 text-xs font-medium {template.is_active
-				? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/50 dark:text-red-300 dark:hover:bg-red-900'
-				: 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900'}"
+				? 'bg-red-100 text-red-700 hover:bg-red-200'
+				: 'bg-green-100 text-green-700 hover:bg-green-200'}"
 		>
 			<svg class="mr-1.5 h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				{#if template.is_active}

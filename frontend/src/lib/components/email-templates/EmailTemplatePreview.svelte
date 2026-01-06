@@ -66,12 +66,12 @@
 
 <div class="space-y-6">
 	<!-- Header -->
-	<div class="flex items-center justify-between border-b border-gray-200 pb-4 dark:border-gray-700">
+	<div class="flex items-center justify-between border-b border-gray-200 pb-4">
 		<div>
-			<h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+			<h2 class="text-xl font-semibold text-gray-900">
 				{$t('emailTemplates.preview.title')}
 			</h2>
-			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+			<p class="mt-1 text-sm text-gray-500">
 				{template.name?.en || template.template_key}
 			</p>
 		</div>
@@ -79,7 +79,7 @@
 			<button
 				type="button"
 				onclick={handleClose}
-				class="rounded-md text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+				class="rounded-md text-gray-400 hover:text-gray-500"
 			>
 				<span class="sr-only">{$t('common.close')}</span>
 				<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,15 +96,15 @@
 
 	<!-- Language Selection -->
 	<div>
-		<span class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+		<span class="block text-sm font-medium text-gray-700">
 			{$t('emailTemplates.preview.language')}
 		</span>
 		<div class="mt-2 flex gap-4">
 			<button
 				type="button"
 				class="rounded-md px-3 py-2 text-sm font-medium {previewLocale === 'en'
-					? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-					: 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}"
+					? 'bg-blue-100 text-blue-700'
+					: 'text-gray-600 hover:bg-gray-100'}"
 				onclick={() => handleLocaleChange('en')}
 			>
 				{$t('language.english')}
@@ -112,8 +112,8 @@
 			<button
 				type="button"
 				class="rounded-md px-3 py-2 text-sm font-medium {previewLocale === 'nl'
-					? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
-					: 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'}"
+					? 'bg-blue-100 text-blue-700'
+					: 'text-gray-600 hover:bg-gray-100'}"
 				onclick={() => handleLocaleChange('nl')}
 			>
 				{$t('language.dutch')}
@@ -124,10 +124,10 @@
 	<!-- Test Data Input -->
 	{#if variableKeys.length > 0}
 		<div>
-			<span class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<span class="block text-sm font-medium text-gray-700">
 				{$t('emailTemplates.preview.testData')}
 			</span>
-			<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+			<p class="mt-1 text-xs text-gray-500">
 				{$t('emailTemplates.preview.testDataDescription')}
 			</p>
 			<div class="mt-3 grid gap-3 sm:grid-cols-2">
@@ -135,7 +135,7 @@
 					<div>
 						<label
 							for="var-{varName}"
-							class="block text-sm font-medium text-gray-600 dark:text-gray-400"
+							class="block text-sm font-medium text-gray-600"
 						>
 							{varName}
 						</label>
@@ -145,7 +145,7 @@
 							aria-label={varName}
 							bind:value={testData[varName]}
 							placeholder={template.variables[varName] || 'string'}
-							class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+							class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
 						/>
 					</div>
 				{/each}
@@ -187,39 +187,39 @@
 	<!-- Error -->
 	{#if error}
 		<div
-			class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
+			class="rounded-lg border border-red-200 bg-red-50 p-4"
 		>
-			<p class="text-sm text-red-700 dark:text-red-300">{error}</p>
+			<p class="text-sm text-red-700">{error}</p>
 		</div>
 	{/if}
 
 	<!-- Preview Output -->
 	{#if renderedPreview}
-		<div class="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+		<div class="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
 			<!-- Subject -->
 			<div>
-				<h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+				<h3 class="text-sm font-medium text-gray-700">
 					{$t('emailTemplates.preview.subject')}
 				</h3>
-				<p class="mt-1 text-gray-900 dark:text-white">{renderedPreview.subject}</p>
+				<p class="mt-1 text-gray-900">{renderedPreview.subject}</p>
 			</div>
 
 			<!-- Plain Text -->
 			<div>
-				<h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+				<h3 class="text-sm font-medium text-gray-700">
 					{$t('emailTemplates.preview.textBody')}
 				</h3>
 				<pre
-					class="mt-1 overflow-x-auto whitespace-pre-wrap rounded bg-white p-3 text-sm text-gray-900 dark:bg-gray-900 dark:text-white">{renderedPreview.body_text}</pre>
+					class="mt-1 overflow-x-auto whitespace-pre-wrap rounded bg-white p-3 text-sm text-gray-900">{renderedPreview.body_text}</pre>
 			</div>
 
 			<!-- HTML Preview -->
 			<div>
-				<h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+				<h3 class="text-sm font-medium text-gray-700">
 					{$t('emailTemplates.preview.htmlBody')}
 				</h3>
 				<div
-					class="mt-1 rounded border border-gray-200 bg-white p-4 dark:border-gray-600 dark:bg-gray-900"
+					class="mt-1 rounded border border-gray-200 bg-white p-4"
 				>
 					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 					{@html renderedPreview.body_html}
@@ -230,11 +230,11 @@
 
 	<!-- Close Button -->
 	{#if onClose}
-		<div class="flex justify-end border-t border-gray-200 pt-4 dark:border-gray-700">
+		<div class="flex justify-end border-t border-gray-200 pt-4">
 			<button
 				type="button"
 				onclick={handleClose}
-				class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+				class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
 			>
 				{$t('common.close')}
 			</button>

@@ -89,23 +89,23 @@
 
 <div class="space-y-6">
 	<!-- Header -->
-	<div class="border-b border-gray-200 pb-4 dark:border-gray-700">
-		<h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+	<div class="border-b border-gray-200 pb-4">
+		<h2 class="text-xl font-semibold text-gray-900">
 			{$t('emailTemplates.editor.title')}
 		</h2>
-		<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+		<p class="mt-1 text-sm text-gray-500">
 			{template.template_key}
 		</p>
 	</div>
 
 	<!-- Language Tabs -->
-	<div class="border-b border-gray-200 dark:border-gray-700">
+	<div class="border-b border-gray-200">
 		<nav class="-mb-px flex gap-4" aria-label="Language tabs">
 			<button
 				type="button"
 				class="whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium {activeLocale === 'en'
-					? 'border-blue-500 text-blue-600 dark:text-blue-400'
-					: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}"
+					? 'border-blue-500 text-blue-600'
+					: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
 				onclick={() => handleLocaleChange('en')}
 			>
 				{$t('language.english')}
@@ -113,8 +113,8 @@
 			<button
 				type="button"
 				class="whitespace-nowrap border-b-2 px-1 py-3 text-sm font-medium {activeLocale === 'nl'
-					? 'border-blue-500 text-blue-600 dark:text-blue-400'
-					: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'}"
+					? 'border-blue-500 text-blue-600'
+					: 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}"
 				onclick={() => handleLocaleChange('nl')}
 			>
 				{$t('language.dutch')}
@@ -126,7 +126,7 @@
 	<form onsubmit={(e) => { e.preventDefault(); handleSave(); }} class="space-y-6">
 		<!-- Name -->
 		<div>
-			<label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<label for="name" class="block text-sm font-medium text-gray-700">
 				{$t('emailTemplates.editor.name')}
 			</label>
 			<input
@@ -135,13 +135,13 @@
 				value={getLocalizedValue(formData.name)}
 				oninput={(e) => (formData.name = setLocalizedValue(formData.name, e.currentTarget.value))}
 				placeholder={$t('emailTemplates.editor.namePlaceholder')}
-				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 			/>
 		</div>
 
 		<!-- Description -->
 		<div>
-			<label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<label for="description" class="block text-sm font-medium text-gray-700">
 				{$t('emailTemplates.editor.description')}
 			</label>
 			<textarea
@@ -151,13 +151,13 @@
 				oninput={(e) =>
 					(formData.description = setLocalizedValue(formData.description, e.currentTarget.value))}
 				placeholder={$t('emailTemplates.editor.descriptionPlaceholder')}
-				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 			></textarea>
 		</div>
 
 		<!-- Subject Line -->
 		<div>
-			<label for="subject" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<label for="subject" class="block text-sm font-medium text-gray-700">
 				{$t('emailTemplates.editor.subject')}
 			</label>
 			<input
@@ -167,13 +167,13 @@
 				oninput={(e) =>
 					(formData.subject = setLocalizedValue(formData.subject, e.currentTarget.value))}
 				placeholder={$t('emailTemplates.editor.subjectPlaceholder')}
-				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 			/>
 		</div>
 
 		<!-- Plain Text Body -->
 		<div>
-			<label for="body_text" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<label for="body_text" class="block text-sm font-medium text-gray-700">
 				{$t('emailTemplates.editor.bodyText')}
 			</label>
 			<textarea
@@ -183,13 +183,13 @@
 				oninput={(e) =>
 					(formData.body_text = setLocalizedValue(formData.body_text, e.currentTarget.value))}
 				placeholder={$t('emailTemplates.editor.bodyTextPlaceholder')}
-				class="mt-1 block w-full rounded-md border-gray-300 font-mono text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+				class="mt-1 block w-full rounded-md border-gray-300 font-mono text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
 			></textarea>
 		</div>
 
 		<!-- HTML Body -->
 		<div>
-			<label for="body_html" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<label for="body_html" class="block text-sm font-medium text-gray-700">
 				{$t('emailTemplates.editor.bodyHtml')}
 			</label>
 			<textarea
@@ -199,30 +199,30 @@
 				oninput={(e) =>
 					(formData.body_html = setLocalizedValue(formData.body_html, e.currentTarget.value))}
 				placeholder={$t('emailTemplates.editor.bodyHtmlPlaceholder')}
-				class="mt-1 block w-full rounded-md border-gray-300 font-mono text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+				class="mt-1 block w-full rounded-md border-gray-300 font-mono text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500"
 			></textarea>
 		</div>
 
 		<!-- Template Variables (read-only display) -->
 		<div>
-			<span class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<span class="block text-sm font-medium text-gray-700">
 				{$t('emailTemplates.editor.variables')}
 			</span>
 			<div
-				class="mt-1 rounded-md border border-gray-300 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-800"
+				class="mt-1 rounded-md border border-gray-300 bg-gray-50 p-3"
 			>
 				{#if Object.keys(formData.variables).length > 0}
 					<div class="flex flex-wrap gap-2">
 						{#each Object.entries(formData.variables) as [key, type]}
 							<span
-								class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900/50 dark:text-blue-200"
+								class="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800"
 							>
 								{'{{' + key + '}}'}: {type}
 							</span>
 						{/each}
 					</div>
 				{:else}
-					<p class="text-sm text-gray-500 dark:text-gray-400">
+					<p class="text-sm text-gray-500">
 						{$t('emailTemplates.card.noVariables')}
 					</p>
 				{/if}
@@ -231,7 +231,7 @@
 
 		<!-- Notes -->
 		<div>
-			<label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+			<label for="notes" class="block text-sm font-medium text-gray-700">
 				{$t('emailTemplates.editor.notes')}
 			</label>
 			<textarea
@@ -239,7 +239,7 @@
 				rows="3"
 				bind:value={formData.notes}
 				placeholder={$t('emailTemplates.editor.notesPlaceholder')}
-				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white sm:text-sm"
+				class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
 			></textarea>
 		</div>
 
@@ -249,28 +249,28 @@
 				type="checkbox"
 				id="is_active"
 				bind:checked={formData.is_active}
-				class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+				class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
 			/>
-			<label for="is_active" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+			<label for="is_active" class="ml-2 block text-sm text-gray-700">
 				{$t('emailTemplates.editor.isActive')}
 			</label>
 		</div>
 
 		<!-- Actions -->
 		<div
-			class="flex justify-end gap-3 border-t border-gray-200 pt-4 dark:border-gray-700"
+			class="flex justify-end gap-3 border-t border-gray-200 pt-4"
 		>
 			<button
 				type="button"
 				onclick={handleCancel}
-				class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+				class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
 			>
 				{$t('emailTemplates.editor.cancel')}
 			</button>
 			<button
 				type="submit"
 				disabled={isSaving}
-				class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-500 dark:hover:bg-blue-600"
+				class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{#if isSaving}
 					<svg class="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">

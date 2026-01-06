@@ -179,24 +179,24 @@
 		<div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
 			<!-- Background overlay -->
 			<div
-				class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity dark:bg-gray-900 dark:bg-opacity-75"
+				class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
 				aria-hidden="true"
 				onclick={handleCancelEdit}
 			></div>
 
 			<!-- Modal panel -->
 			<div
-				class="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-4xl sm:p-6 sm:align-middle"
+				class="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl sm:p-6 sm:align-middle"
 			>
 				{#if saveSuccess}
-					<div class="mb-4 rounded-md bg-green-50 p-4 dark:bg-green-900/20">
-						<p class="text-sm text-green-700 dark:text-green-300">{saveSuccess}</p>
+					<div class="mb-4 rounded-md bg-green-50 p-4">
+						<p class="text-sm text-green-700">{saveSuccess}</p>
 					</div>
 				{/if}
 
 				{#if saveError}
-					<div class="mb-4 rounded-md bg-red-50 p-4 dark:bg-red-900/20">
-						<p class="text-sm text-red-700 dark:text-red-300">{saveError}</p>
+					<div class="mb-4 rounded-md bg-red-50 p-4">
+						<p class="text-sm text-red-700">{saveError}</p>
 					</div>
 				{/if}
 
@@ -222,14 +222,14 @@
 		<div class="flex min-h-screen items-end justify-center px-4 pb-20 pt-4 text-center sm:block sm:p-0">
 			<!-- Background overlay -->
 			<div
-				class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity dark:bg-gray-900 dark:bg-opacity-75"
+				class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
 				aria-hidden="true"
 				onclick={handleClosePreview}
 			></div>
 
 			<!-- Modal panel -->
 			<div
-				class="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all dark:bg-gray-800 sm:my-8 sm:w-full sm:max-w-3xl sm:p-6 sm:align-middle"
+				class="inline-block transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-3xl sm:p-6 sm:align-middle"
 			>
 				<EmailTemplatePreview
 					template={selectedTemplate}
