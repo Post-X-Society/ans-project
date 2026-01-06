@@ -61,8 +61,64 @@ const query = createQuery(() => ({queryKey: ['todos'], queryFn: getTodos}))
 let data = $derived(query.data)  // No $ prefix
 ```
 
+**⚠️ KNOWN ISSUE: TanStack Query Reactivity with Svelte 5 (2026-01-06)**
+
+Despite being on v6, `createQuery` sometimes has reactivity issues with Svelte 5 runes.
+
+**Symptoms:**
+- Console error: "As of v4, queryKey needs to be an Array" (even though code has arrays)
+- Data not rendering on page load
+- Query state not updating reactively
+
+**Root Cause:**
+- TanStack Query v6 signals don't always work properly with Svelte 5 `$derived` runes
+- This is a framework compatibility issue, not a code error
+
+**Solution - Use Manual State Management Pattern:**
+```typescript
+// ❌ AVOID (can cause reactivity issues):
+const query = createQuery(() => emailTemplatesQueryOptions(true))
+let templates = $derived(query.data || [])
+
+// ✅ PREFER (reliable pattern):
+let templates = $state<EmailTemplate[]>([])
+let isLoading = $state(true)
+let error = $state<string | null>(null)
+
+onMount(async () => {
+  await loadTemplates()
+})
+
+async function loadTemplates() {
+  isLoading = true
+  error = null
+  try {
+    templates = await getEmailTemplates(true)
+  } catch (err) {
+    error = err instanceof Error ? err.message : 'Unknown error'
+  } finally {
+    isLoading = false
+  }
+}
+```
+
+**When to use this pattern:**
+- Page-level data fetching (routes/*.svelte files)
+- Admin interfaces with CRUD operations
+- Any time you encounter "queryKey" errors or reactivity issues
+
+**When createQuery is OK:**
+- Component-level fetching in child components
+- Read-only displays (no mutations)
+- Simple data fetching without complex state updates
+
+**References:**
+- Fixed in commit 8f5fd45 (email templates page)
+- Fixed in commit 004940c (submission detail page)
+- See peer-review dashboard for working pattern
+
 **When debugging browser errors:**
-- If error says "queryKey needs to be an Array" but code HAS arrays → version mismatch
+- If error says "queryKey needs to be an Array" but code HAS arrays → use manual pattern
 - If error says "store_invalid_shape" → using v5 syntax with v6 or vice versa
 - Ask user to invoke **Claude browser plugin** to analyze compiled JavaScript
 - Check Network tab to see actual code being served vs source code
