@@ -44,7 +44,6 @@ def run_retention_cleanup(self: Task) -> dict[str, Any]:
         - Auto-retry on database errors
     """
     import asyncio
-    from sqlalchemy.ext.asyncio import AsyncSession
 
     from app.core.database import async_session_maker
     from app.services.retention_service import RetentionService
