@@ -10,7 +10,7 @@ Provides CRUD operations and rendering for database-stored email templates
 
 from typing import Any, Optional
 
-from jinja2 import Template, TemplateSyntaxError, UndefinedError  # type: ignore[import-not-found]
+from jinja2 import Template, TemplateSyntaxError, UndefinedError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 

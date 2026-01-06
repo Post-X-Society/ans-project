@@ -4,7 +4,7 @@ Celery application configuration for async task processing
 Used for email queuing, scheduled tasks, and background jobs
 """
 
-from celery import Celery  # type: ignore[import-not-found]
+from celery import Celery
 
 from app.core.config import settings
 

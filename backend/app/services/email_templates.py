@@ -7,7 +7,7 @@ Uses Jinja2 for template rendering with multilingual support
 import enum
 from typing import Any
 
-from jinja2 import Template  # type: ignore[import-not-found]
+from jinja2 import Template
 
 
 class EmailTemplate(str, enum.Enum):

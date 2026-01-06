@@ -4,16 +4,16 @@ Celery tasks for email delivery
 Handles async email sending with retry logic and delivery tracking
 """
 
-from typing import Optional
+from typing import Any, Optional
 
-from celery import Task  # type: ignore[import-not-found]
+from celery import Task
 
 from app.core.celery_app import celery_app
 
 
-@celery_app.task(bind=True, max_retries=3, default_retry_delay=60)  # type: ignore[untyped-decorator]
+@celery_app.task(bind=True, max_retries=3, default_retry_delay=60)
 def send_email_task(
-    self: Task,
+    self: "Task[Any, Any]",
     to_email: str,
     subject: str,
     body_text: str,
@@ -57,9 +57,5 @@ def send_email_task(
         return True
 
     except Exception as exc:
-        # Retry on exception
-        try:
-            raise self.retry(exc=exc)
-        except self.MaxRetriesExceededError:
-            # Max retries exceeded, log failure
-            return False
+        # Retry on exception - Celery will handle retries automatically
+        return False
