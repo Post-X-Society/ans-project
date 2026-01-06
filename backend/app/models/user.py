@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from app.models.correction import Correction, CorrectionApplication
     from app.models.fact_check_rating import FactCheckRating
     from app.models.peer_review import PeerReview
+    from app.models.rtbf_request import RTBFRequest
     from app.models.submission import Submission
     from app.models.submission_reviewer import SubmissionReviewer
     from app.models.volunteer import Volunteer
@@ -82,6 +83,11 @@ class User(TimeStampedModel):
     correction_applications: Mapped[List["CorrectionApplication"]] = relationship(
         "CorrectionApplication",
         back_populates="applied_by",
+        lazy="selectin",
+    )
+    rtbf_requests: Mapped[List["RTBFRequest"]] = relationship(
+        "RTBFRequest",
+        foreign_keys="RTBFRequest.user_id",
         lazy="selectin",
     )
 

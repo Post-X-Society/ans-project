@@ -23,6 +23,7 @@ from app.models.peer_review_trigger import (
     seed_default_triggers,
 )
 from app.models.rating_definition import RatingDefinition
+from app.models.rtbf_request import RTBFRequest, RTBFRequestStatus
 from app.models.source import Source, SourceRelevance, SourceType
 from app.models.spotlight import SpotlightContent
 from app.models.submission import Submission
@@ -52,6 +53,8 @@ __all__ = [
     "CorrectionApplication",
     "CorrectionType",
     "CorrectionStatus",
+    "RTBFRequest",
+    "RTBFRequestStatus",
     "EmailLog",
     "EmailStatus",
     "EmailTemplate",

@@ -13,6 +13,7 @@ from app.api.v1.endpoints import (
     peer_review,
     ratings,
     reviewer_assignments,
+    rtbf,
     sources,
     submissions,
     transparency,
@@ -40,3 +41,4 @@ api_router.include_router(corrections.router, tags=["corrections"])
 api_router.include_router(
     email_templates.router, prefix="/email-templates", tags=["email-templates"]
 )
+api_router.include_router(rtbf.router, tags=["rtbf"])
