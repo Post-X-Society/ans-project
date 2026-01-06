@@ -104,13 +104,13 @@ class RetentionService:
         )
 
         # Delete old resolved correction requests (keep pending ones)
+        # CorrectionStatus enum has: PENDING, ACCEPTED, REJECTED
         stmt = delete(Correction).where(
             Correction.created_at < cutoff_date,
             Correction.status.in_(
                 [
-                    CorrectionStatus.RESOLVED,
+                    CorrectionStatus.ACCEPTED,
                     CorrectionStatus.REJECTED,
-                    CorrectionStatus.APPROVED,
                 ]
             ),
         )

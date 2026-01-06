@@ -20,7 +20,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_db
+from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_admin
 from app.models.rtbf_request import RTBFRequestStatus
 from app.models.user import User
