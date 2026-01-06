@@ -13,7 +13,7 @@ celery_app = Celery(
     "ans_worker",
     broker=settings.REDIS_URL,
     backend=settings.REDIS_URL,
-    include=["app.tasks.email_tasks"],  # Auto-discover tasks
+    include=["app.tasks.email_tasks", "app.tasks.retention_tasks"],  # Auto-discover tasks
 )
 
 # Celery configuration
@@ -33,3 +33,14 @@ celery_app.conf.update(
     task_default_retry_delay=60,  # 1 minute
     task_max_retries=3,
 )
+
+# Celery Beat schedule for periodic tasks (Issue #91)
+celery_app.conf.beat_schedule = {
+    "retention-cleanup-daily": {
+        "task": "app.tasks.retention_tasks.run_retention_cleanup",
+        "schedule": 86400.0,  # Run daily (24 hours in seconds)
+        # Alternative: use crontab for specific time
+        # "schedule": crontab(hour=2, minute=0),  # Run daily at 2 AM UTC
+        "options": {"queue": "maintenance"},
+    },
+}

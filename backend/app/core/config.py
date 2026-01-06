@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     # Admin email for notifications
     ADMIN_EMAIL: Optional[str] = None
 
+    # Data Retention Periods (in days) - Issue #91
+    RETENTION_UNPUBLISHED_SUBMISSIONS_DAYS: int = 90  # Unpublished submissions
+    RETENTION_AUDIT_LOGS_DAYS: int = 2555  # 7 years (365 * 7)
+    RETENTION_DRAFT_EVIDENCE_DAYS: int = 730  # 2 years
+    RETENTION_REJECTED_CLAIMS_DAYS: int = 365  # 1 year
+    RETENTION_CORRECTION_REQUESTS_DAYS: int = 1095  # 3 years
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS_ORIGINS string into list of origins"""
