@@ -6,6 +6,7 @@ Implements automated data retention policies per GDPR requirements
 """
 
 from datetime import datetime, timedelta, timezone
+from typing import cast
 
 from sqlalchemy import delete
 from sqlalchemy.engine import CursorResult
@@ -60,7 +61,7 @@ class RetentionService:
             ),
         )
 
-        result: CursorResult[tuple[int]] = await db.execute(stmt)
+        result = cast(CursorResult[tuple[int]], await db.execute(stmt))
         await db.commit()
 
         return result.rowcount or 0
@@ -85,7 +86,7 @@ class RetentionService:
             Submission.workflow_state == WorkflowState.REJECTED,
         )
 
-        result: CursorResult[tuple[int]] = await db.execute(stmt)
+        result = cast(CursorResult[tuple[int]], await db.execute(stmt))
         await db.commit()
 
         return result.rowcount or 0
@@ -116,7 +117,7 @@ class RetentionService:
             ),
         )
 
-        result: CursorResult[tuple[int]] = await db.execute(stmt)
+        result = cast(CursorResult[tuple[int]], await db.execute(stmt))
         await db.commit()
 
         return result.rowcount or 0
