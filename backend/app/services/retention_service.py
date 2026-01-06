@@ -6,13 +6,14 @@ Implements automated data retention policies per GDPR requirements
 """
 
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import delete, select
+
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.models.correction import Correction, CorrectionStatus
 from app.models.submission import Submission
 from app.models.workflow_transition import WorkflowState
-from app.models.correction import Correction, CorrectionStatus
 
 
 class RetentionService:
