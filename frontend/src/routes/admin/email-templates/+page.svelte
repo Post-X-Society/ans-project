@@ -3,17 +3,18 @@
 
   Issue #167: Email Template Admin Management UI
   Provides admin interface for managing email templates
+
+  Uses manual $state + onMount pattern instead of TanStack Query createQuery
+  to avoid reactivity issues with Svelte 5 (same pattern as submission detail page).
 -->
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 	import { t } from 'svelte-i18n';
 	import {
-		emailTemplatesQueryOptions,
-		updateEmailTemplateMutationOptions,
-		renderEmailTemplateMutationOptions
-	} from '$lib/api/queries';
-	import { updateEmailTemplate, renderEmailTemplate } from '$lib/api/email-templates';
+		getEmailTemplates,
+		updateEmailTemplate,
+		renderEmailTemplate
+	} from '$lib/api/email-templates';
 	import EmailTemplatesList from '$lib/components/email-templates/EmailTemplatesList.svelte';
 	import EmailTemplateEditor from '$lib/components/email-templates/EmailTemplateEditor.svelte';
 	import EmailTemplatePreview from '$lib/components/email-templates/EmailTemplatePreview.svelte';
@@ -24,15 +25,10 @@
 		EmailTemplateRenderResponse
 	} from '$lib/api/types';
 
-	const queryClient = useQueryClient();
-
-	// Query for fetching templates (include inactive for admin view)
-	const templatesQuery = createQuery(() => emailTemplatesQueryOptions(true));
-
-	// Derive state from query
-	let templates = $derived($templatesQuery.data || []);
-	let isLoading = $derived($templatesQuery.isLoading);
-	let error = $derived($templatesQuery.error?.message || null);
+	// Manual state management instead of TanStack Query
+	let templates = $state<EmailTemplate[]>([]);
+	let isLoading = $state(true);
+	let error = $state<string | null>(null);
 
 	// Modal states
 	let showEditorModal = $state(false);
@@ -66,12 +62,30 @@
 		showPreviewModal = true;
 	}
 
+	// Load templates on mount
+	onMount(async () => {
+		await loadTemplates();
+	});
+
+	async function loadTemplates() {
+		isLoading = true;
+		error = null;
+		try {
+			templates = await getEmailTemplates(true); // Include inactive
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : 'Unknown error';
+			error = message;
+		} finally {
+			isLoading = false;
+		}
+	}
+
 	async function handleToggleActive(template: EmailTemplate) {
 		try {
 			await updateEmailTemplate(template.template_key, {
 				is_active: !template.is_active
 			});
-			queryClient.invalidateQueries({ queryKey: ['email-templates'] });
+			await loadTemplates(); // Reload data
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : 'Unknown error';
 			console.error('Error toggling template status:', message);
@@ -88,7 +102,7 @@
 		try {
 			await updateEmailTemplate(selectedTemplate.template_key, data);
 			saveSuccess = $t('emailTemplates.editor.success');
-			queryClient.invalidateQueries({ queryKey: ['email-templates'] });
+			await loadTemplates(); // Reload data
 
 			// Close modal after short delay
 			setTimeout(() => {
@@ -133,7 +147,7 @@
 	}
 
 	function handleRetry() {
-		$templatesQuery.refetch();
+		loadTemplates();
 	}
 </script>
 
