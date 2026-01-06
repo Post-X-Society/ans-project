@@ -936,5 +936,36 @@
       "rejectSuccess": "Request rejected",
       "rejectError": "Failed to reject request"
     }
+  },
+  "cookieConsent": {
+    "banner": {
+      "title": "Cookie Consent",
+      "message": "We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.",
+      "privacyPolicy": "Privacy Policy",
+      "acceptAll": "Accept All",
+      "rejectAll": "Reject All",
+      "customize": "Customize",
+      "ariaLabel": "Cookie consent dialog"
+    },
+    "preferences": {
+      "title": "Privacy Preferences",
+      "description": "Choose which cookies you want to accept. Essential cookies are always active as they are necessary for the website to function properly.",
+      "savePreferences": "Save Preferences",
+      "categories": {
+        "essential": {
+          "title": "Essential",
+          "description": "Required for the website to function. Cannot be disabled.",
+          "alwaysActive": "Always Active"
+        },
+        "analytics": {
+          "title": "Analytics",
+          "description": "Help us understand how visitors interact with the website by collecting and reporting information anonymously."
+        },
+        "marketing": {
+          "title": "Marketing",
+          "description": "Used to track visitors across websites to display relevant advertisements."
+        }
+      }
+    }
   }
 }
