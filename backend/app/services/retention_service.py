@@ -43,17 +43,19 @@ class RetentionService:
         # Delete old unpublished submissions (not PUBLISHED, ARCHIVED, or REJECTED)
         stmt = delete(Submission).where(
             Submission.created_at < cutoff_date,
-            Submission.workflow_state.in_([
-                WorkflowState.SUBMITTED,
-                WorkflowState.QUEUED,
-                WorkflowState.ASSIGNED,
-                WorkflowState.IN_RESEARCH,
-                WorkflowState.DRAFT_READY,
-                WorkflowState.NEEDS_MORE_RESEARCH,
-                WorkflowState.ADMIN_REVIEW,
-                WorkflowState.PEER_REVIEW,
-                WorkflowState.FINAL_APPROVAL,
-            ]),
+            Submission.workflow_state.in_(
+                [
+                    WorkflowState.SUBMITTED,
+                    WorkflowState.QUEUED,
+                    WorkflowState.ASSIGNED,
+                    WorkflowState.IN_RESEARCH,
+                    WorkflowState.DRAFT_READY,
+                    WorkflowState.NEEDS_MORE_RESEARCH,
+                    WorkflowState.ADMIN_REVIEW,
+                    WorkflowState.PEER_REVIEW,
+                    WorkflowState.FINAL_APPROVAL,
+                ]
+            ),
         )
 
         result = await db.execute(stmt)
@@ -103,11 +105,13 @@ class RetentionService:
         # Delete old resolved correction requests (keep pending ones)
         stmt = delete(Correction).where(
             Correction.created_at < cutoff_date,
-            Correction.status.in_([
-                CorrectionStatus.RESOLVED,
-                CorrectionStatus.REJECTED,
-                CorrectionStatus.APPROVED,
-            ]),
+            Correction.status.in_(
+                [
+                    CorrectionStatus.RESOLVED,
+                    CorrectionStatus.REJECTED,
+                    CorrectionStatus.APPROVED,
+                ]
+            ),
         )
 
         result = await db.execute(stmt)

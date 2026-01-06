@@ -24,7 +24,9 @@ class TestRetentionServiceConfiguration:
     async def test_reads_unpublished_submissions_retention_period(self) -> None:
         """Test that service reads unpublished submissions retention from config"""
         service: RetentionService = RetentionService()
-        assert service.unpublished_submissions_days == settings.RETENTION_UNPUBLISHED_SUBMISSIONS_DAYS
+        assert (
+            service.unpublished_submissions_days == settings.RETENTION_UNPUBLISHED_SUBMISSIONS_DAYS
+        )
 
     async def test_reads_audit_logs_retention_period(self) -> None:
         """Test that service reads audit logs retention from config"""

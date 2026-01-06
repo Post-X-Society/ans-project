@@ -20,9 +20,7 @@ class TestRetentionCleanupTask:
         assert "retention-cleanup-daily" in celery_app.conf.beat_schedule
 
         # Check schedule configuration
-        schedule_config: dict[str, Any] = celery_app.conf.beat_schedule[
-            "retention-cleanup-daily"
-        ]
+        schedule_config: dict[str, Any] = celery_app.conf.beat_schedule["retention-cleanup-daily"]
         assert schedule_config["task"] == "app.tasks.retention_tasks.run_retention_cleanup"
         assert schedule_config["schedule"] == 86400.0  # Daily (24 hours)
         assert schedule_config["options"]["queue"] == "maintenance"
