@@ -56,6 +56,6 @@ def send_email_task(
 
         return True
 
-    except Exception as exc:
+    except Exception:
         # Retry on exception - Celery will handle retries automatically
         return False
