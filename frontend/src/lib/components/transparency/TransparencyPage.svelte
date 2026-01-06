@@ -10,6 +10,7 @@
 <script lang="ts">
 	import { locale, t } from '$lib/i18n';
 	import { getTransparencyPage } from '$lib/api/transparency';
+	import { exportUserData } from '$lib/api/rtbf';
 	import type { TransparencyPage as TransparencyPageType } from '$lib/api/types';
 	import type { SupportedLocale } from '$lib/i18n';
 	import { marked } from 'marked';
@@ -88,6 +89,25 @@
 			loadPage();
 		}
 	});
+
+	// Handle data export
+	async function handleExport() {
+		try {
+			const data = await exportUserData();
+			// Create download link
+			const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `my-data-export-${new Date().toISOString().split('T')[0]}.json`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+		} catch (err) {
+			alert('Failed to export data. Please make sure you are logged in.');
+		}
+	}
 </script>
 
 {#if isLoading}
@@ -145,12 +165,12 @@
 						>
 							{$t('rtbf.requestDeletion')}
 						</a>
-						<a
-							href="/api/v1/rtbf/export"
+						<button
+							onclick={handleExport}
 							class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors font-medium"
 						>
 							{$t('rtbf.exportData')}
-						</a>
+						</button>
 					</div>
 					<p class="text-sm text-gray-500 mt-4">
 						{$t('rtbf.privacySection.note')}
