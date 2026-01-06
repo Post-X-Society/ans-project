@@ -7,6 +7,8 @@ Tests written FIRST following TDD approach
 
 from app.core.config import settings
 from app.services.retention_service import RetentionService
+
+
 class TestRetentionServiceConfiguration:
     """Test that retention service reads configuration correctly"""
 
