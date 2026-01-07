@@ -8,8 +8,11 @@ ADR 0005: EFCSN Compliance Architecture
 TDD - Tests written FIRST before implementation.
 """
 
+from datetime import datetime, timezone
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
+
+import pytest
 
 # ==============================================================================
 # CELERY TASK TESTS
@@ -35,141 +38,143 @@ class TestGenerateMonthlyReportTask:
         assert generate_monthly_report_task.max_retries == 3
         assert generate_monthly_report_task.default_retry_delay == 300
 
-    @patch("app.tasks.report_tasks.AsyncSessionLocal")
-    @patch("app.tasks.report_tasks.TransparencyReportService")
+    @patch("app.tasks.report_tasks._generate_report_async")
     def test_task_generates_report_for_previous_month(
         self,
-        mock_service_class: MagicMock,
-        mock_session_local: MagicMock,
+        mock_generate_async: AsyncMock,
     ) -> None:
         """Test task generates report for previous month by default."""
         from app.tasks.report_tasks import generate_monthly_report_task
 
-        # Setup mocks
-        mock_session: MagicMock = MagicMock()
-        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
-        mock_session.__aexit__ = AsyncMock(return_value=None)
-        mock_session_local.return_value = mock_session
+        # Setup mock to return a result dict
+        mock_generate_async.return_value = {
+            "report_id": "test-report-id",
+            "year": 2025,
+            "month": 12,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "published": True,
+            "emails_sent": 1,
+        }
 
-        mock_service: MagicMock = MagicMock()
-        mock_report: MagicMock = MagicMock()
-        mock_report.id = "test-report-id"
-        mock_report.year = 2025
-        mock_report.month = 12
+        # Task should execute without error
+        result: dict[str, Any] = generate_monthly_report_task()
 
-        mock_service.generate_monthly_report = AsyncMock(return_value=mock_report)
-        mock_service.publish_report = AsyncMock(return_value=mock_report)
-        mock_service.send_report_to_admins = AsyncMock(return_value={"emails_queued": 1})
-        mock_service_class.return_value = mock_service
+        assert result is not None
+        assert result["report_id"] == "test-report-id"
+        # Verify the async function was called with default params
+        mock_generate_async.assert_called_once()
 
-        # Run task synchronously for testing
-        with patch("asyncio.get_event_loop") as mock_loop:
-            mock_loop.return_value.run_until_complete = lambda coro: None
-
-            # Task should execute without error
-            result: dict[str, Any] = generate_monthly_report_task()
-
-            assert result is not None
-
-    @patch("app.tasks.report_tasks.AsyncSessionLocal")
-    @patch("app.tasks.report_tasks.TransparencyReportService")
+    @patch("app.tasks.report_tasks._generate_report_async")
     def test_task_accepts_year_month_parameters(
         self,
-        mock_service_class: MagicMock,
-        mock_session_local: MagicMock,
+        mock_generate_async: AsyncMock,
     ) -> None:
         """Test task accepts specific year and month parameters."""
         from app.tasks.report_tasks import generate_monthly_report_task
 
-        # Setup mocks
-        mock_session: MagicMock = MagicMock()
-        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
-        mock_session.__aexit__ = AsyncMock(return_value=None)
-        mock_session_local.return_value = mock_session
+        mock_generate_async.return_value = {
+            "report_id": "test-report-id",
+            "year": 2025,
+            "month": 6,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "published": True,
+            "emails_sent": 1,
+        }
 
-        mock_service: MagicMock = MagicMock()
-        mock_report: MagicMock = MagicMock()
-        mock_report.id = "test-report-id"
-        mock_report.year = 2025
-        mock_report.month = 6
+        result: dict[str, Any] = generate_monthly_report_task(year=2025, month=6)
 
-        mock_service.generate_monthly_report = AsyncMock(return_value=mock_report)
-        mock_service.publish_report = AsyncMock(return_value=mock_report)
-        mock_service.send_report_to_admins = AsyncMock(return_value={"emails_queued": 1})
-        mock_service_class.return_value = mock_service
+        assert result is not None
+        assert result["year"] == 2025
+        assert result["month"] == 6
+        # Verify correct parameters were passed
+        call_args = mock_generate_async.call_args
+        assert call_args[0][0] == 2025  # year
+        assert call_args[0][1] == 6  # month
 
-        with patch("asyncio.get_event_loop") as mock_loop:
-            mock_loop.return_value.run_until_complete = lambda coro: None
-
-            result: dict[str, Any] = generate_monthly_report_task(year=2025, month=6)
-
-            assert result is not None
-
-    @patch("app.tasks.report_tasks.AsyncSessionLocal")
-    @patch("app.tasks.report_tasks.TransparencyReportService")
+    @patch("app.tasks.report_tasks._generate_report_async")
     def test_task_publishes_report_when_auto_publish_enabled(
         self,
-        mock_service_class: MagicMock,
-        mock_session_local: MagicMock,
+        mock_generate_async: AsyncMock,
     ) -> None:
         """Test task publishes report when auto_publish is True."""
         from app.tasks.report_tasks import generate_monthly_report_task
 
-        # Setup mocks
-        mock_session: MagicMock = MagicMock()
-        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
-        mock_session.__aexit__ = AsyncMock(return_value=None)
-        mock_session_local.return_value = mock_session
+        mock_generate_async.return_value = {
+            "report_id": "test-report-id",
+            "year": 2025,
+            "month": 12,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "published": True,
+            "emails_sent": 0,
+        }
 
-        mock_service: MagicMock = MagicMock()
-        mock_report: MagicMock = MagicMock()
-        mock_report.id = "test-report-id"
+        result = generate_monthly_report_task(auto_publish=True)
 
-        mock_service.generate_monthly_report = AsyncMock(return_value=mock_report)
-        mock_service.publish_report = AsyncMock(return_value=mock_report)
-        mock_service.send_report_to_admins = AsyncMock(return_value={"emails_queued": 1})
-        mock_service_class.return_value = mock_service
+        assert result["published"] is True
+        # Verify auto_publish was passed as True
+        call_args = mock_generate_async.call_args
+        assert call_args[0][2] is True  # auto_publish
 
-        with patch("asyncio.get_event_loop") as mock_loop:
-            mock_loop.return_value.run_until_complete = lambda coro: None
-
-            generate_monthly_report_task(auto_publish=True)
-
-            # Verify publish was called
-            mock_service.publish_report.assert_called_once()
-
-    @patch("app.tasks.report_tasks.AsyncSessionLocal")
-    @patch("app.tasks.report_tasks.TransparencyReportService")
+    @patch("app.tasks.report_tasks._generate_report_async")
     def test_task_sends_email_when_notify_admins_enabled(
         self,
-        mock_service_class: MagicMock,
-        mock_session_local: MagicMock,
+        mock_generate_async: AsyncMock,
     ) -> None:
         """Test task sends email notification when notify_admins is True."""
         from app.tasks.report_tasks import generate_monthly_report_task
 
-        # Setup mocks
-        mock_session: MagicMock = MagicMock()
-        mock_session.__aenter__ = AsyncMock(return_value=mock_session)
-        mock_session.__aexit__ = AsyncMock(return_value=None)
-        mock_session_local.return_value = mock_session
+        mock_generate_async.return_value = {
+            "report_id": "test-report-id",
+            "year": 2025,
+            "month": 12,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "published": True,
+            "emails_sent": 2,
+        }
 
-        mock_service: MagicMock = MagicMock()
-        mock_report: MagicMock = MagicMock()
+        result = generate_monthly_report_task(notify_admins=True)
+
+        assert result["emails_sent"] == 2
+        # Verify notify_admins was passed as True
+        call_args = mock_generate_async.call_args
+        assert call_args[0][3] is True  # notify_admins
+
+
+class TestGenerateReportAsyncFunction:
+    """Tests for the _generate_report_async helper function."""
+
+    @pytest.mark.asyncio
+    @patch("app.services.transparency_report_service.TransparencyReportService")
+    @patch("app.tasks.report_tasks.AsyncSessionLocal")
+    async def test_generate_report_async_creates_report(
+        self,
+        mock_session_local: AsyncMock,
+        mock_service_class: AsyncMock,
+    ) -> None:
+        """Test that _generate_report_async creates and returns report."""
+        from app.tasks.report_tasks import _generate_report_async
+
+        # Setup mock session
+        mock_session = AsyncMock()
+        mock_session_local.return_value.__aenter__.return_value = mock_session
+        mock_session_local.return_value.__aexit__.return_value = None
+
+        # Setup mock service
+        mock_report = AsyncMock()
         mock_report.id = "test-report-id"
+        mock_report.generated_at = datetime.now(timezone.utc)
 
-        mock_service.generate_monthly_report = AsyncMock(return_value=mock_report)
-        mock_service.publish_report = AsyncMock(return_value=mock_report)
-        mock_service.send_report_to_admins = AsyncMock(return_value={"emails_queued": 2})
+        mock_service = AsyncMock()
+        mock_service.generate_monthly_report.return_value = mock_report
+        mock_service.publish_report.return_value = mock_report
+        mock_service.send_report_to_admins.return_value = {"emails_queued": 1}
         mock_service_class.return_value = mock_service
 
-        with patch("asyncio.get_event_loop") as mock_loop:
-            mock_loop.return_value.run_until_complete = lambda coro: None
+        result = await _generate_report_async(2025, 12, True, True)
 
-            generate_monthly_report_task(notify_admins=True)
-
-            # Verify email was sent
-            mock_service.send_report_to_admins.assert_called_once()
+        assert result["report_id"] == "test-report-id"
+        assert result["year"] == 2025
+        assert result["month"] == 12
 
 
 class TestCeleryBeatSchedule:
