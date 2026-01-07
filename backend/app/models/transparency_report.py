@@ -15,12 +15,16 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, Integer
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import Boolean, DateTime, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
+from sqlalchemy.types import JSON
 
 from app.models.base import Base
+
+# Cross-database compatible JSONB type (JSONB for PostgreSQL, JSON for SQLite)
+JSONType = JSON().with_variant(JSONB, "postgresql")
 
 
 class TransparencyReport(Base):
@@ -42,7 +46,7 @@ class TransparencyReport(Base):
     __tablename__ = "transparency_reports"
 
     id: Mapped[str] = mapped_column(
-        UUID(as_uuid=False),
+        String(36),
         primary_key=True,
         default=lambda: str(uuid4()),
     )
@@ -53,7 +57,7 @@ class TransparencyReport(Base):
 
     # Report content (JSON with all analytics data)
     report_data: Mapped[dict[str, Any]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=dict,
         doc="JSON containing all report metrics and data",
@@ -61,7 +65,7 @@ class TransparencyReport(Base):
 
     # Report title (multilingual)
     title: Mapped[dict[str, str]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=lambda: {"en": "", "nl": ""},
         doc="Multilingual report title",
@@ -69,7 +73,7 @@ class TransparencyReport(Base):
 
     # Report summary (multilingual)
     summary: Mapped[dict[str, str]] = mapped_column(
-        JSONB,
+        JSONType,
         nullable=False,
         default=lambda: {"en": "", "nl": ""},
         doc="Multilingual report summary",
