@@ -300,9 +300,7 @@ class AnalyticsService:
         sources_by_type_result = await self.db.execute(sources_by_type_stmt)
         sources_by_type: dict[str, int] = {
             (
-                row.source_type.value
-                if hasattr(row.source_type, "value")
-                else str(row.source_type)
+                row.source_type.value if hasattr(row.source_type, "value") else str(row.source_type)
             ): int(row.count)
             for row in sources_by_type_result.all()
         }
@@ -315,11 +313,9 @@ class AnalyticsService:
         )
         sources_by_relevance_result = await self.db.execute(sources_by_relevance_stmt)
         sources_by_relevance: dict[str, int] = {
-            (
-                row.relevance.value
-                if hasattr(row.relevance, "value")
-                else str(row.relevance)
-            ): int(row.count)
+            (row.relevance.value if hasattr(row.relevance, "value") else str(row.relevance)): int(
+                row.count
+            )
             for row in sources_by_relevance_result.all()
         }
 
