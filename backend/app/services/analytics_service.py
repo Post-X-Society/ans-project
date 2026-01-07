@@ -234,17 +234,17 @@ class AnalyticsService:
                 "period_end": end_date,
             }
 
-        # Calculate total
-        total_count: int = sum(int(row.count) for row in rows)
+        # Calculate total - use index [1] since row is (verdict, count) tuple
+        total_count: int = sum(int(row[1]) for row in rows)
 
         # Build distribution
         ratings: list[dict[str, Any]] = []
         for row in rows:
-            count_val = int(row.count)
+            count_val = int(row[1])  # row[1] is the count column
             percentage: float = (count_val / total_count * 100) if total_count > 0 else 0.0
             ratings.append(
                 {
-                    "rating": row.verdict,
+                    "rating": row[0],  # row[0] is the verdict column
                     "count": count_val,
                     "percentage": round(percentage, 1),
                 }
@@ -299,9 +299,9 @@ class AnalyticsService:
         ).group_by(Source.source_type)
         sources_by_type_result = await self.db.execute(sources_by_type_stmt)
         sources_by_type: dict[str, int] = {
-            (
-                row.source_type.value if hasattr(row.source_type, "value") else str(row.source_type)
-            ): int(row.count)
+            (row[0].value if hasattr(row[0], "value") else str(row[0])): int(
+                row[1]
+            )  # row[0]=source_type, row[1]=count
             for row in sources_by_type_result.all()
         }
 
@@ -313,9 +313,9 @@ class AnalyticsService:
         )
         sources_by_relevance_result = await self.db.execute(sources_by_relevance_stmt)
         sources_by_relevance: dict[str, int] = {
-            (row.relevance.value if hasattr(row.relevance, "value") else str(row.relevance)): int(
-                row.count
-            )
+            (row[0].value if hasattr(row[0], "value") else str(row[0])): int(
+                row[1]
+            )  # row[0]=relevance, row[1]=count
             for row in sources_by_relevance_result.all()
         }
 
@@ -394,11 +394,9 @@ class AnalyticsService:
         ).group_by(Correction.correction_type)
         corr_by_type_result = await self.db.execute(corr_by_type_stmt)
         corrections_by_type: dict[str, int] = {
-            (
-                row.correction_type.value
-                if hasattr(row.correction_type, "value")
-                else str(row.correction_type)
-            ): int(row.count)
+            (row[0].value if hasattr(row[0], "value") else str(row[0])): int(
+                row[1]
+            )  # row[0]=correction_type, row[1]=count
             for row in corr_by_type_result.all()
         }
 
