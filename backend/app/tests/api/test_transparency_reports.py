@@ -10,7 +10,7 @@ TDD - Tests written FIRST before implementation.
 
 from datetime import datetime, timezone
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
@@ -19,12 +19,74 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token
-from app.models.fact_check import FactCheck
 from app.models.user import User, UserRole
 
 # ==============================================================================
-# FIXTURES
+# FIXTURES AND HELPERS
 # ==============================================================================
+
+
+def get_mock_analytics_data() -> dict[str, Any]:
+    """Get mock analytics data for testing."""
+    return {
+        "report_period": {
+            "year": 2025,
+            "month": 12,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        },
+        "monthly_fact_checks": {
+            "months": [{"year": 2025, "month": 12, "count": 5, "meets_efcsn_minimum": True}],
+            "total_count": 5,
+            "average_per_month": 5.0,
+        },
+        "time_to_publication": {
+            "average_hours": 24.0,
+            "median_hours": 20.0,
+            "min_hours": 2.0,
+            "max_hours": 72.0,
+            "total_published": 5,
+        },
+        "rating_distribution": {
+            "ratings": [
+                {"rating": "true", "count": 2, "percentage": 40.0},
+                {"rating": "false", "count": 2, "percentage": 40.0},
+                {"rating": "partly_false", "count": 1, "percentage": 20.0},
+            ],
+            "total_count": 5,
+        },
+        "source_quality": {
+            "average_sources_per_fact_check": 2.5,
+            "average_credibility_score": 4.0,
+            "total_sources": 10,
+            "sources_by_type": {"primary": 5, "secondary": 5},
+            "sources_by_relevance": {"supports": 8, "contradicts": 2},
+            "fact_checks_meeting_minimum": 5,
+            "fact_checks_below_minimum": 0,
+        },
+        "correction_rate": {
+            "total_fact_checks": 5,
+            "total_corrections": 1,
+            "corrections_accepted": 1,
+            "corrections_rejected": 0,
+            "corrections_pending": 0,
+            "correction_rate": 0.2,
+            "corrections_by_type": {"minor": 1},
+        },
+        "efcsn_compliance": {
+            "overall_status": "compliant",
+            "checklist": [
+                {
+                    "requirement": "Monthly fact-check minimum",
+                    "status": "compliant",
+                    "details": "5 fact-checks published this month",
+                    "value": "5",
+                    "threshold": "4",
+                }
+            ],
+            "last_checked": datetime.now(timezone.utc).isoformat(),
+            "compliance_score": 100.0,
+        },
+    }
 
 
 @pytest_asyncio.fixture
@@ -72,29 +134,6 @@ async def regular_user(db_session: AsyncSession) -> User:
     return user
 
 
-@pytest_asyncio.fixture
-async def sample_fact_checks(db_session: AsyncSession) -> list[FactCheck]:
-    """Create sample fact-checks for testing."""
-    fact_checks: list[FactCheck] = []
-
-    for i in range(5):
-        fc: FactCheck = FactCheck(
-            title=f"Test Fact Check {i + 1}",
-            claim=f"Test claim {i + 1}",
-            verdict="true",
-            explanation=f"Test explanation {i + 1}",
-            sources_count=2,
-        )
-        db_session.add(fc)
-        fact_checks.append(fc)
-
-    await db_session.commit()
-    for fc in fact_checks:
-        await db_session.refresh(fc)
-
-    return fact_checks
-
-
 def get_auth_headers(user: User) -> dict[str, str]:
     """Generate auth headers for a user."""
     token: str = create_access_token(data={"sub": str(user.id)})
@@ -136,16 +175,21 @@ class TestListPublishedReports:
         self,
         client: TestClient,
         db_session: AsyncSession,
-        sample_fact_checks: list[FactCheck],
     ) -> None:
         """Test that unpublished reports are not returned in public list."""
         from app.services.transparency_report_service import TransparencyReportService
 
-        service: TransparencyReportService = TransparencyReportService(db_session)
-        now: datetime = datetime.now(timezone.utc)
+        with patch.object(
+            TransparencyReportService,
+            "_generate_report_data",
+            new_callable=AsyncMock,
+            return_value=get_mock_analytics_data(),
+        ):
+            service: TransparencyReportService = TransparencyReportService(db_session)
+            now: datetime = datetime.now(timezone.utc)
 
-        # Create unpublished report
-        await service.generate_monthly_report(now.year, now.month)
+            # Create unpublished report
+            await service.generate_monthly_report(now.year, now.month)
 
         response = client.get("/api/v1/reports/transparency")
 
@@ -246,17 +290,24 @@ class TestGenerateReport:
         self,
         client: TestClient,
         admin_user: User,
-        sample_fact_checks: list[FactCheck],
     ) -> None:
         """Test admin can generate report."""
+        from app.services.transparency_report_service import TransparencyReportService
+
         headers: dict[str, str] = get_auth_headers(admin_user)
 
         now: datetime = datetime.now(timezone.utc)
-        response = client.post(
-            "/api/v1/reports/transparency/generate",
-            headers=headers,
-            json={"year": now.year, "month": now.month},
-        )
+        with patch.object(
+            TransparencyReportService,
+            "_generate_report_data",
+            new_callable=AsyncMock,
+            return_value=get_mock_analytics_data(),
+        ):
+            response = client.post(
+                "/api/v1/reports/transparency/generate",
+                headers=headers,
+                json={"year": now.year, "month": now.month},
+            )
 
         assert response.status_code == 201
         data: dict[str, Any] = response.json()
@@ -325,18 +376,25 @@ class TestPublishReport:
         self,
         client: TestClient,
         admin_user: User,
-        sample_fact_checks: list[FactCheck],
     ) -> None:
         """Test admin can publish a report."""
+        from app.services.transparency_report_service import TransparencyReportService
+
         headers: dict[str, str] = get_auth_headers(admin_user)
 
         # First generate a report
         now: datetime = datetime.now(timezone.utc)
-        gen_response = client.post(
-            "/api/v1/reports/transparency/generate",
-            headers=headers,
-            json={"year": now.year, "month": now.month},
-        )
+        with patch.object(
+            TransparencyReportService,
+            "_generate_report_data",
+            new_callable=AsyncMock,
+            return_value=get_mock_analytics_data(),
+        ):
+            gen_response = client.post(
+                "/api/v1/reports/transparency/generate",
+                headers=headers,
+                json={"year": now.year, "month": now.month},
+            )
         report_id: str = gen_response.json()["id"]
 
         # Then publish it
@@ -397,18 +455,25 @@ class TestUnpublishReport:
         self,
         client: TestClient,
         admin_user: User,
-        sample_fact_checks: list[FactCheck],
     ) -> None:
         """Test admin can unpublish a report."""
+        from app.services.transparency_report_service import TransparencyReportService
+
         headers: dict[str, str] = get_auth_headers(admin_user)
 
         # Generate and publish a report
         now: datetime = datetime.now(timezone.utc)
-        gen_response = client.post(
-            "/api/v1/reports/transparency/generate",
-            headers=headers,
-            json={"year": now.year, "month": now.month},
-        )
+        with patch.object(
+            TransparencyReportService,
+            "_generate_report_data",
+            new_callable=AsyncMock,
+            return_value=get_mock_analytics_data(),
+        ):
+            gen_response = client.post(
+                "/api/v1/reports/transparency/generate",
+                headers=headers,
+                json={"year": now.year, "month": now.month},
+            )
         report_id: str = gen_response.json()["id"]
 
         client.patch(
@@ -440,18 +505,25 @@ class TestAdminListReports:
         self,
         client: TestClient,
         admin_user: User,
-        sample_fact_checks: list[FactCheck],
     ) -> None:
         """Test admin can list all reports including unpublished."""
+        from app.services.transparency_report_service import TransparencyReportService
+
         headers: dict[str, str] = get_auth_headers(admin_user)
 
         # Generate an unpublished report
         now: datetime = datetime.now(timezone.utc)
-        client.post(
-            "/api/v1/reports/transparency/generate",
-            headers=headers,
-            json={"year": now.year, "month": now.month},
-        )
+        with patch.object(
+            TransparencyReportService,
+            "_generate_report_data",
+            new_callable=AsyncMock,
+            return_value=get_mock_analytics_data(),
+        ):
+            client.post(
+                "/api/v1/reports/transparency/generate",
+                headers=headers,
+                json={"year": now.year, "month": now.month},
+            )
 
         # Admin list should include unpublished
         response = client.get(
@@ -510,18 +582,25 @@ class TestSendReportEmail:
         self,
         client: TestClient,
         admin_user: User,
-        sample_fact_checks: list[FactCheck],
     ) -> None:
         """Test admin can trigger email sending."""
+        from app.services.transparency_report_service import TransparencyReportService
+
         headers: dict[str, str] = get_auth_headers(admin_user)
 
         # Generate a report first
         now: datetime = datetime.now(timezone.utc)
-        gen_response = client.post(
-            "/api/v1/reports/transparency/generate",
-            headers=headers,
-            json={"year": now.year, "month": now.month},
-        )
+        with patch.object(
+            TransparencyReportService,
+            "_generate_report_data",
+            new_callable=AsyncMock,
+            return_value=get_mock_analytics_data(),
+        ):
+            gen_response = client.post(
+                "/api/v1/reports/transparency/generate",
+                headers=headers,
+                json={"year": now.year, "month": now.month},
+            )
         report_id: str = gen_response.json()["id"]
 
         # Send email
