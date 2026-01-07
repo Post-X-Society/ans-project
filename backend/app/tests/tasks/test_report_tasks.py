@@ -24,9 +24,11 @@ class TestGenerateMonthlyReportTask:
 
     def test_task_is_registered(self) -> None:
         """Test that the task is properly registered with Celery."""
+        # Import the task module to ensure it's loaded
         from app.core.celery_app import celery_app
+        from app.tasks import report_tasks  # noqa: F401
 
-        # Task should be discoverable
+        # Task should be discoverable after module import
         task_name: str = "app.tasks.report_tasks.generate_monthly_report_task"
         assert task_name in celery_app.tasks
 
@@ -182,7 +184,9 @@ class TestCeleryBeatSchedule:
 
     def test_monthly_report_task_in_beat_schedule(self) -> None:
         """Test that monthly report task is scheduled in Celery Beat."""
+        # Import task module to ensure it's loaded
         from app.core.celery_app import celery_app
+        from app.tasks import report_tasks  # noqa: F401
 
         beat_schedule: dict[str, Any] = celery_app.conf.beat_schedule
 
@@ -191,7 +195,9 @@ class TestCeleryBeatSchedule:
 
     def test_monthly_report_task_schedule_is_monthly(self) -> None:
         """Test that task is scheduled to run monthly."""
+        # Import task module to ensure it's loaded
         from app.core.celery_app import celery_app
+        from app.tasks import report_tasks  # noqa: F401
 
         beat_schedule: dict[str, Any] = celery_app.conf.beat_schedule
         task_config: dict[str, Any] = beat_schedule["generate-monthly-transparency-report"]
@@ -203,7 +209,9 @@ class TestCeleryBeatSchedule:
 
     def test_monthly_report_task_has_correct_queue(self) -> None:
         """Test that task is routed to correct queue."""
+        # Import task module to ensure it's loaded
         from app.core.celery_app import celery_app
+        from app.tasks import report_tasks  # noqa: F401
 
         beat_schedule: dict[str, Any] = celery_app.conf.beat_schedule
         task_config: dict[str, Any] = beat_schedule["generate-monthly-transparency-report"]
