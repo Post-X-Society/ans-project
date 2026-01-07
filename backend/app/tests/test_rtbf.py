@@ -372,15 +372,17 @@ class TestMinorAnonymization:
         service: RTBFService = RTBFService(db_session)
 
         # Test minor (15 years old)
-        minor_dob: date = date.today() - timedelta(days=15 * 365)
+        # Add extra days to account for leap years
+        minor_dob: date = date.today() - timedelta(days=15 * 365 + 4)
         assert service.is_minor(minor_dob) is True
 
         # Test adult (20 years old)
-        adult_dob: date = date.today() - timedelta(days=20 * 365)
+        adult_dob: date = date.today() - timedelta(days=20 * 365 + 5)
         assert service.is_minor(adult_dob) is False
 
-        # Test edge case (exactly 18)
-        edge_dob: date = date.today() - timedelta(days=18 * 365)
+        # Test edge case (exactly 18) - use replace to get exact 18th birthday
+        today = date.today()
+        edge_dob: date = today.replace(year=today.year - 18)
         assert service.is_minor(edge_dob) is False
 
     @pytest.mark.asyncio
@@ -430,12 +432,13 @@ class TestMinorAnonymization:
         # Default threshold should be 18
         assert service.minor_age_threshold == 18
 
-        # 17 year old should be minor
-        seventeen_dob: date = date.today() - timedelta(days=17 * 365)
+        # 17 year old should be minor - use replace for exact age
+        today = date.today()
+        seventeen_dob: date = today.replace(year=today.year - 17)
         assert service.is_minor(seventeen_dob) is True
 
         # 18 year old should not be minor
-        eighteen_dob: date = date.today() - timedelta(days=18 * 365)
+        eighteen_dob: date = today.replace(year=today.year - 18)
         assert service.is_minor(eighteen_dob) is False
 
 

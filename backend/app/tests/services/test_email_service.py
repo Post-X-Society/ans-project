@@ -161,6 +161,11 @@ class TestEmailOptOut:
 class TestEmailTemplates:
     """Test email template rendering"""
 
+    @pytest.fixture
+    def email_service(self) -> EmailService:
+        """Provide email service instance"""
+        return EmailService()
+
     def test_submission_received_template(self, email_service: EmailService) -> None:
         """Test submission received email template"""
         # Arrange
