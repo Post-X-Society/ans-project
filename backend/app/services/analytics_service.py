@@ -235,16 +235,17 @@ class AnalyticsService:
             }
 
         # Calculate total
-        total_count: int = sum(row.count for row in rows)
+        total_count: int = sum(int(row.count) for row in rows)
 
         # Build distribution
         ratings: list[dict[str, Any]] = []
         for row in rows:
-            percentage: float = (row.count / total_count * 100) if total_count > 0 else 0.0
+            count_val = int(row.count)
+            percentage: float = (count_val / total_count * 100) if total_count > 0 else 0.0
             ratings.append(
                 {
                     "rating": row.verdict,
-                    "count": row.count,
+                    "count": count_val,
                     "percentage": round(percentage, 1),
                 }
             )
@@ -300,7 +301,7 @@ class AnalyticsService:
         sources_by_type: dict[str, int] = {
             (
                 row.source_type.value if hasattr(row.source_type, "value") else str(row.source_type)
-            ): row.count
+            ): int(row.count)
             for row in sources_by_type_result.all()
         }
 
@@ -314,7 +315,7 @@ class AnalyticsService:
         sources_by_relevance: dict[str, int] = {
             (
                 row.relevance.value if hasattr(row.relevance, "value") else str(row.relevance)
-            ): row.count
+            ): int(row.count)
             for row in sources_by_relevance_result.all()
         }
 
@@ -397,7 +398,7 @@ class AnalyticsService:
                 row.correction_type.value
                 if hasattr(row.correction_type, "value")
                 else str(row.correction_type)
-            ): row.count
+            ): int(row.count)
             for row in corr_by_type_result.all()
         }
 
