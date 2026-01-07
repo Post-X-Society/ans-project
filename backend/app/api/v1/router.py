@@ -5,6 +5,7 @@ API v1 router - aggregates all v1 endpoints
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    analytics,
     auth,
     corrections,
     drafts,
@@ -42,3 +43,4 @@ api_router.include_router(
     email_templates.router, prefix="/email-templates", tags=["email-templates"]
 )
 api_router.include_router(rtbf.router, tags=["rtbf"])
+api_router.include_router(analytics.router, tags=["analytics"])
