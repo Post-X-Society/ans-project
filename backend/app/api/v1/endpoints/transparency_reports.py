@@ -19,7 +19,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_db, require_admin
+from app.core.database import get_db
+from app.core.dependencies import require_admin
 from app.models.user import User
 from app.schemas.transparency_report import (
     TransparencyReportEmailResult,

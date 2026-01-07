@@ -527,11 +527,11 @@ class TransparencyReportService:
 
     def _generate_reportlab_pdf(self, report: TransparencyReport) -> bytes:
         """Generate PDF using reportlab library."""
-        from reportlab.lib import colors
-        from reportlab.lib.pagesizes import A4
-        from reportlab.lib.styles import getSampleStyleSheet
-        from reportlab.lib.units import cm
-        from reportlab.platypus import (
+        from reportlab.lib import colors  # type: ignore[import-untyped]
+        from reportlab.lib.pagesizes import A4  # type: ignore[import-untyped]
+        from reportlab.lib.styles import getSampleStyleSheet  # type: ignore[import-untyped]
+        from reportlab.lib.units import cm  # type: ignore[import-untyped]
+        from reportlab.platypus import (  # type: ignore[import-untyped]
             Paragraph,
             SimpleDocTemplate,
             Spacer,
