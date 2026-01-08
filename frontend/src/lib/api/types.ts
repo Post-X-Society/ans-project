@@ -791,3 +791,113 @@ export interface UserDataSummary {
 	ratings_count: number;
 	published_submissions_count: number;
 }
+
+// =============================================================================
+// Analytics & Compliance Dashboard Types
+// Issue #90: Frontend EFCSN Compliance Dashboard (TDD)
+// EPIC #52: Analytics & Compliance Dashboard
+// =============================================================================
+
+/**
+ * Monthly fact-check count data point
+ */
+export interface MonthlyFactCheckCount {
+	month: string;
+	count: number;
+	meets_efcsn_minimum: boolean;
+}
+
+/**
+ * Response for monthly fact-check counts
+ */
+export interface MonthlyFactCheckCountResponse {
+	months: MonthlyFactCheckCount[];
+	efcsn_minimum: number;
+	total_fact_checks: number;
+	months_meeting_minimum: number;
+}
+
+/**
+ * Time to publication metrics
+ */
+export interface TimeToPublicationMetrics {
+	average_hours: number;
+	median_hours: number;
+	min_hours: number;
+	max_hours: number;
+	sample_size: number;
+}
+
+/**
+ * Rating distribution item
+ */
+export interface RatingDistributionItem {
+	rating: FactCheckRatingValue;
+	count: number;
+	percentage: number;
+}
+
+/**
+ * Response for rating distribution
+ */
+export interface RatingDistributionResponse {
+	distribution: RatingDistributionItem[];
+	total_count: number;
+}
+
+/**
+ * Source quality metrics for EFCSN compliance
+ */
+export interface SourceQualityMetrics {
+	average_sources_per_fact_check: number;
+	average_credibility_score: number;
+	official_source_percentage: number;
+	fact_checks_with_sources: number;
+	total_sources: number;
+}
+
+/**
+ * Correction rate metrics
+ */
+export interface CorrectionRateMetrics {
+	total_corrections: number;
+	corrections_accepted: number;
+	corrections_rejected: number;
+	correction_rate_percentage: number;
+	average_resolution_hours: number;
+	sla_compliance_percentage: number;
+}
+
+/**
+ * EFCSN compliance checklist item
+ */
+export interface EFCSNComplianceChecklistItem {
+	id: string;
+	requirement: string;
+	description: string;
+	is_compliant: boolean;
+	details: string | null;
+}
+
+/**
+ * EFCSN compliance status response
+ */
+export interface EFCSNComplianceResponse {
+	overall_compliant: boolean;
+	compliance_score: number;
+	checklist: EFCSNComplianceChecklistItem[];
+	last_checked: string;
+}
+
+/**
+ * Complete analytics dashboard response
+ */
+export interface AnalyticsDashboardResponse {
+	monthly_fact_checks: MonthlyFactCheckCountResponse;
+	time_to_publication: TimeToPublicationMetrics;
+	rating_distribution: RatingDistributionResponse;
+	source_quality: SourceQualityMetrics;
+	correction_rate: CorrectionRateMetrics;
+	efcsn_compliance: EFCSNComplianceResponse;
+	generated_at: string;
+}

@@ -25,7 +25,8 @@
     "showing": "{count} van {total} {item} weergeven",
     "page": "Pagina {current} van {total}",
     "previous": "Vorige",
-    "next": "Volgende"
+    "next": "Volgende",
+    "noData": "Geen gegevens beschikbaar"
   },
   "nav": {
     "home": "Home",
@@ -38,6 +39,8 @@
     "corrections": "Correcties",
     "transparencyPages": "Transparantiepagina's",
     "emailTemplates": "E-mailsjablonen",
+    "rtbfRequests": "RTBF Aanvragen",
+    "complianceDashboard": "Nalevingsdashboard",
     "login": "Inloggen",
     "logout": "Uitloggen",
     "register": "Registreren"
@@ -902,6 +905,63 @@
           "description": "Gebruikt om bezoekers te volgen op websites om relevante advertenties te tonen."
         }
       }
+    }
+  },
+  "compliance": {
+    "title": "EFCSN Naleving",
+    "overallStatus": "Algemene Status",
+    "complianceScore": "Nalevingsscore",
+    "checklist": "Checklist",
+    "lastChecked": "Laatst gecontroleerd",
+    "status": {
+      "compliant": "Voldoet",
+      "non_compliant": "Voldoet niet",
+      "warning": "Waarschuwing",
+      "at_risk": "Risico"
+    },
+    "dashboard": {
+      "title": "EFCSN Nalevingsdashboard",
+      "description": "Real-time monitoring van EFCSN-standaarden naleving",
+      "lastRefresh": "Laatst vernieuwd",
+      "refresh": "Vernieuwen",
+      "generatedAt": "Gegenereerd op"
+    },
+    "factChecksChart": {
+      "title": "Factchecks Per Maand",
+      "total": "Totaal",
+      "average": "Gemiddeld/Maand",
+      "efcsnMinimum": "EFCSN Minimum (4/maand)"
+    },
+    "timeToPublication": {
+      "title": "Tijd tot Publicatie",
+      "average": "Gemiddeld",
+      "median": "Mediaan",
+      "min": "Minimum",
+      "max": "Maximum",
+      "hours": "uren",
+      "totalPublished": "Totaal Gepubliceerd"
+    },
+    "ratingDistribution": {
+      "title": "Beoordelingsverdeling",
+      "total": "Totaal Factchecks"
+    },
+    "sourceQuality": {
+      "title": "Bronkwaliteit",
+      "avgSources": "Gem. Bronnen/Factcheck",
+      "avgCredibility": "Gem. Betrouwbaarheid (1-5)",
+      "totalSources": "Totaal Bronnen",
+      "meetingMinimum": "Voldoet aan Minimum",
+      "belowMinimum": "Onder Minimum",
+      "efcsnMinimum": "EFCSN vereist 2+ bronnen"
+    },
+    "correctionRate": {
+      "title": "Correctiepercentage",
+      "totalFactChecks": "Totaal Factchecks",
+      "totalCorrections": "Totaal Correcties",
+      "accepted": "Geaccepteerd",
+      "rejected": "Afgewezen",
+      "pending": "In behandeling",
+      "rate": "Correctiepercentage"
     }
   }
 }
