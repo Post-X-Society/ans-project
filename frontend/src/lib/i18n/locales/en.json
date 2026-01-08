@@ -25,7 +25,8 @@
     "showing": "Showing {count} of {total} {item}",
     "page": "Page {current} of {total}",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "noData": "No data available"
   },
   "nav": {
     "home": "Home",
@@ -39,6 +40,7 @@
     "transparencyPages": "Transparency Pages",
     "emailTemplates": "Email Templates",
     "rtbfRequests": "RTBF Requests",
+    "complianceDashboard": "Compliance Dashboard",
     "login": "Login",
     "logout": "Logout",
     "register": "Register"
@@ -966,6 +968,63 @@
           "description": "Used to track visitors across websites to display relevant advertisements."
         }
       }
+    }
+  },
+  "compliance": {
+    "title": "EFCSN Compliance",
+    "overallStatus": "Overall Status",
+    "complianceScore": "Compliance Score",
+    "checklist": "Checklist",
+    "lastChecked": "Last Checked",
+    "status": {
+      "compliant": "Compliant",
+      "non_compliant": "Non-Compliant",
+      "warning": "Warning",
+      "at_risk": "At Risk"
+    },
+    "dashboard": {
+      "title": "EFCSN Compliance Dashboard",
+      "description": "Real-time monitoring of EFCSN Code of Standards compliance",
+      "lastRefresh": "Last refresh",
+      "refresh": "Refresh",
+      "generatedAt": "Generated at"
+    },
+    "factChecksChart": {
+      "title": "Fact-Checks Per Month",
+      "total": "Total",
+      "average": "Average/Month",
+      "efcsnMinimum": "EFCSN Minimum (4/month)"
+    },
+    "timeToPublication": {
+      "title": "Time to Publication",
+      "average": "Average",
+      "median": "Median",
+      "min": "Minimum",
+      "max": "Maximum",
+      "hours": "hours",
+      "totalPublished": "Total Published"
+    },
+    "ratingDistribution": {
+      "title": "Rating Distribution",
+      "total": "Total Fact-Checks"
+    },
+    "sourceQuality": {
+      "title": "Source Quality",
+      "avgSources": "Avg. Sources/Fact-Check",
+      "avgCredibility": "Avg. Credibility (1-5)",
+      "totalSources": "Total Sources",
+      "meetingMinimum": "Meeting Minimum",
+      "belowMinimum": "Below Minimum",
+      "efcsnMinimum": "EFCSN requires 2+ sources"
+    },
+    "correctionRate": {
+      "title": "Correction Rate",
+      "totalFactChecks": "Total Fact-Checks",
+      "totalCorrections": "Total Corrections",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "pending": "Pending",
+      "rate": "Correction Rate"
     }
   }
 }
