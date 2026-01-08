@@ -40,13 +40,27 @@
 
 ## Features
 
+### Core Functionality
 - **Multi-Channel Submissions**: Accept claims via Snapchat API and web interface
 - **AI-Powered Fact-Checking**: Leverage GPT-4 for claim analysis
 - **Vector Search**: Use pgvector for semantic similarity matching
-- **Real-time Processing**: Async processing with Redis job queues
-- **Modern UI**: Responsive Svelte 5 application with SSR disabled
-- **Comprehensive Testing**: 80%+ test coverage with TDD methodology
+- **Real-time Processing**: Async processing with Redis job queues and Celery
+- **Modern UI**: Responsive Svelte 5 application with TailwindCSS
+- **Comprehensive Testing**: 808+ tests passing with 80%+ coverage (TDD methodology)
 - **Developer-Friendly**: Hot reload, Docker Compose, extensive documentation
+
+### EFCSN Compliance Features ✅
+- **Workflow State Machine**: 15-state workflow for fact-check lifecycle management
+- **Multi-Tier Peer Review**: Consensus-based review system with deliberation
+- **Rating System**: 6 standardized ratings (TRUE, PARTLY_FALSE, FALSE, MISSING_CONTEXT, ALTERED, SATIRE)
+- **Source Management**: Evidence tracking with credibility ratings and URL archiving (Wayback Machine)
+- **Corrections & Complaints**: Public correction request system with SLA tracking
+- **Transparency Reporting**: Automated monthly transparency reports with versioning
+- **Analytics Dashboard**: Real-time EFCSN compliance monitoring
+- **GDPR Compliance**: Data retention policies, right-to-be-forgotten, cookie consent
+- **Email Notifications**: Multilingual (EN/NL) automated workflow notifications
+- **Role-Based Access Control**: Submitter, Reviewer, Admin, Super Admin roles
+- **Quality Metrics**: Time-to-publication, correction rates, source quality tracking
 
 ## Quick Start
 
@@ -424,15 +438,41 @@ mypy app/              # Type checking
 
 Comprehensive documentation is available in the `docs/` directory:
 
-- **[AGENT_COORDINATION.md](docs/AGENT_COORDINATION.md)**: Multi-agent development workflow, TDD process, PR guidelines
-- **[POST_MORTEM_SSR_MIGRATION.md](docs/POST_MORTEM_SSR_MIGRATION.md)**: Lessons learned from SSR to SPA migration, Docker networking insights
-- **[INFRASTRUCTURE_TESTING.md](docs/INFRASTRUCTURE_TESTING.md)**: Complete testing checklist for Docker environment
+### Getting Started
+- **[README.md](README.md)**: This file - project overview and quick start
+- **[CONTRIBUTING.md](CONTRIBUTING.md)**: How to contribute, development workflow, PR process
+- **[LOCAL_DEVELOPMENT_GUIDE.md](docs/LOCAL_DEVELOPMENT_GUIDE.md)**: Detailed local setup and manual testing guide
+- **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)**: Solutions to common problems
 
-### Additional Resources
+### API & Development
+- **[API.md](docs/API.md)**: Complete API documentation with examples
+- **API Documentation (Interactive)**: http://localhost:8000/docs (Swagger UI - when running)
+- **API Documentation (Clean)**: http://localhost:8000/redoc (ReDoc - when running)
+- **[AGENT_COORDINATION.md](docs/AGENT_COORDINATION.md)**: Multi-agent development workflow, TDD process
 
-- **API Documentation**: http://localhost:8000/docs (when running)
-- **Contributing Guide**: See [Contributing](#contributing) section below
-- **Troubleshooting Guide**: See [Troubleshooting](#troubleshooting) section below
+### Architecture & Decisions
+- **[ADR Directory](docs/adr/)**: Architecture Decision Records
+  - [0001: Docker Development Environment](docs/adr/0001-docker-development-environment.md)
+  - [0002: GitHub SSH Authentication](docs/adr/0002-github-ssh-authentication.md)
+  - [0003: Code Quality & Pre-commit Workflow](docs/adr/0003-code-quality-and-pre-commit-workflow.md)
+  - [0004: Multilingual Text Files](docs/adr/0004-multilingual-text-files.md)
+  - [0005: EFCSN Compliance Architecture](docs/adr/0005-efcsn-compliance-architecture.md)
+  - [0006: Collaborative Workflow UI/UX](docs/adr/0006-collaborative-workflow-ui-ux.md)
+
+### Agent Definitions
+- **[Agent Directory](docs/agents/)**: Specialized development roles
+  - [01: System Architect](docs/agents/01-system-architect.md)
+  - [02: Database Architect](docs/agents/02-database-architect.md)
+  - [03: Backend Developer](docs/agents/03-backend-developer.md)
+  - [04: Frontend Developer](docs/agents/04-frontend-developer.md)
+  - [05: AI/ML Engineer](docs/agents/05-ai-ml-engineer.md)
+  - [06: Integration Developer](docs/agents/06-integration-developer.md)
+  - [07: DevOps/QA Engineer](docs/agents/07-devops-qa-engineer.md)
+
+### Project Management
+- **[SPRINT_PLANNING_COMPLETE.md](docs/SPRINT_PLANNING_COMPLETE.md)**: Complete sprint breakdown and EFCSN feature roadmap
+- **[INFRASTRUCTURE_TESTING.md](docs/INFRASTRUCTURE_TESTING.md)**: Testing checklist for Docker environment
+- **[POST_MORTEM_SSR_MIGRATION.md](docs/POST_MORTEM_SSR_MIGRATION.md)**: Lessons learned from SSR to SPA migration
 
 ## Contributing
 
