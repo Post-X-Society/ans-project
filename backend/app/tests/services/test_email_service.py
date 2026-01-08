@@ -53,7 +53,9 @@ class TestEmailService:
         # Mock SMTP configuration
         with patch("app.services.email_service.settings.smtp_configured", True):
             # Act
-            result: bool = email_service.send_email(to_email=to_email, subject=subject, body_html=body)
+            result: bool = email_service.send_email(
+                to_email=to_email, subject=subject, body_html=body
+            )
 
             # Assert
             assert result is True
