@@ -401,6 +401,222 @@ grep -r '"/app' backend/app/  # Should only appear in defaults, not hardcoded
 
 **Golden Rule**: If it assumes Docker's `/app` directory structure, it will fail in GitHub Actions CI.
 
+## Database Environment Safety
+
+### Critical: Test vs Production Database Isolation
+
+**NEVER run tests against the production PostgreSQL database!** Tests are designed to use in-memory SQLite for speed and safety.
+
+#### Test Database Configuration
+
+Tests **ALWAYS** use SQLite in-memory (configured in `conftest.py`):
+
+```python
+# app/tests/conftest.py
+@pytest_asyncio.fixture
+async def db_session() -> AsyncGenerator[AsyncSession, None]:
+    """Uses in-memory SQLite for tests - NEVER PostgreSQL"""
+    engine = create_async_engine(
+        "sqlite+aiosqlite:///:memory:",  # ← In-memory, isolated
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    # Create fresh schema for each test
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    # ... session creation ...
+    # Drop schema after test
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+```
+
+#### Production Database Configuration
+
+Production uses PostgreSQL (configured in `.env` and `config.py`):
+
+```python
+# app/core/config.py
+DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ans_dev"
+```
+
+#### Why This Matters
+
+| Risk | Impact | Prevention |
+|------|--------|------------|
+| Running tests against PostgreSQL | **Data loss** - tests drop tables! | Use SQLite fixture |
+| Using PostgreSQL URL in tests | Slow tests, connection leaks | Override `get_db` dependency |
+| Forgetting to override dependencies | Production data corruption | Always use `conftest.py` fixtures |
+| Manual testing on production DB | **CRITICAL DATA LOSS** | Use separate test/staging databases |
+
+### Mandatory Safety Checks for Backend Developers
+
+**BEFORE writing ANY test that touches the database:**
+
+1. ✅ **Use the `db_session` fixture** from `conftest.py` - NEVER create your own database connection
+2. ✅ **Verify test uses SQLite** - Check logs for `sqlite+aiosqlite:///:memory:`
+3. ✅ **Never set DATABASE_URL in tests** - Let the fixture handle it
+4. ✅ **Override dependencies** - Use `app.dependency_overrides[get_db] = override_get_db`
+5. ✅ **Test isolation** - Each test gets a fresh database with `create_all()` / `drop_all()`
+
+#### ✅ CORRECT Test Pattern
+
+```python
+@pytest.mark.asyncio
+async def test_create_user(db_session: AsyncSession) -> None:
+    """Test user creation - uses SQLite fixture automatically"""
+    # db_session is already connected to in-memory SQLite
+    user = User(email="test@example.com", password_hash="hashed")
+    db_session.add(user)
+    await db_session.commit()
+
+    # Query the test database
+    result = await db_session.execute(select(User))
+    assert result.scalar_one().email == "test@example.com"
+    # Tables automatically dropped after test completes
+```
+
+#### ❌ WRONG - Creating Own Database Connection
+
+```python
+@pytest.mark.asyncio
+async def test_create_user_WRONG() -> None:
+    """DANGER: Creates connection to production PostgreSQL!"""
+    from app.core.database import AsyncSessionLocal  # ← Uses production DATABASE_URL!
+
+    async with AsyncSessionLocal() as session:  # ← Connected to PostgreSQL!
+        user = User(email="test@example.com")
+        session.add(user)
+        await session.commit()  # ← Writing to production database!
+```
+
+### Database Compatibility: SQLite vs PostgreSQL
+
+Most SQLAlchemy code works identically on SQLite and PostgreSQL, but beware these differences:
+
+#### PostgreSQL-Specific Features That Fail in SQLite
+
+**❌ PostgreSQL ARRAY types:**
+```python
+from sqlalchemy import ARRAY, String
+
+class Model(Base):
+    tags = Column(ARRAY(String))  # ← Fails in SQLite tests!
+```
+
+**✅ Use JSON instead (works on both):**
+```python
+from sqlalchemy import JSON
+
+class Model(Base):
+    tags = Column(JSON)  # ← Works on SQLite and PostgreSQL
+    # Store as: ["tag1", "tag2"]
+```
+
+**❌ PostgreSQL ENUMs:**
+```python
+import enum
+from sqlalchemy import Enum as SQLEnum
+
+class Status(enum.Enum):
+    PENDING = "pending"
+    APPROVED = "approved"
+
+class Model(Base):
+    status = Column(SQLEnum(Status))  # ← May behave differently in SQLite
+```
+
+**✅ Use String with validation:**
+```python
+from sqlalchemy import String, CheckConstraint
+
+class Model(Base):
+    status = Column(String(20))  # ← Works on both
+
+    __table_args__ = (
+        CheckConstraint("status IN ('pending', 'approved')"),
+    )
+```
+
+**❌ PostgreSQL-specific functions:**
+```python
+# These require PostgreSQL-specific imports and fail in SQLite:
+from sqlalchemy.dialects.postgresql import UUID, JSONB, insert
+```
+
+**✅ Use database-agnostic alternatives:**
+```python
+from sqlalchemy import String, JSON  # Works on both
+from uuid import uuid4
+
+class Model(Base):
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    data = Column(JSON)  # Not JSONB
+```
+
+### Testing Strategy: SQLite for Unit Tests, PostgreSQL for Integration Tests
+
+**Unit Tests (95% of tests):**
+- Use SQLite in-memory via `db_session` fixture
+- Fast, isolated, safe
+- Test business logic, not database features
+
+**Integration Tests (5% of tests, when needed):**
+- Use dedicated PostgreSQL test database (NOT production!)
+- Test PostgreSQL-specific features (ARRAY, JSONB, triggers)
+- Mark with `@pytest.mark.integration` and skip in fast test runs
+
+```python
+@pytest.mark.integration
+@pytest.mark.skipif(
+    os.getenv("DATABASE_URL", "").startswith("sqlite"),
+    reason="Requires PostgreSQL for ARRAY support"
+)
+async def test_postgresql_specific_feature(db_session: AsyncSession) -> None:
+    """Test that only runs when connected to PostgreSQL test database"""
+    # This test skipped when using SQLite fixture
+    # Runs only in integration test suite with real PostgreSQL
+```
+
+### Environment Variable Best Practices
+
+**Development `.env` file:**
+```bash
+# Development database (Docker PostgreSQL)
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/ans_dev
+
+# Test database (NEVER set this - conftest.py handles it!)
+# TEST_DATABASE_URL=  # ← DO NOT SET THIS!
+```
+
+**Production `.env` file:**
+```bash
+# Production database (managed PostgreSQL)
+DATABASE_URL=postgresql+asyncpg://user:password@prod-host:5432/ans_production
+
+# NEVER run tests in production environment!
+```
+
+**CI/CD `.github/workflows/backend-tests.yml`:**
+```yaml
+env:
+  # Tests use SQLite by default (no DATABASE_URL needed)
+  # CI can optionally run integration tests against PostgreSQL service
+  DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/ans_test
+```
+
+### Pre-Commit Safety Checklist
+
+Before committing ANY database-related code:
+
+- [ ] Tests use `db_session` fixture (not direct database connections)
+- [ ] No hardcoded `DATABASE_URL` in test code
+- [ ] No PostgreSQL-specific types (ARRAY, JSONB, UUID) in core models
+- [ ] All tests pass with SQLite in-memory database
+- [ ] Integration tests marked and skipped in fast runs
+- [ ] Never tested against production database
+
+**Remember**: Tests that accidentally connect to production PostgreSQL can **drop all your tables**!
+
 ## CI/CD Configuration
 
 The GitHub Actions workflow includes:
@@ -465,3 +681,4 @@ Consider implementing:
 - 2025-12-20: Added mypy type checking standards and pre-commit workflow
 - 2025-12-20: Merged with development workflow ADR (previously ADR 0002)
 - 2025-12-20: Added CI environment considerations section addressing hardcoded paths issue
+- 2026-01-08: Added Database Environment Safety section covering SQLite/PostgreSQL isolation, test safety patterns, and database compatibility guidelines
