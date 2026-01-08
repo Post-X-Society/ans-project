@@ -856,21 +856,26 @@ class TestEmailService:
 
     def test_email_service_not_configured(self) -> None:
         """Test EmailService returns False when SMTP not configured."""
+        from unittest.mock import patch
+
         from app.services.email_service import EmailService
 
-        # Create email service - SMTP is not configured in test environment
-        service = EmailService()
-        # In test environment, SMTP should not be configured
-        # So send_email should return False
-        result = service.send_email(
-            to_email="test@example.com",
-            subject="Test",
-            body_html="<p>Test</p>",
-        )
-        # Since SMTP is not configured in test env, this should return False
-        assert result is False
-        # Also verify the is_configured property returns False
-        assert service.is_configured is False
+        # Mock SMTP settings to make it appear unconfigured
+        with patch("app.services.email_service.settings.SMTP_HOST", None), \
+             patch("app.services.email_service.settings.SMTP_USER", None), \
+             patch("app.services.email_service.settings.SMTP_PASSWORD", None):
+            # Create email service - SMTP is not configured
+            service = EmailService()
+            # Verify the is_configured property returns False
+            assert service.is_configured is False
+            # So send_email should return False
+            result = service.send_email(
+                to_email="test@example.com",
+                subject="Test",
+                body_html="<p>Test</p>",
+            )
+            # Since SMTP is not configured, this should return False
+            assert result is False
 
     def test_send_review_reminder_email_empty_list(self) -> None:
         """Test sending reminder with empty page list returns True."""
