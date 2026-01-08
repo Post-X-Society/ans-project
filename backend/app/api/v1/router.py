@@ -18,6 +18,7 @@ from app.api.v1.endpoints import (
     sources,
     submissions,
     transparency,
+    transparency_reports,
     users,
     workflow,
 )
@@ -44,3 +45,4 @@ api_router.include_router(
 )
 api_router.include_router(rtbf.router, tags=["rtbf"])
 api_router.include_router(analytics.router, tags=["analytics"])
+api_router.include_router(transparency_reports.router, tags=["transparency-reports"])

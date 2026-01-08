@@ -50,12 +50,16 @@ class TestEmailService:
         subject: str = "Test Subject"
         body: str = "Test email body"
 
-        # Act
-        result: bool = email_service.send_email(to_email=to_email, subject=subject, body_html=body)
+        # Mock SMTP configuration
+        with patch("app.services.email_service.settings.smtp_configured", True):
+            # Act
+            result: bool = email_service.send_email(
+                to_email=to_email, subject=subject, body_html=body
+            )
 
-        # Assert
-        assert result is True
-        mock_smtp.sendmail.assert_called_once()
+            # Assert
+            assert result is True
+            mock_smtp.sendmail.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_send_email_async(self, email_service: EmailService, mock_smtp: Mock) -> None:
@@ -66,14 +70,16 @@ class TestEmailService:
         body_text: str = "Plain text"
         body_html: str = "<p>HTML body</p>"
 
-        # Act
-        result: bool = await email_service.send_email_async(
-            to_email=to_email, subject=subject, body_text=body_text, body_html=body_html
-        )
+        # Mock SMTP configuration
+        with patch("app.services.email_service.settings.smtp_configured", True):
+            # Act
+            result: bool = await email_service.send_email_async(
+                to_email=to_email, subject=subject, body_text=body_text, body_html=body_html
+            )
 
-        # Assert
-        assert result is True
-        mock_smtp.sendmail.assert_called_once()
+            # Assert
+            assert result is True
+            mock_smtp.sendmail.assert_called_once()
 
 
 class TestEmailDeliveryTracking:
@@ -160,6 +166,11 @@ class TestEmailOptOut:
 
 class TestEmailTemplates:
     """Test email template rendering"""
+
+    @pytest.fixture
+    def email_service(self) -> EmailService:
+        """Provide email service instance"""
+        return EmailService()
 
     def test_submission_received_template(self, email_service: EmailService) -> None:
         """Test submission received email template"""

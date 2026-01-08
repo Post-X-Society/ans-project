@@ -33,6 +33,7 @@ from app.models.transparency_page import (
     TransparencyPageVersion,
     seed_transparency_pages,
 )
+from app.models.transparency_report import TransparencyReport
 from app.models.user import User, UserRole
 from app.models.volunteer import Volunteer
 from app.models.workflow_transition import WorkflowState, WorkflowTransition
@@ -74,4 +75,5 @@ __all__ = [
     "TransparencyPage",
     "TransparencyPageVersion",
     "seed_transparency_pages",
+    "TransparencyReport",
 ]

@@ -14,8 +14,12 @@ from typing import Optional
 from sqlalchemy import Boolean, Enum, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.types import JSON
 
 from app.models.base import TimeStampedModel
+
+# Cross-database compatible JSONB type (JSONB for PostgreSQL, JSON for SQLite)
+JSONType = JSON().with_variant(JSONB, "postgresql")
 
 
 class EmailTemplateType(str, enum.Enum):
@@ -89,32 +93,32 @@ class EmailTemplate(TimeStampedModel):
     """Template type from enum for categorization"""
 
     name: Mapped[dict[str, str]] = mapped_column(
-        JSONB, nullable=False
+        JSONType, nullable=False
     )  # {"en": "Submission Received", "nl": "Inzending Ontvangen"}
     """Human-readable template name (multilingual)"""
 
     description: Mapped[dict[str, str]] = mapped_column(
-        JSONB, nullable=False
+        JSONType, nullable=False
     )  # {"en": "Sent when...", "nl": "Verzonden wanneer..."}
     """Template description for admin reference (multilingual)"""
 
     subject: Mapped[dict[str, str]] = mapped_column(
-        JSONB, nullable=False
+        JSONType, nullable=False
     )  # {"en": "Your submission...", "nl": "Uw inzending..."}
     """Email subject line (multilingual, supports Jinja2 variables)"""
 
     body_text: Mapped[dict[str, str]] = mapped_column(
-        JSONB, nullable=False
+        JSONType, nullable=False
     )  # {"en": "Dear {{name}}...", "nl": "Beste {{name}}..."}
     """Plain text email body (multilingual, supports Jinja2 variables)"""
 
     body_html: Mapped[dict[str, str]] = mapped_column(
-        JSONB, nullable=False
+        JSONType, nullable=False
     )  # {"en": "<html>...</html>", "nl": "<html>...</html>"}
     """HTML email body (multilingual, supports Jinja2 variables)"""
 
     variables: Mapped[dict[str, str]] = mapped_column(
-        JSONB, nullable=False
+        JSONType, nullable=False
     )  # {"submission_id": "string", "claim_text": "string", ...}
     """Available template variables and their types for validation"""
 
