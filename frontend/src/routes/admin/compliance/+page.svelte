@@ -27,10 +27,20 @@
 
 	let { data }: Props = $props();
 
-	let dashboard = $state<AnalyticsDashboardResponse | null>(data.dashboard);
+	let dashboard = $state<AnalyticsDashboardResponse | null>(null);
 	let isLoading = $state(false);
-	let error = $state<string | null>(data.error);
+	let error = $state<string | null>(null);
 	let lastRefresh = $state<Date>(new Date());
+
+	// Initialize dashboard from data prop
+	$effect(() => {
+		if (data.dashboard) {
+			dashboard = data.dashboard;
+		}
+		if (data.error) {
+			error = data.error;
+		}
+	});
 
 	const isAdmin = $derived(
 		$currentUser?.role === 'admin' || $currentUser?.role === 'super_admin'

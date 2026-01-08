@@ -802,7 +802,8 @@ export interface UserDataSummary {
  * Monthly fact-check count data point
  */
 export interface MonthlyFactCheckCount {
-	month: string;
+	year: number;
+	month: number;
 	count: number;
 	meets_efcsn_minimum: boolean;
 }
@@ -812,9 +813,8 @@ export interface MonthlyFactCheckCount {
  */
 export interface MonthlyFactCheckCountResponse {
 	months: MonthlyFactCheckCount[];
-	efcsn_minimum: number;
-	total_fact_checks: number;
-	months_meeting_minimum: number;
+	total_count: number;
+	average_per_month: number;
 }
 
 /**
@@ -825,7 +825,7 @@ export interface TimeToPublicationMetrics {
 	median_hours: number;
 	min_hours: number;
 	max_hours: number;
-	sample_size: number;
+	total_published: number;
 }
 
 /**
@@ -841,8 +841,10 @@ export interface RatingDistributionItem {
  * Response for rating distribution
  */
 export interface RatingDistributionResponse {
-	distribution: RatingDistributionItem[];
+	ratings: RatingDistributionItem[];
 	total_count: number;
+	period_start: string | null;
+	period_end: string | null;
 }
 
 /**
@@ -860,13 +862,19 @@ export interface SourceQualityMetrics {
  * Correction rate metrics
  */
 export interface CorrectionRateMetrics {
+	total_fact_checks: number;
 	total_corrections: number;
 	corrections_accepted: number;
 	corrections_rejected: number;
-	correction_rate_percentage: number;
-	average_resolution_hours: number;
-	sla_compliance_percentage: number;
+	corrections_pending: number;
+	correction_rate: number;
+	corrections_by_type: Record<string, number>;
 }
+
+/**
+ * EFCSN compliance status enum
+ */
+export type EFCSNComplianceStatus = 'compliant' | 'at_risk' | 'non_compliant' | 'warning';
 
 /**
  * EFCSN compliance checklist item
@@ -875,15 +883,17 @@ export interface EFCSNComplianceChecklistItem {
 	id: string;
 	requirement: string;
 	description: string;
-	is_compliant: boolean;
-	details: string | null;
+	status: EFCSNComplianceStatus;
+	details: string;
+	value?: number;
+	threshold?: number;
 }
 
 /**
  * EFCSN compliance status response
  */
 export interface EFCSNComplianceResponse {
-	overall_compliant: boolean;
+	overall_status: EFCSNComplianceStatus;
 	compliance_score: number;
 	checklist: EFCSNComplianceChecklistItem[];
 	last_checked: string;

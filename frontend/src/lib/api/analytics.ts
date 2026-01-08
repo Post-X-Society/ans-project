@@ -5,7 +5,7 @@
  * EPIC #52: Analytics & Compliance Dashboard
  */
 
-import apiClient from './client';
+import { apiClient } from './client';
 import type {
 	AnalyticsDashboardResponse,
 	EFCSNComplianceResponse,
