@@ -138,6 +138,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>{$t('admin.title')} - ANS</title>
+</svelte:head>
+
 <div class="container mx-auto px-4 py-8">
 	<div class="max-w-6xl mx-auto">
 		<div class="flex justify-between items-center mb-6">

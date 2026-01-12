@@ -12,8 +12,8 @@
 				<p class="text-sm text-gray-300">{$t('footer.copyright', { values: { year: currentYear } })}</p>
 			</div>
 			<nav class="flex space-x-6">
-				<a href="/privacy" class="text-sm text-gray-300 hover:text-white transition">{$t('footer.privacy')}</a>
-				<a href="/terms" class="text-sm text-gray-300 hover:text-white transition">{$t('footer.terms')}</a>
+				<a href="/about/privacy-policy" class="text-sm text-gray-300 hover:text-white transition">{$t('footer.privacy')}</a>
+				<a href="/about/terms" class="text-sm text-gray-300 hover:text-white transition">{$t('footer.terms')}</a>
 				<a href="/contact" class="text-sm text-gray-300 hover:text-white transition">{$t('footer.contact')}</a>
 			</nav>
 		</div>

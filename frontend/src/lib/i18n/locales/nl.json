@@ -51,6 +51,30 @@
     "terms": "Voorwaarden",
     "contact": "Contact"
   },
+  "contact": {
+    "title": "Contact",
+    "description": "Heeft u vragen of opmerkingen? Wij helpen u graag. Kies hieronder de meest relevante optie.",
+    "general": {
+      "title": "Algemene Vragen",
+      "email": "E-mail"
+    },
+    "corrections": {
+      "title": "Correctie Aanvragen",
+      "description": "Als u denkt dat een factcheck een fout bevat, kunt u een correctieverzoek indienen. Wij beoordelen alle verzoeken binnen 7 dagen volgens EFCSN-richtlijnen.",
+      "button": "Correctieverzoek Indienen"
+    },
+    "privacy": {
+      "title": "Privacy Verzoeken",
+      "description": "Voor AVG-verzoeken inclusief accountverwijdering of gegevensexport, gebruik ons privacyverzoekformulier.",
+      "button": "Privacy Verzoeken"
+    },
+    "responseTimes": {
+      "title": "Reactietijden",
+      "general": "Algemene vragen: We streven ernaar binnen 3-5 werkdagen te reageren",
+      "corrections": "Correctieverzoeken: Beoordeeld binnen 7 dagen (EFCSN-vereiste)",
+      "privacy": "Privacyverzoeken: Verwerkt binnen 30 dagen (AVG-vereiste)"
+    }
+  },
   "home": {
     "title": "Welkom bij Ans",
     "description": "Community-based factchecking voor SnapChat",

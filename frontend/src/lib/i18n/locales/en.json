@@ -51,6 +51,30 @@
     "terms": "Terms",
     "contact": "Contact"
   },
+  "contact": {
+    "title": "Contact Us",
+    "description": "Have questions or concerns? We're here to help. Choose the most relevant option below.",
+    "general": {
+      "title": "General Inquiries",
+      "email": "Email"
+    },
+    "corrections": {
+      "title": "Request a Correction",
+      "description": "If you believe a fact-check contains an error, you can submit a correction request. We review all requests within 7 days per EFCSN guidelines.",
+      "button": "Submit Correction Request"
+    },
+    "privacy": {
+      "title": "Data Privacy Requests",
+      "description": "For GDPR requests including account deletion or data export, use our privacy request form.",
+      "button": "Privacy Requests"
+    },
+    "responseTimes": {
+      "title": "Response Times",
+      "general": "General inquiries: We aim to respond within 3-5 business days",
+      "corrections": "Correction requests: Reviewed within 7 days (EFCSN requirement)",
+      "privacy": "Privacy requests: Processed within 30 days (GDPR requirement)"
+    }
+  },
   "home": {
     "title": "Welcome to Ans",
     "description": "Community based fact-checking for SnapChat",
