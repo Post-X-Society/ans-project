@@ -114,7 +114,8 @@ export const TRANSPARENCY_PAGE_SLUGS: TransparencyPageSlug[] = [
 	'funding',
 	'partnerships',
 	'corrections-policy',
-	'privacy-policy'
+	'privacy-policy',
+	'terms'
 ];
 
 /**

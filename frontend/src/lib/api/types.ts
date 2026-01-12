@@ -168,7 +168,8 @@ export type TransparencyPageSlug =
 	| 'funding'
 	| 'partnerships'
 	| 'corrections-policy'
-	| 'privacy-policy';
+	| 'privacy-policy'
+	| 'terms';
 
 // Transparency page version (for version history)
 export interface TransparencyPageVersion {

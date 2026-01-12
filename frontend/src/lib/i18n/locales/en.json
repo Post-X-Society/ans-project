@@ -300,7 +300,8 @@
       "funding": "Funding",
       "partnerships": "Partnerships",
       "corrections-policy": "Corrections Policy",
-      "privacy-policy": "Privacy Policy"
+      "privacy-policy": "Privacy Policy",
+      "terms": "Terms of Service"
     },
     "descriptions": {
       "methodology": "How we fact-check content",
@@ -309,7 +310,8 @@
       "funding": "Our funding sources",
       "partnerships": "Organizations we work with",
       "corrections-policy": "How we handle corrections",
-      "privacy-policy": "How we protect your data"
+      "privacy-policy": "How we protect your data",
+      "terms": "Terms and conditions for using our service"
     },
     "editor": {
       "title": "Edit Transparency Page",

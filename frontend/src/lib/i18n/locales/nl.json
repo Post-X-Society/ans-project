@@ -294,7 +294,8 @@
       "funding": "Financiering",
       "partnerships": "Partnerschappen",
       "corrections-policy": "Correctiebeleid",
-      "privacy-policy": "Privacybeleid"
+      "privacy-policy": "Privacybeleid",
+      "terms": "Algemene Voorwaarden"
     },
     "descriptions": {
       "methodology": "Hoe wij content factchecken",
@@ -303,7 +304,8 @@
       "funding": "Onze financieringsbronnen",
       "partnerships": "Organisaties waarmee we samenwerken",
       "corrections-policy": "Hoe wij correcties afhandelen",
-      "privacy-policy": "Hoe wij je gegevens beschermen"
+      "privacy-policy": "Hoe wij je gegevens beschermen",
+      "terms": "Voorwaarden voor het gebruik van onze dienst"
     },
     "editor": {
       "title": "Transparantiepagina Bewerken",
