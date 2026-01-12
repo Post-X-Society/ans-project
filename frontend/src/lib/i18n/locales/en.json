@@ -268,7 +268,15 @@
     "removing": "Removing...",
     "assigning": "Assigning...",
     "adminPanel": "Admin Panel",
-    "transparencyPages": "Transparency Pages"
+    "transparencyPages": "Transparency Pages",
+    "transparencyPagesTitle": "Transparency Pages",
+    "transparencyPagesDescription": "Manage EFCSN-required transparency pages. Click on a page to edit its content.",
+    "version": "Version",
+    "lastUpdated": "Last updated",
+    "nextReview": "Next review",
+    "overdue": "Overdue",
+    "noTransparencyPages": "No transparency pages found.",
+    "unauthorizedAccess": "You must be an admin to access this page."
   },
   "reviewers": {
     "assignReviewers": "Assign Reviewers",

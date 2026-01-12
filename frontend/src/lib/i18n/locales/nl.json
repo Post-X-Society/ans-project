@@ -262,7 +262,15 @@
     "removing": "Verwijderen...",
     "assigning": "Toewijzen...",
     "adminPanel": "Beheerpaneel",
-    "transparencyPages": "Transparantiepagina's"
+    "transparencyPages": "Transparantiepagina's",
+    "transparencyPagesTitle": "Transparantiepagina's",
+    "transparencyPagesDescription": "Beheer EFCSN-vereiste transparantiepagina's. Klik op een pagina om de inhoud te bewerken.",
+    "version": "Versie",
+    "lastUpdated": "Laatst bijgewerkt",
+    "nextReview": "Volgende review",
+    "overdue": "Achterstallig",
+    "noTransparencyPages": "Geen transparantiepagina's gevonden.",
+    "unauthorizedAccess": "U moet een beheerder zijn om deze pagina te openen."
   },
   "reviewers": {
     "assignReviewers": "Reviewers toewijzen",

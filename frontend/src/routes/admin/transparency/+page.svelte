@@ -12,7 +12,7 @@
 	import { page } from '$app/stores';
 	import { get } from 'svelte/store';
 	import { isAdmin, isAuthenticated } from '$lib/stores/auth';
-	import { t } from '$lib/i18n';
+	import { t, getCurrentLocale } from '$lib/i18n';
 	import { getTransparencyPages } from '$lib/api/transparency';
 	import type { TransparencyPageSummary } from '$lib/api/types';
 
@@ -26,11 +26,18 @@
 	function formatDate(dateString: string | null): string {
 		if (!dateString) return 'N/A';
 		const date = new Date(dateString);
-		return new Intl.DateTimeFormat('en-US', {
+		const locale = getCurrentLocale();
+		return new Intl.DateTimeFormat(locale === 'nl' ? 'nl-NL' : 'en-US', {
 			year: 'numeric',
 			month: 'short',
 			day: 'numeric'
 		}).format(date);
+	}
+
+	// Get page title in current locale
+	function getPageTitle(page: TransparencyPageSummary): string {
+		const locale = getCurrentLocale();
+		return page.title[locale] || page.title['en'] || page.slug;
 	}
 
 	// Check if review is overdue
@@ -86,7 +93,7 @@
 	<div class="flex items-center justify-center min-h-screen">
 		<div class="text-center">
 			<h1 class="text-2xl font-bold text-gray-900 mb-4">{$t('errors.unauthorized')}</h1>
-			<p class="text-gray-600 mb-4">You must be an admin to access this page.</p>
+			<p class="text-gray-600 mb-4">{$t('admin.unauthorizedAccess')}</p>
 			<a href="/login" class="text-primary-600 hover:text-primary-800">
 				{$t('nav.login')}
 			</a>
@@ -96,9 +103,9 @@
 	<div class="container mx-auto px-4 py-8">
 		<div class="max-w-4xl mx-auto">
 			<header class="mb-8">
-				<h1 class="text-3xl font-bold text-gray-900">Transparency Pages</h1>
+				<h1 class="text-3xl font-bold text-gray-900">{$t('admin.transparencyPagesTitle')}</h1>
 				<p class="mt-2 text-gray-600">
-					Manage EFCSN-required transparency pages. Click on a page to edit its content.
+					{$t('admin.transparencyPagesDescription')}
 				</p>
 			</header>
 
@@ -128,7 +135,7 @@
 							<div class="flex items-start justify-between">
 								<div class="flex-1">
 									<h2 class="text-lg font-semibold text-gray-900">
-										{page.title['en'] || page.slug}
+										{getPageTitle(page)}
 									</h2>
 									<p class="text-sm text-gray-500 mt-1">
 										/{page.slug}
@@ -137,20 +144,20 @@
 
 								<div class="text-right">
 									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-										Version {page.version}
+										{$t('admin.version')} {page.version}
 									</span>
 								</div>
 							</div>
 
 							<div class="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
 								<span>
-									Last updated: {formatDate(page.updated_at)}
+									{$t('admin.lastUpdated')}: {formatDate(page.updated_at)}
 								</span>
 								<span>|</span>
 								<span class={isOverdue(page.next_review_due) ? 'text-red-600 font-medium' : ''}>
-									Next review: {formatDate(page.next_review_due)}
+									{$t('admin.nextReview')}: {formatDate(page.next_review_due)}
 									{#if isOverdue(page.next_review_due)}
-										<span class="ml-1 text-red-600">(Overdue)</span>
+										<span class="ml-1 text-red-600">({$t('admin.overdue')})</span>
 									{/if}
 								</span>
 							</div>
@@ -159,7 +166,7 @@
 
 					{#if pages.length === 0}
 						<div class="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-							<p class="text-gray-600">No transparency pages found.</p>
+							<p class="text-gray-600">{$t('admin.noTransparencyPages')}</p>
 						</div>
 					{/if}
 				</div>
