@@ -990,5 +990,72 @@
       "pending": "In behandeling",
       "rate": "Correctiepercentage"
     }
+  },
+  "rtbf": {
+    "title": "Recht op Vergetelheid",
+    "adminTitle": "RTBF Verzoeken",
+    "requestDeletion": "Accountverwijdering Aanvragen",
+    "exportData": "Mijn Gegevens Exporteren",
+    "privacySection": {
+      "title": "Uw Gegevensrechten",
+      "description": "Onder de AVG heeft u het recht om verwijdering van uw persoonlijke gegevens aan te vragen of een kopie te exporteren van alle gegevens die we over u bewaren.",
+      "note": "Let op: Accountverwijderingsverzoeken worden beoordeeld door beheerders. Gepubliceerde factchecks worden geanonimiseerd om hun integriteit te behouden."
+    },
+    "form": {
+      "title": "Accountverwijdering Aanvragen",
+      "description": "Dien een verzoek in om uw account en bijbehorende persoonlijke gegevens te verwijderen in overeenstemming met AVG Artikel 17 (Recht op Vergetelheid).",
+      "reasonLabel": "Reden voor verwijdering",
+      "reasonPlaceholder": "Leg uit waarom u uw account wilt verwijderen...",
+      "reasonRequired": "Geef een reden voor verwijdering op",
+      "dateOfBirthLabel": "Geboortedatum (optioneel)",
+      "dateOfBirthHelp": "Verzoeken van gebruikers onder de 18 worden automatisch goedgekeurd",
+      "confirmLabel": "Ik begrijp dat deze actie niet ongedaan kan worden gemaakt",
+      "confirmRequired": "U moet bevestigen voordat u doorgaat",
+      "submit": "Verwijderingsverzoek Indienen",
+      "cancel": "Annuleren",
+      "success": "Uw verwijderingsverzoek is ingediend en zal worden beoordeeld door beheerders.",
+      "error": "Kon verwijderingsverzoek niet indienen. Probeer het opnieuw."
+    },
+    "status": {
+      "pending": "In afwachting",
+      "processing": "In behandeling",
+      "completed": "Voltooid",
+      "rejected": "Afgewezen"
+    },
+    "admin": {
+      "title": "RTBF Verzoeken",
+      "description": "Beheer Recht op Vergetelheid verzoeken van gebruikers",
+      "noPending": "Geen openstaande verzoeken",
+      "filterAll": "Alle",
+      "filterPending": "In afwachting",
+      "filterProcessing": "In behandeling",
+      "filterCompleted": "Voltooid",
+      "filterRejected": "Afgewezen",
+      "user": "Gebruiker",
+      "reason": "Reden",
+      "requestedAt": "Aangevraagd",
+      "status": "Status",
+      "actions": "Acties",
+      "process": "Verwerken",
+      "reject": "Afwijzen",
+      "view": "Bekijken",
+      "processConfirm": "Weet u zeker dat u dit verwijderingsverzoek wilt verwerken? Dit zal de gegevens van de gebruiker permanent verwijderen of anonimiseren.",
+      "processSuccess": "Verzoek succesvol verwerkt",
+      "processError": "Kon verzoek niet verwerken",
+      "rejectReason": "Reden voor afwijzing",
+      "rejectPlaceholder": "Leg uit waarom dit verzoek wordt afgewezen...",
+      "rejectSubmit": "Verzoek Afwijzen",
+      "rejectCancel": "Annuleren",
+      "rejectSuccess": "Verzoek afgewezen",
+      "rejectError": "Kon verzoek niet afwijzen"
+    },
+    "dataExport": {
+      "title": "Gegevens Exporteren",
+      "description": "Download een kopie van al uw persoonlijke gegevens",
+      "button": "Exporteren naar JSON",
+      "success": "Uw gegevens zijn geëxporteerd",
+      "error": "Kon gegevens niet exporteren",
+      "downloading": "Exporteren..."
+    }
   }
 }
