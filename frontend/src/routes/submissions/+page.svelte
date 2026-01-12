@@ -57,6 +57,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>{$t('submissions.title')} - ANS</title>
+</svelte:head>
+
 <div class="container mx-auto px-4 py-8">
 	<div class="max-w-7xl mx-auto">
 		<!-- Page Header -->

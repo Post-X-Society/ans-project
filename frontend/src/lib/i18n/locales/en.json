@@ -561,6 +561,7 @@
   },
   "corrections": {
     "title": "Request a Correction",
+    "adminTitle": "Correction Requests",
     "description": "If you believe this fact-check contains an error, please submit a correction request. We will review your request within 7 days per EFCSN guidelines.",
     "form": {
       "factCheckReference": "Fact-Check Reference",
@@ -884,6 +885,7 @@
   },
   "rtbf": {
     "title": "Right to be Forgotten",
+    "adminTitle": "RTBF Requests",
     "requestDeletion": "Request Account Deletion",
     "exportData": "Export My Data",
     "privacySection": {

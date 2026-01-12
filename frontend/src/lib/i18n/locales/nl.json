@@ -555,6 +555,7 @@
   },
   "corrections": {
     "title": "Correctie Aanvragen",
+    "adminTitle": "Correctieverzoeken",
     "description": "Als u denkt dat deze factcheck een fout bevat, kunt u een correctieverzoek indienen. Wij beoordelen uw verzoek binnen 7 dagen volgens EFCSN-richtlijnen.",
     "form": {
       "factCheckReference": "Factcheck Referentie",

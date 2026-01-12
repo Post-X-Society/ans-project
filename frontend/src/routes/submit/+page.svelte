@@ -3,6 +3,10 @@
 	import { t } from '$lib/i18n';
 </script>
 
+<svelte:head>
+	<title>{$t('submissions.submitTitle')} - ANS</title>
+</svelte:head>
+
 <div class="container mx-auto px-4 py-8">
 	<div class="max-w-2xl mx-auto">
 		<h1 class="text-3xl font-bold text-gray-900 mb-4">

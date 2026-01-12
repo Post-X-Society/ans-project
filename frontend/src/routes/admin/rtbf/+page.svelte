@@ -8,7 +8,12 @@
 -->
 <script lang="ts">
 	import RTBFManagement from '$lib/components/rtbf/RTBFManagement.svelte';
+	import { t } from '$lib/i18n';
 </script>
+
+<svelte:head>
+	<title>{$t('rtbf.adminTitle')} - ANS</title>
+</svelte:head>
 
 <div class="container mx-auto px-4 py-8">
 	<div class="max-w-7xl mx-auto">
