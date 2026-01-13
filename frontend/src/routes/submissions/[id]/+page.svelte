@@ -120,14 +120,16 @@
 		errorMessage = '';
 
 		try {
-			// Load submission and workflow state in parallel
-			const [submissionData, workflowStateData] = await Promise.all([
-				getSubmission(submissionId),
-				getWorkflowCurrentState(submissionId)
-			]);
+			// Load submission first
+			submission = await getSubmission(submissionId);
 
-			submission = submissionData;
-			workflowState = workflowStateData;
+			// Load workflow state (may return 404 if not initialized yet)
+			try {
+				workflowState = await getWorkflowCurrentState(submissionId);
+			} catch (err) {
+				console.log('Workflow state not available yet');
+				workflowState = null;
+			}
 
 			// Load additional data in parallel
 			await Promise.all([
@@ -161,10 +163,15 @@
 	}
 
 	/**
-	 * Load ratings data
+	 * Load ratings data (only if submission has a fact_check)
 	 */
 	async function loadRatings() {
-		if (!submissionId) return;
+		if (!submissionId || !submission?.fact_check_id) {
+			// No fact check yet, so no ratings to load
+			ratings = [];
+			currentRating = null;
+			return;
+		}
 
 		isLoadingRating = true;
 		try {
