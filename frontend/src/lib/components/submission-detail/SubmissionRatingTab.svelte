@@ -32,7 +32,7 @@
 		workflowState: WorkflowCurrentStateResponse | null;
 		currentRating: CurrentRatingResponse | null;
 		ratings: FactCheckRating[];
-		ratingDefinitions: RatingDefinitionType[];
+		ratingDefinitions?: RatingDefinitionType[];
 		user: User | null;
 		isLoadingRating: boolean;
 		showFactCheckEditor: boolean;
@@ -48,7 +48,7 @@
 		workflowState,
 		currentRating,
 		ratings,
-		ratingDefinitions,
+		ratingDefinitions = [],
 		user,
 		isLoadingRating,
 		showFactCheckEditor,
