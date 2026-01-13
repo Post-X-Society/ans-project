@@ -123,16 +123,20 @@
 	 * Assign a reviewer to the submission
 	 */
 	async function handleAssignReviewer(reviewerId: string) {
+		console.log('Assigning reviewer:', reviewerId, 'to submission:', submission.id);
 		isAssigning = true;
 		assignError = null;
 
 		try {
-			await assignReviewer(submission.id, reviewerId);
+			const result = await assignReviewer(submission.id, reviewerId);
+			console.log('Assignment result:', result);
 			showAssignDropdown = false;
-			onReviewersUpdated?.();
+			if (onReviewersUpdated) {
+				await onReviewersUpdated();
+			}
 		} catch (error: any) {
 			console.error('Failed to assign reviewer:', error);
-			assignError = error.response?.data?.detail || 'Failed to assign reviewer';
+			assignError = error.response?.data?.detail || error.message || 'Failed to assign reviewer';
 		} finally {
 			isAssigning = false;
 		}
@@ -360,10 +364,14 @@
 								{#each unassignedReviewers as reviewer}
 									<button
 										onclick={() => handleAssignReviewer(reviewer.id)}
-										class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded transition"
+										class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
 										disabled={isAssigning}
 									>
-										{reviewer.email}
+										{#if isAssigning}
+											<span class="text-gray-500">Assigning...</span>
+										{:else}
+											{reviewer.email}
+										{/if}
 									</button>
 								{/each}
 							</div>
