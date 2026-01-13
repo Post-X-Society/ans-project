@@ -167,11 +167,16 @@
 	/**
 	 * Get reviewers not yet assigned
 	 */
-	let unassignedReviewers = $derived(
-		availableReviewers.filter(
-			(reviewer) => !submission.reviewers?.some((r) => r.id === reviewer.id)
-		)
-	);
+	let unassignedReviewers = $derived.by(() => {
+		const assigned = submission.reviewers?.map(r => r.id) || [];
+		console.log('Assigned reviewer IDs:', assigned);
+		console.log('Available reviewers:', availableReviewers.map(r => ({ id: r.id, email: r.email })));
+		const unassigned = availableReviewers.filter(
+			(reviewer) => !assigned.includes(reviewer.id)
+		);
+		console.log('Unassigned reviewers:', unassigned.map(r => ({ id: r.id, email: r.email })));
+		return unassigned;
+	});
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" data-testid="overview-tab-container">
