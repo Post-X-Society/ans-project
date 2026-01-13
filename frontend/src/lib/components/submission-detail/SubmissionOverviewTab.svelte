@@ -13,12 +13,15 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
 	import WorkflowTimeline from '$lib/components/WorkflowTimeline.svelte';
+	import { assignReviewer, removeReviewer } from '$lib/api/submissions';
+	import { apiClient } from '$lib/api/client';
 	import type {
 		Submission,
 		WorkflowHistoryResponse,
 		WorkflowCurrentStateResponse,
 		WorkflowState,
-		UserRole
+		UserRole,
+		User
 	} from '$lib/api/types';
 
 	interface Props {
@@ -28,6 +31,7 @@
 		isLoadingHistory: boolean;
 		historyError: string | null;
 		userRole?: UserRole;
+		onReviewersUpdated?: () => void;
 	}
 
 	let {
@@ -36,8 +40,21 @@
 		workflowState,
 		isLoadingHistory,
 		historyError,
-		userRole
+		userRole,
+		onReviewersUpdated
 	}: Props = $props();
+
+	// State for reviewer management
+	let availableReviewers = $state<User[]>([]);
+	let isLoadingReviewers = $state(false);
+	let isAssigning = $state(false);
+	let showAssignDropdown = $state(false);
+	let assignError = $state<string | null>(null);
+
+	// Check if user can manage reviewers (admin or super_admin)
+	let canManageReviewers = $derived(
+		userRole === 'admin' || userRole === 'super_admin'
+	);
 
 	/**
 	 * Format date for display
@@ -78,6 +95,79 @@
 	function getStateLabel(state: WorkflowState): string {
 		return $t(`workflow.states.${state}`) || state;
 	}
+
+	/**
+	 * Load available reviewers
+	 */
+	async function loadAvailableReviewers() {
+		if (!canManageReviewers) return;
+
+		isLoadingReviewers = true;
+		assignError = null;
+
+		try {
+			const response = await apiClient.get<User[]>('/api/v1/users');
+			// Filter to only show users with reviewer role or higher
+			availableReviewers = response.data.filter(
+				(user) => user.role === 'reviewer' || user.role === 'admin' || user.role === 'super_admin'
+			);
+		} catch (error) {
+			console.error('Failed to load reviewers:', error);
+			assignError = 'Failed to load available reviewers';
+		} finally {
+			isLoadingReviewers = false;
+		}
+	}
+
+	/**
+	 * Assign a reviewer to the submission
+	 */
+	async function handleAssignReviewer(reviewerId: string) {
+		isAssigning = true;
+		assignError = null;
+
+		try {
+			await assignReviewer(submission.id, reviewerId);
+			showAssignDropdown = false;
+			onReviewersUpdated?.();
+		} catch (error: any) {
+			console.error('Failed to assign reviewer:', error);
+			assignError = error.response?.data?.detail || 'Failed to assign reviewer';
+		} finally {
+			isAssigning = false;
+		}
+	}
+
+	/**
+	 * Remove a reviewer from the submission
+	 */
+	async function handleRemoveReviewer(reviewerId: string) {
+		if (!confirm($t('submissions.detail.confirmRemoveReviewer'))) {
+			return;
+		}
+
+		isAssigning = true;
+		assignError = null;
+
+		try {
+			await removeReviewer(submission.id, reviewerId);
+			onReviewersUpdated?.();
+		} catch (error: any) {
+			console.error('Failed to remove reviewer:', error);
+			assignError = error.response?.data?.detail || 'Failed to remove reviewer';
+		} finally {
+			isAssigning = false;
+		}
+	}
+
+	/**
+	 * Get reviewers not yet assigned
+	 */
+	let unassignedReviewers = $derived(
+		availableReviewers.filter(
+			(reviewer) => !submission.reviewers?.some((r) => r.id === reviewer.id)
+		)
+	);
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" data-testid="overview-tab-container">
@@ -229,14 +319,74 @@
 	{#if userRole !== 'submitter'}
 		<div class="space-y-6">
 			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="assigned-reviewers-card">
-				<h2 class="text-xl font-semibold text-gray-900 mb-4">
-					{$t('submissions.detail.assignedReviewers')}
-				</h2>
+				<div class="flex justify-between items-center mb-4">
+					<h2 class="text-xl font-semibold text-gray-900">
+						{$t('submissions.detail.assignedReviewers')}
+					</h2>
+					{#if canManageReviewers}
+						<button
+							onclick={() => {
+								showAssignDropdown = !showAssignDropdown;
+								if (showAssignDropdown && availableReviewers.length === 0) {
+									loadAvailableReviewers();
+								}
+							}}
+							class="text-sm text-blue-600 hover:text-blue-800 font-medium"
+							disabled={isAssigning}
+						>
+							+ {$t('submissions.detail.assignReviewer')}
+						</button>
+					{/if}
+				</div>
+
+				{#if assignError}
+					<div class="mb-3 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+						{assignError}
+					</div>
+				{/if}
+
+				<!-- Assign reviewer dropdown -->
+				{#if showAssignDropdown && canManageReviewers}
+					<div class="mb-4 p-3 bg-gray-50 border border-gray-200 rounded">
+						<p class="text-sm font-medium text-gray-700 mb-2">
+							{$t('submissions.detail.selectReviewer')}
+						</p>
+						{#if isLoadingReviewers}
+							<p class="text-sm text-gray-500">{$t('common.loading')}...</p>
+						{:else if unassignedReviewers.length === 0}
+							<p class="text-sm text-gray-500">{$t('submissions.detail.noAvailableReviewers')}</p>
+						{:else}
+							<div class="space-y-1">
+								{#each unassignedReviewers as reviewer}
+									<button
+										onclick={() => handleAssignReviewer(reviewer.id)}
+										class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded transition"
+										disabled={isAssigning}
+									>
+										{reviewer.email}
+									</button>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{/if}
+
+				<!-- Assigned reviewers list -->
 				{#if submission.reviewers && submission.reviewers.length > 0}
 					<div class="flex flex-wrap gap-2">
 						{#each submission.reviewers as reviewer}
 							<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
 								{reviewer.email}
+								{#if canManageReviewers}
+									<button
+										onclick={() => handleRemoveReviewer(reviewer.id)}
+										class="ml-2 text-gray-500 hover:text-red-600 transition"
+										disabled={isAssigning}
+										aria-label={$t('submissions.detail.removeReviewer')}
+									>
+										×
+									</button>
+								{/if}
 							</span>
 						{/each}
 					</div>
