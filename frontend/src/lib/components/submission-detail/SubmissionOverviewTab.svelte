@@ -123,13 +123,11 @@
 	 * Assign a reviewer to the submission
 	 */
 	async function handleAssignReviewer(reviewerId: string) {
-		console.log('Assigning reviewer:', reviewerId, 'to submission:', submission.id);
 		isAssigning = true;
 		assignError = null;
 
 		try {
-			const result = await assignReviewer(submission.id, reviewerId);
-			console.log('Assignment result:', result);
+			await assignReviewer(submission.id, reviewerId);
 			showAssignDropdown = false;
 			if (onReviewersUpdated) {
 				await onReviewersUpdated();
@@ -169,13 +167,7 @@
 	 */
 	let unassignedReviewers = $derived.by(() => {
 		const assigned = submission.reviewers?.map(r => r.id) || [];
-		console.log('Assigned reviewer IDs:', assigned);
-		console.log('Available reviewers:', availableReviewers.map(r => ({ id: r.id, email: r.email })));
-		const unassigned = availableReviewers.filter(
-			(reviewer) => !assigned.includes(reviewer.id)
-		);
-		console.log('Unassigned reviewers:', unassigned.map(r => ({ id: r.id, email: r.email })));
-		return unassigned;
+		return availableReviewers.filter((reviewer) => !assigned.includes(reviewer.id));
 	});
 </script>
 
