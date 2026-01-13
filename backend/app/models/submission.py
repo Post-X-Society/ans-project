@@ -72,5 +72,10 @@ class Submission(TimeStampedModel):
         order_by="WorkflowTransition.created_at",
     )
 
+    @property
+    def reviewers(self) -> List["User"]:
+        """Get list of assigned reviewers from reviewer_assignments"""
+        return [assignment.reviewer for assignment in self.reviewer_assignments]
+
     def __repr__(self) -> str:
         return f"<Submission(id={self.id}, type={self.submission_type}, status={self.status})>"
