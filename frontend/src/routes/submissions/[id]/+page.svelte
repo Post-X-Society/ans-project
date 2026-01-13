@@ -96,12 +96,20 @@
 	let isPublished = $derived(workflowState?.current_state === 'published');
 
 	// Define tabs
-	let tabs = $derived([
-		{ id: 'overview', label: $t('submissions.tabs.overview') },
-		{ id: 'rating', label: $t('submissions.tabs.rating') },
-		{ id: 'sources', label: $t('submissions.tabs.sources') },
-		...(submission?.peer_review_triggered ? [{ id: 'peer-reviews', label: $t('submissions.tabs.peerReviews') }] : [])
-	]);
+	let tabs = $derived(() => {
+		// Submitters can only view the overview tab
+		if (auth.user?.role === 'submitter') {
+			return [{ id: 'overview', label: $t('submissions.tabs.overview') }];
+		}
+
+		// Reviewers, admins, and super admins get full access
+		return [
+			{ id: 'overview', label: $t('submissions.tabs.overview') },
+			{ id: 'rating', label: $t('submissions.tabs.rating') },
+			{ id: 'sources', label: $t('submissions.tabs.sources') },
+			...(submission?.peer_review_triggered ? [{ id: 'peer-reviews', label: $t('submissions.tabs.peerReviews') }] : [])
+		];
+	}());
 
 	/**
 	 * Load all submission data
@@ -274,6 +282,13 @@
 	function handleRetry() {
 		loadData();
 	}
+
+	// Redirect submitters if they try to access restricted tabs via URL
+	$effect(() => {
+		if (auth.user?.role === 'submitter' && currentTab !== 'overview') {
+			goto(`/submissions/${submissionId}?tab=overview`, { replaceState: true });
+		}
+	});
 
 	// Load data on mount
 	onMount(() => {
