@@ -95,21 +95,19 @@
 	// Check if correction request form should be shown (published state only)
 	let isPublished = $derived(workflowState?.current_state === 'published');
 
-	// Define tabs
-	let tabs = $derived(() => {
+	// Define tabs based on user role
+	let tabs = $derived(
 		// Submitters can only view the overview tab
-		if (auth.user?.role === 'submitter') {
-			return [{ id: 'overview', label: $t('submissions.tabs.overview') }];
-		}
-
-		// Reviewers, admins, and super admins get full access
-		return [
-			{ id: 'overview', label: $t('submissions.tabs.overview') },
-			{ id: 'rating', label: $t('submissions.tabs.rating') },
-			{ id: 'sources', label: $t('submissions.tabs.sources') },
-			...(submission?.peer_review_triggered ? [{ id: 'peer-reviews', label: $t('submissions.tabs.peerReviews') }] : [])
-		];
-	}());
+		auth.user?.role === 'submitter'
+			? [{ id: 'overview', label: $t('submissions.tabs.overview') }]
+			: // Reviewers, admins, and super admins get full access
+				[
+					{ id: 'overview', label: $t('submissions.tabs.overview') },
+					{ id: 'rating', label: $t('submissions.tabs.rating') },
+					{ id: 'sources', label: $t('submissions.tabs.sources') },
+					...(submission?.peer_review_triggered ? [{ id: 'peer-reviews', label: $t('submissions.tabs.peerReviews') }] : [])
+				]
+	);
 
 	/**
 	 * Load all submission data
