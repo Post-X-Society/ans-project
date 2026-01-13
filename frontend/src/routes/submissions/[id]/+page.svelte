@@ -373,6 +373,7 @@
 						{workflowState}
 						{isLoadingHistory}
 						historyError={null}
+						userRole={auth.user?.role}
 					/>
 
 					<!-- Correction Request Form (shown only for published fact-checks) -->

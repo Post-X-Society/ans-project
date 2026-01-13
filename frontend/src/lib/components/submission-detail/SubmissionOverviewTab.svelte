@@ -17,7 +17,8 @@
 		Submission,
 		WorkflowHistoryResponse,
 		WorkflowCurrentStateResponse,
-		WorkflowState
+		WorkflowState,
+		UserRole
 	} from '$lib/api/types';
 
 	interface Props {
@@ -26,6 +27,7 @@
 		workflowState: WorkflowCurrentStateResponse | null;
 		isLoadingHistory: boolean;
 		historyError: string | null;
+		userRole?: UserRole;
 	}
 
 	let {
@@ -33,7 +35,8 @@
 		workflowHistory,
 		workflowState,
 		isLoadingHistory,
-		historyError
+		historyError,
+		userRole
 	}: Props = $props();
 
 	/**
@@ -79,7 +82,7 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" data-testid="overview-tab-container">
 	<!-- Left Column: Submission Details -->
-	<div class="lg:col-span-2 space-y-6">
+	<div class:lg:col-span-2={userRole !== 'submitter'} class:lg:col-span-3={userRole === 'submitter'} class="space-y-6">
 		<!-- Submission Info Card -->
 		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="submission-info-card">
 			<h2 class="text-xl font-semibold text-gray-900 mb-4">
@@ -205,38 +208,42 @@
 			</div>
 		{/if}
 
-		<!-- Workflow Timeline -->
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="workflow-timeline-card">
-			<h2 class="text-xl font-semibold text-gray-900 mb-4">
-				{$t('workflow.timeline.title')}
-			</h2>
+		<!-- Workflow Timeline (hidden for submitters) -->
+		{#if userRole !== 'submitter'}
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="workflow-timeline-card">
+				<h2 class="text-xl font-semibold text-gray-900 mb-4">
+					{$t('workflow.timeline.title')}
+				</h2>
 
-			<WorkflowTimeline
-				history={workflowHistory?.items ?? []}
-				currentState={workflowState?.current_state ?? 'submitted'}
-				isLoading={isLoadingHistory}
-				error={historyError}
-			/>
-		</div>
+				<WorkflowTimeline
+					history={workflowHistory?.items ?? []}
+					currentState={workflowState?.current_state ?? 'submitted'}
+					isLoading={isLoadingHistory}
+					error={historyError}
+				/>
+			</div>
+		{/if}
 	</div>
 
-	<!-- Right Column: Assigned Reviewers -->
-	<div class="space-y-6">
-		<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="assigned-reviewers-card">
-			<h2 class="text-xl font-semibold text-gray-900 mb-4">
-				{$t('submissions.detail.assignedReviewers')}
-			</h2>
-			{#if submission.reviewers && submission.reviewers.length > 0}
-				<div class="flex flex-wrap gap-2">
-					{#each submission.reviewers as reviewer}
-						<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-							{reviewer.email}
-						</span>
-					{/each}
-				</div>
-			{:else}
-				<p class="text-gray-500 text-sm">{$t('submissions.detail.noReviewers')}</p>
-			{/if}
+	<!-- Right Column: Assigned Reviewers (hidden for submitters) -->
+	{#if userRole !== 'submitter'}
+		<div class="space-y-6">
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="assigned-reviewers-card">
+				<h2 class="text-xl font-semibold text-gray-900 mb-4">
+					{$t('submissions.detail.assignedReviewers')}
+				</h2>
+				{#if submission.reviewers && submission.reviewers.length > 0}
+					<div class="flex flex-wrap gap-2">
+						{#each submission.reviewers as reviewer}
+							<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+								{reviewer.email}
+							</span>
+						{/each}
+					</div>
+				{:else}
+					<p class="text-gray-500 text-sm">{$t('submissions.detail.noReviewers')}</p>
+				{/if}
+			</div>
 		</div>
-	</div>
+	{/if}
 </div>
