@@ -54,10 +54,13 @@ class SubmissionResponse(BaseModel):
     content: str
     submission_type: str
     status: str
+    workflow_state: str
     created_at: datetime
     updated_at: datetime
     reviewers: List[SubmissionReviewerInfo] = Field(default_factory=list)
     is_assigned_to_me: bool = False  # For reviewers to know if they're assigned
+    fact_check_id: Optional[UUID] = None  # From first claim's first fact_check
+    peer_review_triggered: bool = False
 
     model_config = {"from_attributes": True}  # Allow ORM models
 

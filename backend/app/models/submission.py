@@ -77,5 +77,15 @@ class Submission(TimeStampedModel):
         """Get list of assigned reviewers from reviewer_assignments"""
         return [assignment.reviewer for assignment in self.reviewer_assignments]
 
+    @property
+    def fact_check_id(self) -> Optional[UUID]:
+        """Get fact_check_id from the first claim's first fact_check"""
+        if not self.claims:
+            return None
+        first_claim = self.claims[0]
+        if not first_claim.fact_checks:
+            return None
+        return first_claim.fact_checks[0].id
+
     def __repr__(self) -> str:
         return f"<Submission(id={self.id}, type={self.submission_type}, status={self.status})>"
