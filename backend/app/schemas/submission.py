@@ -11,6 +11,15 @@ from pydantic import BaseModel, Field, field_validator
 from app.schemas.claim import ClaimResponse
 
 
+class SubmissionUserInfo(BaseModel):
+    """Schema for user information in submission response"""
+
+    id: UUID
+    email: str
+
+    model_config = {"from_attributes": True}
+
+
 class SubmissionReviewerInfo(BaseModel):
     """Schema for reviewer information in submission response"""
 
@@ -40,7 +49,8 @@ class SubmissionResponse(BaseModel):
     """Schema for submission response"""
 
     id: UUID
-    user_id: Optional[UUID] = None  # Optional for now (no auth yet)
+    user_id: Optional[UUID] = None
+    user: Optional[SubmissionUserInfo] = None
     content: str
     submission_type: str
     status: str
