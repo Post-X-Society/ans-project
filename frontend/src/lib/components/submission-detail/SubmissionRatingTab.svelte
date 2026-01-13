@@ -64,11 +64,11 @@
 	let ratingFormError = $state('');
 
 	// Check if user can assign ratings (reviewer, admin, super_admin)
+	// Allow if no workflow state yet (new submission) or if in an active state
 	let canAssignRating = $derived(
 		user &&
 			['reviewer', 'admin', 'super_admin'].includes(user.role) &&
-			workflowState?.current_state &&
-			!['published', 'rejected', 'archived'].includes(workflowState.current_state)
+			(!workflowState?.current_state || !['published', 'rejected', 'archived'].includes(workflowState.current_state))
 	);
 
 	// Check if user can transition workflow (admin, super_admin)
