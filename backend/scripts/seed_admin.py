@@ -12,33 +12,32 @@ from app.core.config import settings
 from app.core.security import hash_password
 from app.models.user import User, UserRole
 
-
 # Test user credentials
 TEST_USERS = [
     {
         "email": "admin@ans.com",
         "password": "Admin123!",
         "role": UserRole.SUPER_ADMIN,
-        "description": "Super Admin - Full system access"
+        "description": "Super Admin - Full system access",
     },
     {
         "email": "manager@ans.com",
         "password": "Manager123!",
         "role": UserRole.ADMIN,
-        "description": "Admin - User management and approval"
+        "description": "Admin - User management and approval",
     },
     {
         "email": "reviewer@ans.com",
         "password": "Reviewer123!",
         "role": UserRole.REVIEWER,
-        "description": "Reviewer - Fact-check submissions"
+        "description": "Reviewer - Fact-check submissions",
     },
     {
         "email": "submitter@ans.com",
         "password": "Submitter123!",
         "role": UserRole.SUBMITTER,
-        "description": "Submitter - Submit content for review"
-    }
+        "description": "Submitter - Submit content for review",
+    },
 ]
 
 
@@ -64,11 +63,9 @@ async def create_test_users():
             existing = result.scalar_one_or_none()
 
             if existing:
-                existing_users.append({
-                    "email": email,
-                    "role": existing.role.value,
-                    "active": existing.is_active
-                })
+                existing_users.append(
+                    {"email": email, "role": existing.role.value, "active": existing.is_active}
+                )
                 continue
 
             # Create user

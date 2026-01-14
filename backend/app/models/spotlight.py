@@ -5,7 +5,7 @@ Spotlight model for Snapchat Spotlight content metadata
 from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID
 
-from sqlalchemy import BigInteger, ForeignKey, Integer, String, Text
+from sqlalchemy import BigInteger, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON
 
@@ -48,6 +48,11 @@ class SpotlightContent(TimeStampedModel):
 
     # Upload timestamp
     upload_timestamp: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+
+    # Transcription fields (Issue #175)
+    transcription: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    transcription_language: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)
+    transcription_confidence: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
 
     # Raw API response
     raw_metadata: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)

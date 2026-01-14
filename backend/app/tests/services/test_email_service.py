@@ -51,9 +51,11 @@ class TestEmailService:
         body: str = "Test email body"
 
         # Mock SMTP settings to make smtp_configured return True
-        with patch("app.services.email_service.settings.SMTP_HOST", "smtp.example.com"), \
-             patch("app.services.email_service.settings.SMTP_USER", "user"), \
-             patch("app.services.email_service.settings.SMTP_PASSWORD", "pass"):
+        with (
+            patch("app.services.email_service.settings.SMTP_HOST", "smtp.example.com"),
+            patch("app.services.email_service.settings.SMTP_USER", "user"),
+            patch("app.services.email_service.settings.SMTP_PASSWORD", "pass"),
+        ):
             # Act
             result: bool = email_service.send_email(
                 to_email=to_email, subject=subject, body_html=body
@@ -73,9 +75,11 @@ class TestEmailService:
         body_html: str = "<p>HTML body</p>"
 
         # Mock SMTP settings to make smtp_configured return True
-        with patch("app.services.email_service.settings.SMTP_HOST", "smtp.example.com"), \
-             patch("app.services.email_service.settings.SMTP_USER", "user"), \
-             patch("app.services.email_service.settings.SMTP_PASSWORD", "pass"):
+        with (
+            patch("app.services.email_service.settings.SMTP_HOST", "smtp.example.com"),
+            patch("app.services.email_service.settings.SMTP_USER", "user"),
+            patch("app.services.email_service.settings.SMTP_PASSWORD", "pass"),
+        ):
             # Act
             result: bool = await email_service.send_email_async(
                 to_email=to_email, subject=subject, body_text=body_text, body_html=body_html

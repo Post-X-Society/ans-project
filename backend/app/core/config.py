@@ -38,6 +38,7 @@ class Settings(BaseSettings):
 
     # External APIs
     OPENAI_API_KEY: Optional[str] = None
+    OPENAI_WHISPER_MODEL: str = "whisper-1"  # Issue #175: Whisper model for transcription
     BENEDMO_API_KEY: Optional[str] = None
 
     # CORS Configuration

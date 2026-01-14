@@ -861,9 +861,11 @@ class TestEmailService:
         from app.services.email_service import EmailService
 
         # Mock SMTP settings to make it appear unconfigured
-        with patch("app.services.email_service.settings.SMTP_HOST", None), \
-             patch("app.services.email_service.settings.SMTP_USER", None), \
-             patch("app.services.email_service.settings.SMTP_PASSWORD", None):
+        with (
+            patch("app.services.email_service.settings.SMTP_HOST", None),
+            patch("app.services.email_service.settings.SMTP_USER", None),
+            patch("app.services.email_service.settings.SMTP_PASSWORD", None),
+        ):
             # Create email service - SMTP is not configured
             service = EmailService()
             # Verify the is_configured property returns False
