@@ -20,6 +20,7 @@ celery_app = Celery(
         "app.tasks.email_tasks",
         "app.tasks.retention_tasks",
         "app.tasks.report_tasks",  # Issue #89: Monthly transparency reports
+        "app.tasks.transcription_tasks",  # Issue #175: Audio transcription
     ],
 )
 
@@ -34,6 +35,7 @@ celery_app.conf.update(
     task_routes={
         "app.tasks.email_tasks.*": {"queue": "emails"},
         "app.tasks.report_tasks.*": {"queue": "reports"},  # Issue #89
+        "app.tasks.transcription_tasks.*": {"queue": "transcription"},  # Issue #175
     },
     task_acks_late=True,  # Acknowledge after task completion
     worker_prefetch_multiplier=1,  # Process one task at a time per worker
