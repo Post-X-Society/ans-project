@@ -67,15 +67,20 @@ class TestAudioExtractionFromVideo:
             with patch.object(audio_service, "_run_ffmpeg", new_callable=AsyncMock) as mock_ffmpeg:
                 mock_ffmpeg.return_value = expected_audio_path
 
-                # Act
-                result: AudioExtractionResult = await audio_service.extract_audio_from_video(
-                    video_path=video_path, spotlight_id=spotlight_id
-                )
+                # Mock the stat call to return file size
+                with patch("pathlib.Path.stat") as mock_stat:
+                    mock_stat.return_value.st_size = 1024
 
-                # Assert
-                assert result.audio_path == expected_audio_path
-                assert result.format == "mp3"
-                mock_ffmpeg.assert_called_once()
+                    # Act
+                    result: AudioExtractionResult = await audio_service.extract_audio_from_video(
+                        video_path=video_path, spotlight_id=spotlight_id
+                    )
+
+                    # Assert
+                    assert result.audio_path == expected_audio_path
+                    assert result.format == "mp3"
+                    assert result.file_size_bytes == 1024
+                    mock_ffmpeg.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_extract_audio_video_file_not_found(
