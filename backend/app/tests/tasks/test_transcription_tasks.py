@@ -193,11 +193,23 @@ class TestTranscriptionTaskIntegration:
         """Test complete transcription workflow from spotlight to database"""
         from app.models.spotlight import SpotlightContent
         from app.models.submission import Submission
+        from app.models.user import User, UserRole
 
-        # Create test submission
+        # Create test user first (required for Submission)
+        user: User = User(
+            email="test_transcription@example.com",
+            password_hash="hashed_password",
+            role=UserRole.SUBMITTER,
+            is_active=True,
+        )
+        db_session.add(user)
+        await db_session.flush()
+
+        # Create test submission with valid fields
         submission: Submission = Submission(
+            user_id=user.id,
             content="Test submission for transcription",
-            source="snapchat",
+            submission_type="video",
         )
         db_session.add(submission)
         await db_session.flush()
@@ -227,11 +239,23 @@ class TestTranscriptionTaskIntegration:
 
         from app.models.spotlight import SpotlightContent
         from app.models.submission import Submission
+        from app.models.user import User, UserRole
 
-        # Create test data
+        # Create test user first
+        user: User = User(
+            email="test_transcription2@example.com",
+            password_hash="hashed_password",
+            role=UserRole.SUBMITTER,
+            is_active=True,
+        )
+        db_session.add(user)
+        await db_session.flush()
+
+        # Create test data with valid fields
         submission: Submission = Submission(
+            user_id=user.id,
             content="Test submission",
-            source="snapchat",
+            submission_type="video",
         )
         db_session.add(submission)
         await db_session.flush()

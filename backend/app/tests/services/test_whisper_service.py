@@ -22,22 +22,26 @@ class TestWhisperServiceInitialization:
 
     def test_whisper_service_initialization_with_api_key(self) -> None:
         """Test WhisperService initializes correctly with API key"""
-        with patch.dict("os.environ", {"OPENAI_API_KEY": "test-api-key"}):
+        with patch("app.services.whisper_service.settings") as mock_settings:
+            mock_settings.OPENAI_API_KEY = "test-api-key"
+            mock_settings.OPENAI_WHISPER_MODEL = "whisper-1"
             service: WhisperService = WhisperService()
             assert service is not None
             assert isinstance(service, WhisperService)
 
     def test_whisper_service_raises_error_without_api_key(self) -> None:
         """Test WhisperService raises error when API key is missing"""
-        with patch.dict("os.environ", {"OPENAI_API_KEY": ""}, clear=True):
-            with patch("app.services.whisper_service.settings") as mock_settings:
-                mock_settings.OPENAI_API_KEY = None
-                with pytest.raises(ValueError, match="OPENAI_API_KEY"):
-                    WhisperService()
+        with patch("app.services.whisper_service.settings") as mock_settings:
+            mock_settings.OPENAI_API_KEY = None
+            mock_settings.OPENAI_WHISPER_MODEL = "whisper-1"
+            with pytest.raises(ValueError, match="OPENAI_API_KEY"):
+                WhisperService()
 
     def test_whisper_service_has_supported_languages(self) -> None:
         """Test WhisperService supports Dutch and English"""
-        with patch.dict("os.environ", {"OPENAI_API_KEY": "test-api-key"}):
+        with patch("app.services.whisper_service.settings") as mock_settings:
+            mock_settings.OPENAI_API_KEY = "test-api-key"
+            mock_settings.OPENAI_WHISPER_MODEL = "whisper-1"
             service: WhisperService = WhisperService()
             assert "en" in service.SUPPORTED_LANGUAGES
             assert "nl" in service.SUPPORTED_LANGUAGES
@@ -78,7 +82,7 @@ class TestWhisperServiceTranscription:
         mock_response.text = expected_text
         mock_response.language = expected_language
 
-        with patch("builtins.open", MagicMock()):
+        with patch("pathlib.Path.exists", return_value=True):
             with patch.object(
                 whisper_service, "_call_whisper_api", new_callable=AsyncMock
             ) as mock_call:
@@ -108,24 +112,25 @@ class TestWhisperServiceTranscription:
         audio_file_path: str = "/tmp/test_audio.mp3"
         language_hint: str = "nl"
 
-        with patch.object(
-            whisper_service, "_call_whisper_api", new_callable=AsyncMock
-        ) as mock_call:
-            mock_call.return_value = TranscriptionResult(
-                text="Test transcription",
-                language="nl",
-                confidence=0.92,
-            )
+        with patch("pathlib.Path.exists", return_value=True):
+            with patch.object(
+                whisper_service, "_call_whisper_api", new_callable=AsyncMock
+            ) as mock_call:
+                mock_call.return_value = TranscriptionResult(
+                    text="Test transcription",
+                    language="nl",
+                    confidence=0.92,
+                )
 
-            # Act
-            result: TranscriptionResult = await whisper_service.transcribe_audio(
-                audio_file_path, language_hint=language_hint
-            )
+                # Act
+                result: TranscriptionResult = await whisper_service.transcribe_audio(
+                    audio_file_path, language_hint=language_hint
+                )
 
-            # Assert
-            mock_call.assert_called_once()
-            # Verify language hint was passed
-            assert result.language == "nl"
+                # Assert
+                mock_call.assert_called_once()
+                # Verify language hint was passed
+                assert result.language == "nl"
 
     @pytest.mark.asyncio
     async def test_transcribe_audio_file_not_found(self, whisper_service: WhisperService) -> None:
@@ -160,21 +165,24 @@ class TestWhisperServiceTranscription:
         audio_file_path: str = "/tmp/test_audio_en.mp3"
         expected_text: str = "This is a test transcription in English."
 
-        with patch.object(
-            whisper_service, "_call_whisper_api", new_callable=AsyncMock
-        ) as mock_call:
-            mock_call.return_value = TranscriptionResult(
-                text=expected_text,
-                language="en",
-                confidence=0.98,
-            )
+        with patch("pathlib.Path.exists", return_value=True):
+            with patch.object(
+                whisper_service, "_call_whisper_api", new_callable=AsyncMock
+            ) as mock_call:
+                mock_call.return_value = TranscriptionResult(
+                    text=expected_text,
+                    language="en",
+                    confidence=0.98,
+                )
 
-            # Act
-            result: TranscriptionResult = await whisper_service.transcribe_audio(audio_file_path)
+                # Act
+                result: TranscriptionResult = await whisper_service.transcribe_audio(
+                    audio_file_path
+                )
 
-            # Assert
-            assert result.language == "en"
-            assert result.text == expected_text
+                # Assert
+                assert result.language == "en"
+                assert result.text == expected_text
 
 
 class TestTranscriptionResult:

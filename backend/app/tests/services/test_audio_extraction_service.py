@@ -21,23 +21,26 @@ class TestAudioExtractionServiceInitialization:
 
     def test_audio_extraction_service_initialization(self) -> None:
         """Test AudioExtractionService initializes correctly"""
-        service: AudioExtractionService = AudioExtractionService()
-        assert service is not None
-        assert isinstance(service, AudioExtractionService)
+        with patch("pathlib.Path.mkdir"):
+            service: AudioExtractionService = AudioExtractionService()
+            assert service is not None
+            assert isinstance(service, AudioExtractionService)
 
     def test_audio_extraction_service_has_media_directory(self) -> None:
         """Test AudioExtractionService has configurable media directory"""
         with patch.dict("os.environ", {"MEDIA_DIR": "/tmp/test_media"}):
-            service: AudioExtractionService = AudioExtractionService()
-            assert service.media_dir is not None
+            with patch("pathlib.Path.mkdir"):
+                service: AudioExtractionService = AudioExtractionService()
+                assert service.media_dir is not None
 
     def test_audio_extraction_service_creates_audio_directory(self) -> None:
         """Test AudioExtractionService creates audio output directory"""
         with patch.dict("os.environ", {"MEDIA_DIR": "/tmp/test_media"}):
-            with patch("pathlib.Path.mkdir"):
+            with patch("pathlib.Path.mkdir") as mock_mkdir:
                 service: AudioExtractionService = AudioExtractionService()
                 # Verify directory creation was called
                 assert service.audio_dir is not None
+                mock_mkdir.assert_called_once()
 
 
 class TestAudioExtractionFromVideo:
@@ -47,7 +50,8 @@ class TestAudioExtractionFromVideo:
     def audio_service(self) -> AudioExtractionService:
         """Provide AudioExtractionService instance"""
         with patch.dict("os.environ", {"MEDIA_DIR": "/tmp/test_media"}):
-            return AudioExtractionService()
+            with patch("pathlib.Path.mkdir"):
+                return AudioExtractionService()
 
     @pytest.mark.asyncio
     async def test_extract_audio_from_video_file_success(
@@ -113,7 +117,8 @@ class TestAudioExtractionFromUrl:
     def audio_service(self) -> AudioExtractionService:
         """Provide AudioExtractionService instance"""
         with patch.dict("os.environ", {"MEDIA_DIR": "/tmp/test_media"}):
-            return AudioExtractionService()
+            with patch("pathlib.Path.mkdir"):
+                return AudioExtractionService()
 
     @pytest.mark.asyncio
     async def test_extract_audio_from_url_success(
@@ -225,7 +230,8 @@ class TestAudioCleanup:
     def audio_service(self) -> AudioExtractionService:
         """Provide AudioExtractionService instance"""
         with patch.dict("os.environ", {"MEDIA_DIR": "/tmp/test_media"}):
-            return AudioExtractionService()
+            with patch("pathlib.Path.mkdir"):
+                return AudioExtractionService()
 
     @pytest.mark.asyncio
     async def test_cleanup_audio_file(self, audio_service: AudioExtractionService) -> None:
@@ -260,7 +266,8 @@ class TestSupportedFormats:
     def audio_service(self) -> AudioExtractionService:
         """Provide AudioExtractionService instance"""
         with patch.dict("os.environ", {"MEDIA_DIR": "/tmp/test_media"}):
-            return AudioExtractionService()
+            with patch("pathlib.Path.mkdir"):
+                return AudioExtractionService()
 
     def test_default_output_format_is_mp3(self, audio_service: AudioExtractionService) -> None:
         """Test default audio output format is MP3"""
