@@ -39,7 +39,14 @@ class Settings(BaseSettings):
     # External APIs
     OPENAI_API_KEY: Optional[str] = None
     OPENAI_WHISPER_MODEL: str = "whisper-1"  # Issue #175: Whisper model for transcription
+    OPENAI_GPT_MODEL: str = "gpt-4-turbo-preview"  # Issue #176: GPT model for claim extraction
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"  # Issue #176: Embedding model
+    OPENAI_EMBEDDING_DIMENSIONS: int = 1536  # text-embedding-3-small dimensions
     BENEDMO_API_KEY: Optional[str] = None
+
+    # Claim Extraction Settings (Issue #176)
+    CLAIM_EXTRACTION_MAX_CLAIMS: int = 10  # Maximum claims to extract per submission
+    CLAIM_SIMILARITY_THRESHOLD: float = 0.85  # Cosine similarity threshold for deduplication
 
     # CORS Configuration
     CORS_ORIGINS: str = "http://localhost:3000,https://ans.postxsociety.cloud"
