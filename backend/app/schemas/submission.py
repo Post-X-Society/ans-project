@@ -54,7 +54,7 @@ class SubmissionResponse(BaseModel):
     content: str
     submission_type: str
     status: str
-    workflow_state: str
+    workflow_state: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     reviewers: List[SubmissionReviewerInfo] = Field(default_factory=list)
