@@ -12,7 +12,6 @@ from app.core.config import settings
 from app.core.security import hash_password
 from app.models.user import User, UserRole
 
-
 # Test user credentials
 TEST_USERS = [
     {
