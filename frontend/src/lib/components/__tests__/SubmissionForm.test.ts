@@ -59,4 +59,69 @@ describe('SubmissionForm', () => {
 		expect(screen.getByText(/please login to submit/i)).toBeInTheDocument();
 		expect(screen.getByText(/you must be logged in.*spotlight content/i)).toBeInTheDocument();
 	});
+
+	// Issue #177: Submitter Comment Field Tests
+	describe('Submitter Comment Field (Issue #177)', () => {
+		it('should render additional context textarea', () => {
+			render(SubmissionFormTest);
+
+			expect(screen.getByLabelText(/additional context/i)).toBeInTheDocument();
+		});
+
+		it('should have textarea with 500 character max length', () => {
+			render(SubmissionFormTest);
+
+			const textarea = screen.getByLabelText(/additional context/i);
+			expect(textarea.tagName.toLowerCase()).toBe('textarea');
+			expect(textarea).toHaveAttribute('maxlength', '500');
+		});
+
+		it('should display character counter showing 0/500 initially', () => {
+			render(SubmissionFormTest);
+
+			expect(screen.getByText(/0\/500/)).toBeInTheDocument();
+		});
+
+		it('should update character counter when typing', async () => {
+			render(SubmissionFormTest);
+
+			const textarea = screen.getByLabelText(/additional context/i) as HTMLTextAreaElement;
+			await fireEvent.input(textarea, { target: { value: 'Test comment' } });
+
+			expect(screen.getByText(/12\/500/)).toBeInTheDocument();
+		});
+
+		it('should show warning color when approaching character limit', async () => {
+			render(SubmissionFormTest);
+
+			const textarea = screen.getByLabelText(/additional context/i) as HTMLTextAreaElement;
+			const longText = 'A'.repeat(450);
+			await fireEvent.input(textarea, { target: { value: longText } });
+
+			// Counter should change color when close to limit
+			const counter = screen.getByText(/450\/500/);
+			expect(counter).toBeInTheDocument();
+		});
+
+		it('should display placeholder text about why fact-checking is needed', () => {
+			render(SubmissionFormTest);
+
+			const textarea = screen.getByLabelText(/additional context/i);
+			expect(textarea).toHaveAttribute('placeholder');
+		});
+
+		it('should disable textarea when not authenticated', () => {
+			render(SubmissionFormTest);
+
+			const textarea = screen.getByLabelText(/additional context/i);
+			expect(textarea).toBeDisabled();
+		});
+
+		it('should mark the field as optional', () => {
+			render(SubmissionFormTest);
+
+			// Should show "(Optional)" in the label or nearby text
+			expect(screen.getByText(/\(optional\)/i)).toBeInTheDocument();
+		});
+	});
 });

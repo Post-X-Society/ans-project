@@ -507,3 +507,173 @@ class TestSubmissionWithAuthentication:
         admin_data = admin_response.json()
         assert admin_data["total"] == 6
         assert len(admin_data["items"]) == 6
+
+
+class TestSubmitterComment:
+    """Tests for submitter_comment field - Issue #177"""
+
+    @pytest.mark.asyncio
+    async def test_create_submission_with_submitter_comment(
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
+    ) -> None:
+        """Test creating a submission with optional submitter comment"""
+        user, token = auth_user
+        payload: dict[str, Any] = {
+            "content": "Is climate change real?",
+            "type": "text",
+            "submitter_comment": "I saw this on social media and want to verify",
+        }
+
+        response = client.post(
+            "/api/v1/submissions", json=payload, headers={"Authorization": f"Bearer {token}"}
+        )
+
+        assert response.status_code == 201
+        data: dict[str, Any] = response.json()
+        assert data["submitter_comment"] == "I saw this on social media and want to verify"
+
+    @pytest.mark.asyncio
+    async def test_create_submission_without_submitter_comment(
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
+    ) -> None:
+        """Test creating a submission without submitter comment (optional field)"""
+        user, token = auth_user
+        payload: dict[str, Any] = {
+            "content": "Is climate change real?",
+            "type": "text",
+        }
+
+        response = client.post(
+            "/api/v1/submissions", json=payload, headers={"Authorization": f"Bearer {token}"}
+        )
+
+        assert response.status_code == 201
+        data: dict[str, Any] = response.json()
+        assert data["submitter_comment"] is None
+
+    @pytest.mark.asyncio
+    async def test_create_submission_with_empty_submitter_comment(
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
+    ) -> None:
+        """Test creating a submission with empty string submitter comment"""
+        user, token = auth_user
+        payload: dict[str, Any] = {
+            "content": "Is climate change real?",
+            "type": "text",
+            "submitter_comment": "",
+        }
+
+        response = client.post(
+            "/api/v1/submissions", json=payload, headers={"Authorization": f"Bearer {token}"}
+        )
+
+        assert response.status_code == 201
+        data: dict[str, Any] = response.json()
+        # Empty string should be treated as None/null
+        assert data["submitter_comment"] is None or data["submitter_comment"] == ""
+
+    @pytest.mark.asyncio
+    async def test_create_submission_submitter_comment_max_length(
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
+    ) -> None:
+        """Test that submitter comment is limited to 500 characters"""
+        user, token = auth_user
+        long_comment = "A" * 501  # Exceeds 500 character limit
+        payload: dict[str, Any] = {
+            "content": "Is climate change real?",
+            "type": "text",
+            "submitter_comment": long_comment,
+        }
+
+        response = client.post(
+            "/api/v1/submissions", json=payload, headers={"Authorization": f"Bearer {token}"}
+        )
+
+        assert response.status_code == 422  # Validation error
+
+    @pytest.mark.asyncio
+    async def test_create_submission_submitter_comment_exactly_500_chars(
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
+    ) -> None:
+        """Test that submitter comment of exactly 500 characters is accepted"""
+        user, token = auth_user
+        exact_comment = "A" * 500  # Exactly at limit
+        payload: dict[str, Any] = {
+            "content": "Is climate change real?",
+            "type": "text",
+            "submitter_comment": exact_comment,
+        }
+
+        response = client.post(
+            "/api/v1/submissions", json=payload, headers={"Authorization": f"Bearer {token}"}
+        )
+
+        assert response.status_code == 201
+        data: dict[str, Any] = response.json()
+        assert len(data["submitter_comment"]) == 500
+
+    @pytest.mark.asyncio
+    async def test_get_submission_includes_submitter_comment(
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
+    ) -> None:
+        """Test that GET submission response includes submitter_comment"""
+        user, token = auth_user
+
+        # Create submission with comment directly in DB
+        submission = Submission(
+            user_id=user.id,
+            content="Test claim content for comment",
+            submission_type="text",
+            status="pending",
+            submitter_comment="This is important context",
+        )
+        db_session.add(submission)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Get the submission
+        response = client.get(
+            f"/api/v1/submissions/{submission.id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+        assert response.status_code == 200
+        data: dict[str, Any] = response.json()
+        assert data["submitter_comment"] == "This is important context"
+
+    @pytest.mark.asyncio
+    async def test_list_submissions_includes_submitter_comment(
+        self, client: TestClient, db_session: AsyncSession, auth_user: Any
+    ) -> None:
+        """Test that list submissions response includes submitter_comment"""
+        user, token = auth_user
+
+        # Create submissions with and without comments
+        submission1 = Submission(
+            user_id=user.id,
+            content="Test submission with comment",
+            submission_type="text",
+            status="pending",
+            submitter_comment="First comment",
+        )
+        submission2 = Submission(
+            user_id=user.id,
+            content="Test submission without comment",
+            submission_type="text",
+            status="pending",
+            submitter_comment=None,
+        )
+        db_session.add(submission1)
+        db_session.add(submission2)
+        await db_session.commit()
+
+        response = client.get("/api/v1/submissions", headers={"Authorization": f"Bearer {token}"})
+
+        assert response.status_code == 200
+        data: dict[str, Any] = response.json()
+        assert data["total"] == 2
+
+        # Check that submitter_comment field exists in both items
+        comments = [item.get("submitter_comment") for item in data["items"]]
+        assert "First comment" in comments
+        assert None in comments

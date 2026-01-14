@@ -26,7 +26,8 @@
     "page": "Page {current} of {total}",
     "previous": "Previous",
     "next": "Next",
-    "noData": "No data available"
+    "noData": "No data available",
+    "optional": "Optional"
   },
   "nav": {
     "home": "Home",
@@ -198,6 +199,9 @@
     "spotlightLink": "Snapchat Spotlight Link",
     "spotlightLinkPlaceholder": "https://www.snapchat.com/spotlight/...",
     "spotlightLinkHelp": "Paste a Snapchat Spotlight link to submit for fact-checking. The video and metadata will be automatically fetched.",
+    "additionalContext": "Additional Context",
+    "additionalContextPlaceholder": "Why do you think this content needs fact-checking? Any relevant details or context...",
+    "additionalContextHelp": "Help our reviewers by providing context about what you observed.",
     "spotlightLinkRequired": "Spotlight link is required",
     "spotlightLinkInvalid": "Please enter a valid Snapchat Spotlight link",
     "submitForFactCheck": "Submit Spotlight for Fact-Checking",

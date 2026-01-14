@@ -26,7 +26,8 @@
     "page": "Pagina {current} van {total}",
     "previous": "Vorige",
     "next": "Volgende",
-    "noData": "Geen gegevens beschikbaar"
+    "noData": "Geen gegevens beschikbaar",
+    "optional": "Optioneel"
   },
   "nav": {
     "home": "Home",
@@ -192,6 +193,9 @@
     "spotlightLink": "Snapchat Spotlight-link",
     "spotlightLinkPlaceholder": "https://www.snapchat.com/spotlight/...",
     "spotlightLinkHelp": "Plak een Snapchat Spotlight-link om in te dienen voor factchecking. De video en metadata worden automatisch opgehaald.",
+    "additionalContext": "Extra Context",
+    "additionalContextPlaceholder": "Waarom denk je dat deze inhoud moet worden gecheckt? Relevante details of context...",
+    "additionalContextHelp": "Help onze reviewers door context te geven over wat je hebt waargenomen.",
     "spotlightLinkRequired": "Spotlight-link is verplicht",
     "spotlightLinkInvalid": "Voer een geldige Snapchat Spotlight-link in",
     "submitForFactCheck": "Spotlight indienen voor factchecking",
