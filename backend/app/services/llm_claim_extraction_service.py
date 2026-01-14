@@ -338,7 +338,8 @@ class LLMClaimExtractionService:
         )
 
         content: str = response.choices[0].message.content or "{}"
-        return json.loads(content)
+        result: dict[str, Any] = json.loads(content)
+        return result
 
     def _parse_claims_response(
         self, response: dict[str, Any], source_type: str
