@@ -35,6 +35,11 @@ class SubmissionCreate(BaseModel):
 
     content: str = Field(..., min_length=10, max_length=5000, description="Content to fact-check")
     type: Literal["text", "image", "url"] = Field(..., description="Type of submission")
+    submitter_comment: Optional[str] = Field(
+        None,
+        max_length=500,
+        description="Optional context from submitter about why this needs fact-checking",
+    )
 
     @field_validator("content")
     @classmethod
@@ -43,6 +48,14 @@ class SubmissionCreate(BaseModel):
         if not v.strip():
             raise ValueError("Content cannot be empty or whitespace")
         return v.strip()
+
+    @field_validator("submitter_comment")
+    @classmethod
+    def submitter_comment_strip_empty(cls, v: Optional[str]) -> Optional[str]:
+        """Convert empty string to None for submitter_comment"""
+        if v is not None and not v.strip():
+            return None
+        return v.strip() if v else None
 
 
 class SubmissionResponse(BaseModel):
@@ -61,6 +74,7 @@ class SubmissionResponse(BaseModel):
     is_assigned_to_me: bool = False  # For reviewers to know if they're assigned
     fact_check_id: Optional[UUID] = None  # From first claim's first fact_check
     peer_review_triggered: bool = False
+    submitter_comment: Optional[str] = None  # Issue #177: User context for fact-checking
 
     model_config = {"from_attributes": True}  # Allow ORM models
 

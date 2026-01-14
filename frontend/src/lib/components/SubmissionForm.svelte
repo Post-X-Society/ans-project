@@ -6,12 +6,22 @@
 
 	// Svelte 5 runes for reactive state
 	let spotlightLink = $state('');
+	let submitterComment = $state('');
 	let errors = $state<{ link?: string; submit?: string }>({});
 	let isSubmitting = $state(false);
 	let submissionResult = $state<SpotlightContent | null>(null);
 
 	const auth = $derived($authStore);
 	const isAuthenticated = $derived(auth.isAuthenticated);
+
+	// Character counter constants - Issue #177
+	const MAX_COMMENT_LENGTH = 500;
+	const WARNING_THRESHOLD = 450;
+
+	// Derived state for character counter
+	const commentLength = $derived(submitterComment.length);
+	const isNearLimit = $derived(commentLength >= WARNING_THRESHOLD);
+	const isAtLimit = $derived(commentLength >= MAX_COMMENT_LENGTH);
 
 	// Validation function
 	function validateForm(): boolean {
@@ -51,11 +61,13 @@
 
 		try {
 			const result = await createSpotlightSubmission({
-				spotlight_link: spotlightLink.trim()
+				spotlight_link: spotlightLink.trim(),
+				submitter_comment: submitterComment.trim() || undefined
 			});
 
 			submissionResult = result;
 			spotlightLink = ''; // Reset form
+			submitterComment = ''; // Reset comment field
 		} catch (error: any) {
 			console.error('Submission error:', error);
 			if (error.response?.data?.detail) {
@@ -92,6 +104,36 @@
 		<p class="text-sm text-gray-500 mt-2">
 			{$t('submissions.spotlightLinkHelp')}
 		</p>
+	</div>
+
+	<!-- Additional Context / Submitter Comment - Issue #177 -->
+	<div>
+		<label for="submitter-comment" class="block text-sm font-medium text-gray-700 mb-2">
+			{$t('submissions.additionalContext')}
+			<span class="text-gray-500 font-normal">({$t('common.optional')})</span>
+		</label>
+		<textarea
+			id="submitter-comment"
+			bind:value={submitterComment}
+			class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition resize-none"
+			placeholder={$t('submissions.additionalContextPlaceholder')}
+			disabled={isSubmitting || !isAuthenticated}
+			maxlength={MAX_COMMENT_LENGTH}
+			rows="3"
+		></textarea>
+		<div class="flex justify-between items-center mt-1">
+			<p class="text-sm text-gray-500">
+				{$t('submissions.additionalContextHelp')}
+			</p>
+			<span
+				class="text-sm transition-colors"
+				class:text-gray-500={!isNearLimit}
+				class:text-amber-600={isNearLimit && !isAtLimit}
+				class:text-red-600={isAtLimit}
+			>
+				{commentLength}/{MAX_COMMENT_LENGTH}
+			</span>
+		</div>
 	</div>
 
 	<!-- Submit Button -->

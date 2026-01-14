@@ -29,6 +29,8 @@ export interface Submission {
 	fact_check_id?: string;
 	/** Whether peer review has been triggered for this submission */
 	peer_review_triggered?: boolean;
+	/** Optional context from submitter about why this needs fact-checking (Issue #177) */
+	submitter_comment?: string | null;
 }
 
 export interface SubmissionCreate {
@@ -38,6 +40,8 @@ export interface SubmissionCreate {
 
 export interface SpotlightSubmissionCreate {
 	spotlight_link: string;
+	/** Optional context from submitter about why this needs fact-checking (Issue #177) */
+	submitter_comment?: string;
 }
 
 export interface SpotlightContent {

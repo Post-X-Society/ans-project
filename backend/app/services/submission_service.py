@@ -50,6 +50,7 @@ async def create_submission(
         content=data.content,
         submission_type=data.type,
         status="processing",
+        submitter_comment=data.submitter_comment,  # Issue #177
     )
     db.add(submission)
     await db.flush()  # Flush to get ID
@@ -204,6 +205,7 @@ async def list_submissions(
             "updated_at": submission.updated_at,
             "reviewers": reviewers,
             "is_assigned_to_me": is_assigned,
+            "submitter_comment": submission.submitter_comment,  # Issue #177
         }
         items.append(SubmissionResponse(**submission_dict))
 

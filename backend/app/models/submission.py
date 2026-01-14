@@ -48,6 +48,12 @@ class Submission(TimeStampedModel):
         nullable=True,
     )
 
+    # User context - Issue #177
+    submitter_comment: Mapped[Optional[str]] = mapped_column(
+        Text,
+        nullable=True,
+    )
+
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="submissions", lazy="selectin")
     claims: Mapped[List["Claim"]] = relationship(
