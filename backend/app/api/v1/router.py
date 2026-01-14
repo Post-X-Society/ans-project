@@ -7,6 +7,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     analytics,
     auth,
+    claims,
     corrections,
     drafts,
     email_templates,
@@ -46,3 +47,4 @@ api_router.include_router(
 api_router.include_router(rtbf.router, tags=["rtbf"])
 api_router.include_router(analytics.router, tags=["analytics"])
 api_router.include_router(transparency_reports.router, tags=["transparency-reports"])
+api_router.include_router(claims.router, tags=["claims"])
