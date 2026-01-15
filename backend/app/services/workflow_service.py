@@ -418,8 +418,10 @@ class WorkflowService:
             logger.warning(f"Submission {submission_id} has no claims, skipping FactCheck creation")
             return None
 
-        # Get the first claim (for now, only process first claim per requirements)
-        first_claim = submission.claims[0]
+        # Get the first claim ordered by created_at (oldest first)
+        # Sort claims to ensure consistent behavior across tests
+        sorted_claims = sorted(submission.claims, key=lambda c: c.created_at)
+        first_claim = sorted_claims[0]
 
         # Check if a FactCheck already exists for this claim
         existing_fact_check_result = await self.db.execute(
