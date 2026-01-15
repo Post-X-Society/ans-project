@@ -817,3 +817,364 @@ class TestWorkflowServiceGetTransitionHistory:
         history = await service.get_transition_history(submission.id)
 
         assert len(history) == 0
+
+
+class TestWorkflowServiceFactCheckAutoCreation:
+    """Tests for automatic FactCheck creation on workflow transitions (Issue #178)"""
+
+    @pytest.mark.asyncio
+    async def test_fact_check_created_on_transition_to_assigned(
+        self, db_session: AsyncSession
+    ) -> None:
+        """Test that FactCheck is auto-created when transitioning to ASSIGNED state"""
+        from app.models.claim import Claim
+        from app.models.fact_check import FactCheck
+        from app.services.workflow_service import WorkflowService
+
+        # Create admin user
+        admin = User(email="admin@example.com", password_hash="hash", role=UserRole.ADMIN)
+        db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
+
+        # Create submission in QUEUED state
+        submission = Submission(
+            user_id=admin.id,
+            content="Test claim for fact-checking",
+            submission_type="text",
+            status="pending",
+            workflow_state=WorkflowState.QUEUED,
+        )
+        db_session.add(submission)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Create a claim and link to submission
+        claim = Claim(content="The earth is round", source="user_submission")
+        db_session.add(claim)
+        await db_session.commit()
+        await db_session.refresh(claim)
+
+        # Link claim to submission via many-to-many
+        submission.claims.append(claim)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Perform transition to ASSIGNED
+        service = WorkflowService(db_session)
+        result = await service.transition(
+            submission_id=submission.id,
+            to_state=WorkflowState.ASSIGNED,
+            actor_id=admin.id,
+            reason="Assigning to reviewer",
+        )
+
+        assert result.workflow_state == WorkflowState.ASSIGNED
+
+        # Verify FactCheck was created for the claim
+        fact_check_result = await db_session.execute(
+            select(FactCheck).where(FactCheck.claim_id == claim.id)
+        )
+        fact_check = fact_check_result.scalar_one_or_none()
+
+        assert fact_check is not None
+        assert fact_check.verdict == "pending"
+        assert fact_check.confidence == 0.0
+        assert fact_check.claim_id == claim.id
+
+    @pytest.mark.asyncio
+    async def test_fact_check_created_on_transition_to_in_research(
+        self, db_session: AsyncSession
+    ) -> None:
+        """Test that FactCheck is auto-created when transitioning to IN_RESEARCH state"""
+        from app.models.claim import Claim
+        from app.models.fact_check import FactCheck
+        from app.services.workflow_service import WorkflowService
+
+        # Create reviewer user
+        reviewer = User(email="reviewer@example.com", password_hash="hash", role=UserRole.REVIEWER)
+        db_session.add(reviewer)
+        await db_session.commit()
+        await db_session.refresh(reviewer)
+
+        # Create submission already in ASSIGNED state (skipping FactCheck creation)
+        submission = Submission(
+            user_id=reviewer.id,
+            content="Test claim for research",
+            submission_type="text",
+            status="pending",
+            workflow_state=WorkflowState.ASSIGNED,
+        )
+        db_session.add(submission)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Create a claim and link to submission
+        claim = Claim(content="Water boils at 100C at sea level", source="user_submission")
+        db_session.add(claim)
+        await db_session.commit()
+        await db_session.refresh(claim)
+
+        # Link claim to submission
+        submission.claims.append(claim)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Perform transition to IN_RESEARCH
+        service = WorkflowService(db_session)
+        result = await service.transition(
+            submission_id=submission.id,
+            to_state=WorkflowState.IN_RESEARCH,
+            actor_id=reviewer.id,
+            reason="Starting research",
+        )
+
+        assert result.workflow_state == WorkflowState.IN_RESEARCH
+
+        # Verify FactCheck was created
+        fact_check_result = await db_session.execute(
+            select(FactCheck).where(FactCheck.claim_id == claim.id)
+        )
+        fact_check = fact_check_result.scalar_one_or_none()
+
+        assert fact_check is not None
+        assert fact_check.verdict == "pending"
+        assert fact_check.confidence == 0.0
+
+    @pytest.mark.asyncio
+    async def test_no_duplicate_fact_check_creation(self, db_session: AsyncSession) -> None:
+        """Test that duplicate FactCheck is not created if one already exists"""
+        from app.models.claim import Claim
+        from app.models.fact_check import FactCheck
+        from app.services.workflow_service import WorkflowService
+
+        # Create reviewer user
+        reviewer = User(email="reviewer@example.com", password_hash="hash", role=UserRole.REVIEWER)
+        db_session.add(reviewer)
+        await db_session.commit()
+        await db_session.refresh(reviewer)
+
+        # Create submission in ASSIGNED state
+        submission = Submission(
+            user_id=reviewer.id,
+            content="Test claim already checked",
+            submission_type="text",
+            status="pending",
+            workflow_state=WorkflowState.ASSIGNED,
+        )
+        db_session.add(submission)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Create a claim and link to submission
+        claim = Claim(content="The sky is blue", source="user_submission")
+        db_session.add(claim)
+        await db_session.commit()
+        await db_session.refresh(claim)
+
+        # Create existing FactCheck for this claim
+        existing_fact_check = FactCheck(
+            claim_id=claim.id,
+            verdict="true",
+            confidence=0.9,
+            reasoning="Verified by multiple sources",
+            sources=["https://example.com/source1"],
+        )
+        db_session.add(existing_fact_check)
+        await db_session.commit()
+        await db_session.refresh(existing_fact_check)
+
+        # Link claim to submission
+        submission.claims.append(claim)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Perform transition to IN_RESEARCH
+        service = WorkflowService(db_session)
+        result = await service.transition(
+            submission_id=submission.id,
+            to_state=WorkflowState.IN_RESEARCH,
+            actor_id=reviewer.id,
+            reason="Starting research",
+        )
+
+        assert result.workflow_state == WorkflowState.IN_RESEARCH
+
+        # Verify only one FactCheck exists (no duplicate created)
+        fact_check_result = await db_session.execute(
+            select(FactCheck).where(FactCheck.claim_id == claim.id)
+        )
+        fact_checks = fact_check_result.scalars().all()
+
+        assert len(fact_checks) == 1
+        # Original FactCheck should be unchanged
+        assert fact_checks[0].verdict == "true"
+        assert fact_checks[0].confidence == 0.9
+
+    @pytest.mark.asyncio
+    async def test_no_fact_check_created_when_no_claims(self, db_session: AsyncSession) -> None:
+        """Test that no FactCheck is created and no error raised when submission has no claims"""
+        from app.models.fact_check import FactCheck
+        from app.services.workflow_service import WorkflowService
+
+        # Create admin user
+        admin = User(email="admin@example.com", password_hash="hash", role=UserRole.ADMIN)
+        db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
+
+        # Create submission with NO claims
+        submission = Submission(
+            user_id=admin.id,
+            content="Submission without claims",
+            submission_type="text",
+            status="pending",
+            workflow_state=WorkflowState.QUEUED,
+        )
+        db_session.add(submission)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Perform transition to ASSIGNED (should NOT raise error)
+        service = WorkflowService(db_session)
+        result = await service.transition(
+            submission_id=submission.id,
+            to_state=WorkflowState.ASSIGNED,
+            actor_id=admin.id,
+            reason="Assigning reviewer",
+        )
+
+        # Transition should succeed
+        assert result.workflow_state == WorkflowState.ASSIGNED
+
+        # No FactCheck should be created
+        fact_check_result = await db_session.execute(select(FactCheck))
+        fact_checks = fact_check_result.scalars().all()
+        assert len(fact_checks) == 0
+
+    @pytest.mark.asyncio
+    async def test_fact_check_uses_first_claim_only(self, db_session: AsyncSession) -> None:
+        """Test that FactCheck is created only for the first claim when multiple exist"""
+        from app.models.claim import Claim
+        from app.models.fact_check import FactCheck
+        from app.services.workflow_service import WorkflowService
+
+        # Create admin user
+        admin = User(email="admin@example.com", password_hash="hash", role=UserRole.ADMIN)
+        db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
+
+        # Create submission
+        submission = Submission(
+            user_id=admin.id,
+            content="Multiple claims submission",
+            submission_type="text",
+            status="pending",
+            workflow_state=WorkflowState.QUEUED,
+        )
+        db_session.add(submission)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Create multiple claims
+        claim1 = Claim(content="First claim to check", source="user_submission")
+        claim2 = Claim(content="Second claim to check", source="user_submission")
+        claim3 = Claim(content="Third claim to check", source="user_submission")
+        db_session.add_all([claim1, claim2, claim3])
+        await db_session.commit()
+        await db_session.refresh(claim1)
+        await db_session.refresh(claim2)
+        await db_session.refresh(claim3)
+
+        # Link all claims to submission
+        submission.claims.append(claim1)
+        submission.claims.append(claim2)
+        submission.claims.append(claim3)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Perform transition to ASSIGNED
+        service = WorkflowService(db_session)
+        result = await service.transition(
+            submission_id=submission.id,
+            to_state=WorkflowState.ASSIGNED,
+            actor_id=admin.id,
+            reason="Assigning reviewer",
+        )
+
+        assert result.workflow_state == WorkflowState.ASSIGNED
+
+        # Verify only ONE FactCheck was created (for first claim)
+        fact_check_result = await db_session.execute(select(FactCheck))
+        fact_checks = fact_check_result.scalars().all()
+
+        assert len(fact_checks) == 1
+        assert fact_checks[0].claim_id == claim1.id
+
+    @pytest.mark.asyncio
+    async def test_fact_check_creation_logged_in_transition_metadata(
+        self, db_session: AsyncSession
+    ) -> None:
+        """Test that FactCheck creation is logged in workflow transition metadata"""
+        from app.models.claim import Claim
+        from app.models.fact_check import FactCheck
+        from app.services.workflow_service import WorkflowService
+
+        # Create admin user
+        admin = User(email="admin@example.com", password_hash="hash", role=UserRole.ADMIN)
+        db_session.add(admin)
+        await db_session.commit()
+        await db_session.refresh(admin)
+
+        # Create submission
+        submission = Submission(
+            user_id=admin.id,
+            content="Test claim for metadata logging",
+            submission_type="text",
+            status="pending",
+            workflow_state=WorkflowState.QUEUED,
+        )
+        db_session.add(submission)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Create and link claim
+        claim = Claim(content="Metadata test claim", source="user_submission")
+        db_session.add(claim)
+        await db_session.commit()
+        await db_session.refresh(claim)
+
+        submission.claims.append(claim)
+        await db_session.commit()
+        await db_session.refresh(submission)
+
+        # Perform transition to ASSIGNED
+        service = WorkflowService(db_session)
+        await service.transition(
+            submission_id=submission.id,
+            to_state=WorkflowState.ASSIGNED,
+            actor_id=admin.id,
+            reason="Assigning reviewer",
+        )
+
+        # Get the transition and check metadata
+        transitions = await service.get_transition_history(submission.id)
+        assert len(transitions) == 1
+
+        # Verify metadata contains fact_check creation info
+        transition = transitions[0]
+        assert transition.transition_metadata is not None
+        assert "fact_check_created" in transition.transition_metadata
+        assert transition.transition_metadata["fact_check_created"] is True
+
+        # Get created FactCheck ID from metadata
+        fact_check_id = transition.transition_metadata.get("fact_check_id")
+        assert fact_check_id is not None
+
+        # Verify the FactCheck exists with that ID
+        fact_check_result = await db_session.execute(
+            select(FactCheck).where(FactCheck.claim_id == claim.id)
+        )
+        fact_check = fact_check_result.scalar_one()
+        assert str(fact_check.id) == fact_check_id
