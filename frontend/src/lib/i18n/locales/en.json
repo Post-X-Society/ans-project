@@ -189,6 +189,7 @@
       "noTransitions": "No transitions available",
       "reason": "Transition Reason",
       "reasonPlaceholder": "Optional: explain why you are making this transition...",
+      "reasonRequired": "Reason required for this transition",
       "confirm": "Confirm Transition",
       "confirming": "Transitioning...",
       "transitionSuccess": "Workflow transitioned successfully",

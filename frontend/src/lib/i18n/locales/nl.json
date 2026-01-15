@@ -183,6 +183,7 @@
       "noTransitions": "Geen overgangen beschikbaar",
       "reason": "Reden voor Overgang",
       "reasonPlaceholder": "Optioneel: leg uit waarom je deze overgang maakt...",
+      "reasonRequired": "Reden verplicht voor deze overgang",
       "confirm": "Overgang Bevestigen",
       "confirming": "Overgaan...",
       "transitionSuccess": "Werkstroom succesvol overgegaan",

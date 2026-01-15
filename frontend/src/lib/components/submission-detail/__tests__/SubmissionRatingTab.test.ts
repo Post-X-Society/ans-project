@@ -367,7 +367,7 @@ describe('SubmissionRatingTab', () => {
 	});
 
 	describe('Workflow Transitions', () => {
-		it('should display valid transitions for admin', () => {
+		it('should display workflow transition panel for admin', () => {
 			render(SubmissionRatingTab, {
 				props: {
 					submission: mockSubmission,
@@ -385,8 +385,9 @@ describe('SubmissionRatingTab', () => {
 				}
 			});
 
-			const transitionsCard = screen.getByTestId('workflow-transitions-card');
-			expect(transitionsCard).toBeInTheDocument();
+			// Issue #179: Now using WorkflowTransitionPanel component
+			const transitionsPanel = screen.getByTestId('workflow-transition-panel');
+			expect(transitionsPanel).toBeInTheDocument();
 		});
 
 		it('should call onTransitionClick when transition button clicked', async () => {
@@ -409,14 +410,17 @@ describe('SubmissionRatingTab', () => {
 				}
 			});
 
-			const transitionButtons = screen.getAllByTestId('transition-button');
-			expect(transitionButtons.length).toBeGreaterThan(0);
+			// Issue #179: WorkflowTransitionPanel renders buttons by role
+			const transitionButtons = screen.getAllByRole('button');
+			// Filter to only transition buttons (excluding other buttons on the page)
+			const draftReadyButton = screen.getByRole('button', { name: /draft ready/i });
+			expect(draftReadyButton).toBeInTheDocument();
 
-			await fireEvent.click(transitionButtons[0]);
-			expect(onTransitionClick).toHaveBeenCalled();
+			await fireEvent.click(draftReadyButton);
+			expect(onTransitionClick).toHaveBeenCalledWith('draft_ready');
 		});
 
-		it('should not show transitions for reviewer', () => {
+		it('should show workflow transition panel for reviewer with valid transitions', () => {
 			render(SubmissionRatingTab, {
 				props: {
 					submission: mockSubmission,
@@ -434,7 +438,9 @@ describe('SubmissionRatingTab', () => {
 				}
 			});
 
-			expect(screen.queryByTestId('workflow-transitions-card')).not.toBeInTheDocument();
+			// Issue #179: WorkflowTransitionPanel is now shown for all users with workflow state
+			// The panel shows the current state and available transitions
+			expect(screen.getByTestId('workflow-transition-panel')).toBeInTheDocument();
 		});
 	});
 

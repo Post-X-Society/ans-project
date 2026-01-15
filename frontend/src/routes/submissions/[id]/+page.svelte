@@ -21,6 +21,7 @@
 	import TabNavigation from '$lib/components/TabNavigation.svelte';
 	import SourceManagementInterface from '$lib/components/sources/SourceManagementInterface.svelte';
 	import CorrectionRequestForm from '$lib/components/CorrectionRequestForm.svelte';
+	import WorkflowStateBadge from '$lib/components/WorkflowStateBadge.svelte';
 	import {
 		SubmissionOverviewTab,
 		SubmissionRatingTab,
@@ -79,6 +80,7 @@
 	// Mutation states
 	let isSubmittingRating = $state(false);
 	let isSubmittingTransition = $state(false);
+	let transitionError = $state<string | null>(null);
 
 	// Modal state for workflow transition
 	let showTransitionModal = $state(false);
@@ -242,6 +244,7 @@
 		if (!selectedTransition || !submissionId) return;
 
 		isSubmittingTransition = true;
+		transitionError = null;
 		try {
 			await transitionWorkflowState(submissionId, {
 				to_state: selectedTransition,
@@ -249,6 +252,7 @@
 			});
 			showTransitionModal = false;
 			selectedTransition = null;
+			transitionError = null;
 			// Refresh workflow data
 			const [newWorkflowState, newWorkflowHistory] = await Promise.all([
 				getWorkflowCurrentState(submissionId),
@@ -258,6 +262,7 @@
 			workflowHistory = newWorkflowHistory;
 		} catch (err: unknown) {
 			console.error('Error transitioning workflow:', err);
+			transitionError = err instanceof Error ? err.message : $t('submissions.transition.transitionError');
 		} finally {
 			isSubmittingTransition = false;
 		}
@@ -357,14 +362,28 @@
 	<!-- Content -->
 	{:else if submission}
 		<div class="max-w-7xl mx-auto">
-			<!-- Page Header -->
+			<!-- Page Header with Prominent Workflow State Badge (Issue #179) -->
 			<div class="mb-8">
-				<h1 class="text-3xl font-bold text-gray-900 mb-2">
-					{$t('submissions.detail.title')}
-				</h1>
-				<p class="text-gray-500">
-					{$t('submissions.detail.pageTitle', { values: { id: submission.id.slice(0, 8) } })}
-				</p>
+				<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+					<div>
+						<h1 class="text-3xl font-bold text-gray-900 mb-2">
+							{$t('submissions.detail.title')}
+						</h1>
+						<p class="text-gray-500">
+							{$t('submissions.detail.pageTitle', { values: { id: submission.id.slice(0, 8) } })}
+						</p>
+					</div>
+					<!-- Prominent Workflow State Badge -->
+					{#if workflowState?.current_state}
+						<div class="flex-shrink-0" data-testid="header-workflow-badge">
+							<WorkflowStateBadge
+								state={workflowState.current_state}
+								size="lg"
+								prominent
+							/>
+						</div>
+					{/if}
+				</div>
 			</div>
 
 			<!-- Tab Navigation -->
@@ -408,6 +427,8 @@
 						onRatingSubmit={handleRatingSubmit}
 						onTransitionClick={openTransitionModal}
 						{isSubmittingRating}
+						{isSubmittingTransition}
+						{transitionError}
 						onFactCheckSubmit={handleFactCheckSubmit}
 					/>
 
