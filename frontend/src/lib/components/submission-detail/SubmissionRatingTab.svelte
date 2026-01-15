@@ -130,13 +130,33 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" data-testid="rating-tab-container">
 	<!-- Left Column: Rating Assignment & Fact-Check Editor -->
 	<div class="lg:col-span-2 space-y-6">
-		<!-- Fact-Check Editor (shown in in_research or draft_ready states) -->
+		<!-- Fact-Check Editor (shown in in_research or draft_ready states) - Issue #180 -->
 		{#if showFactCheckEditor}
-			<FactCheckEditor
-				factCheckId={submissionId}
-				claimText={submission.content}
-				onSubmitForReview={onFactCheckSubmit}
-			/>
+			{#if submission.fact_check_id}
+				<!-- FactCheckEditor component has its own data-testid="fact-check-editor" -->
+				<FactCheckEditor
+					factCheckId={submission.fact_check_id}
+					claimText={submission.content}
+					onSubmitForReview={onFactCheckSubmit}
+				/>
+			{:else}
+				<!-- No fact-check available yet -->
+				<div class="bg-amber-50 rounded-lg shadow-sm border border-amber-200 p-6" data-testid="no-fact-check-message">
+					<div class="flex items-start">
+						<svg class="h-6 w-6 text-amber-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+						</svg>
+						<div>
+							<h3 class="text-lg font-semibold text-amber-800">
+								{$t('factCheckEditor.noFactCheck.title')}
+							</h3>
+							<p class="mt-1 text-sm text-amber-700">
+								{$t('factCheckEditor.noFactCheck.message')}
+							</p>
+						</div>
+					</div>
+				</div>
+			{/if}
 		{/if}
 
 		<!-- Rating Assignment Form -->

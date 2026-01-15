@@ -544,6 +544,10 @@
     "error": {
       "saveFailed": "Failed to save draft",
       "submitFailed": "Failed to submit for review"
+    },
+    "noFactCheck": {
+      "title": "No Fact-Check Available",
+      "message": "A fact-check record has not been created for this submission yet. The fact-check will be automatically created when the workflow progresses. Please wait or transition the workflow state."
     }
   },
   "peerReview": {

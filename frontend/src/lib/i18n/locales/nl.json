@@ -538,6 +538,10 @@
     "error": {
       "saveFailed": "Concept opslaan mislukt",
       "submitFailed": "Indienen voor review mislukt"
+    },
+    "noFactCheck": {
+      "title": "Geen Factcheck Beschikbaar",
+      "message": "Er is nog geen factcheck-record aangemaakt voor deze inzending. De factcheck wordt automatisch aangemaakt wanneer de werkstroom vordert. Wacht even of wijzig de werkstroomstatus."
     }
   },
   "peerReview": {
