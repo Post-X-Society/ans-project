@@ -513,4 +513,93 @@ describe('SubmissionRatingTab', () => {
 			expect(container).toHaveClass('lg:grid-cols-3');
 		});
 	});
+
+	describe('FactCheckEditor Display (Issue #180)', () => {
+		it('should show FactCheckEditor when showFactCheckEditor is true and fact_check_id exists', () => {
+			const submissionWithFactCheck: Submission = {
+				...mockSubmission,
+				fact_check_id: 'fc-test-123'
+			};
+
+			render(SubmissionRatingTab, {
+				props: {
+					submission: submissionWithFactCheck,
+					submissionId: 'test-submission-123',
+					workflowState: mockWorkflowState,
+					currentRating: null,
+					ratings: [],
+					ratingDefinitions: mockRatingDefinitions,
+					user: mockReviewerUser,
+					isLoadingRating: false,
+					showFactCheckEditor: true,
+					onRatingSubmit: vi.fn(),
+					onTransitionClick: vi.fn(),
+					isSubmittingRating: false
+				}
+			});
+
+			// FactCheckEditor should be rendered
+			expect(screen.getByTestId('fact-check-editor')).toBeInTheDocument();
+		});
+
+		it('should not show FactCheckEditor when showFactCheckEditor is false', () => {
+			const submissionWithFactCheck: Submission = {
+				...mockSubmission,
+				fact_check_id: 'fc-test-123'
+			};
+
+			render(SubmissionRatingTab, {
+				props: {
+					submission: submissionWithFactCheck,
+					submissionId: 'test-submission-123',
+					workflowState: {
+						...mockWorkflowState,
+						current_state: 'published' as const,
+						valid_transitions: []
+					},
+					currentRating: mockCurrentRating,
+					ratings: mockRatings,
+					ratingDefinitions: mockRatingDefinitions,
+					user: mockReviewerUser,
+					isLoadingRating: false,
+					showFactCheckEditor: false,
+					onRatingSubmit: vi.fn(),
+					onTransitionClick: vi.fn(),
+					isSubmittingRating: false
+				}
+			});
+
+			// FactCheckEditor should NOT be rendered
+			expect(screen.queryByTestId('fact-check-editor')).not.toBeInTheDocument();
+		});
+
+		it('should show "no fact-check available" message when showFactCheckEditor is true but no fact_check_id', () => {
+			// Submission WITHOUT fact_check_id
+			const submissionWithoutFactCheck: Submission = {
+				...mockSubmission,
+				fact_check_id: undefined
+			};
+
+			render(SubmissionRatingTab, {
+				props: {
+					submission: submissionWithoutFactCheck,
+					submissionId: 'test-submission-123',
+					workflowState: mockWorkflowState,
+					currentRating: null,
+					ratings: [],
+					ratingDefinitions: mockRatingDefinitions,
+					user: mockReviewerUser,
+					isLoadingRating: false,
+					showFactCheckEditor: true,
+					onRatingSubmit: vi.fn(),
+					onTransitionClick: vi.fn(),
+					isSubmittingRating: false
+				}
+			});
+
+			// Should show a message instead of the editor
+			expect(screen.getByTestId('no-fact-check-message')).toBeInTheDocument();
+			expect(screen.queryByTestId('fact-check-editor')).not.toBeInTheDocument();
+		});
+	});
 });
