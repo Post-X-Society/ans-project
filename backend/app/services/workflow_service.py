@@ -8,17 +8,23 @@ including:
 - Transition guards
 - Audit logging to workflow_transitions table
 - Auto-trigger peer review for political/health claims
+- Auto-create FactCheck on ASSIGNED/IN_RESEARCH transitions (Issue #178)
 """
 
+import logging
 from typing import Any, Optional
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
+from app.models.fact_check import FactCheck
 from app.models.submission import Submission
 from app.models.user import User, UserRole
 from app.models.workflow_transition import WorkflowState, WorkflowTransition
+
+logger = logging.getLogger(__name__)
 
 
 class WorkflowError(Exception):
@@ -376,6 +382,81 @@ class WorkflowService:
 
         return False
 
+    async def _ensure_fact_check_exists(self, submission_id: UUID) -> Optional[dict[str, Any]]:
+        """
+        Ensure a FactCheck exists for the submission's first claim.
+
+        This method is called when transitioning to ASSIGNED or IN_RESEARCH states
+        to automatically create a FactCheck record for the reviewer to work on.
+
+        Args:
+            submission_id: ID of the submission
+
+        Returns:
+            Dict with fact_check creation metadata, or None if no FactCheck was created
+
+        Behavior:
+            - If submission has no claims, logs a warning and returns None
+            - If a FactCheck already exists for the first claim, skips creation
+            - Creates FactCheck with verdict='pending', confidence=0.0
+            - Only processes the first claim (multiple claims handled in future)
+        """
+        # Fetch submission with claims eagerly loaded
+        result = await self.db.execute(
+            select(Submission)
+            .where(Submission.id == submission_id)
+            .options(selectinload(Submission.claims))
+        )
+        submission = result.scalar_one_or_none()
+
+        if submission is None:
+            logger.warning(f"Submission {submission_id} not found for FactCheck creation")
+            return None
+
+        # Check if submission has any claims
+        if not submission.claims or len(submission.claims) == 0:
+            logger.warning(f"Submission {submission_id} has no claims, skipping FactCheck creation")
+            return None
+
+        # Get the first claim ordered by ID for deterministic behavior
+        # Note: In production, claims are typically created sequentially, but in tests
+        # they may be created in the same transaction with identical timestamps
+        sorted_claims = sorted(submission.claims, key=lambda c: c.id)
+        first_claim = sorted_claims[0]
+
+        # Check if a FactCheck already exists for this claim
+        existing_fact_check_result = await self.db.execute(
+            select(FactCheck).where(FactCheck.claim_id == first_claim.id)
+        )
+        existing_fact_check = existing_fact_check_result.scalar_one_or_none()
+
+        if existing_fact_check is not None:
+            logger.info(f"FactCheck already exists for claim {first_claim.id}, skipping creation")
+            return None
+
+        # Create new FactCheck with default values
+        fact_check = FactCheck(
+            claim_id=first_claim.id,
+            verdict="pending",
+            confidence=0.0,
+            reasoning="",  # Empty reasoning to be filled by reviewer
+            sources=[],  # Empty sources list to be filled by reviewer
+        )
+        self.db.add(fact_check)
+        await self.db.flush()  # Get the ID without committing
+
+        logger.info(
+            f"Created FactCheck {fact_check.id} for claim {first_claim.id} "
+            f"(submission {submission_id})"
+        )
+
+        # Return metadata for logging in transition
+        return {
+            "fact_check_created": True,
+            "fact_check_id": str(fact_check.id),
+            "claim_id": str(first_claim.id),
+        }
+
     async def transition(
         self,
         submission_id: UUID,
@@ -438,6 +519,20 @@ class WorkflowService:
                     "Auto-triggered: content contains sensitive keywords"
                 )
 
+        # Auto-create FactCheck when transitioning to ASSIGNED or IN_RESEARCH (Issue #178)
+        fact_check_metadata: Optional[dict[str, Any]] = None
+        if to_state in (WorkflowState.ASSIGNED, WorkflowState.IN_RESEARCH):
+            fact_check_metadata = await self._ensure_fact_check_exists(submission_id)
+
+        # Merge fact_check metadata with provided metadata
+        final_metadata: Optional[dict[str, Any]] = None
+        if metadata is not None or fact_check_metadata is not None:
+            final_metadata = {}
+            if metadata is not None:
+                final_metadata.update(metadata)
+            if fact_check_metadata is not None:
+                final_metadata.update(fact_check_metadata)
+
         # Create transition log entry
         transition = WorkflowTransition(
             submission_id=submission_id,
@@ -445,7 +540,7 @@ class WorkflowService:
             to_state=to_state,
             actor_id=actor_id,
             reason=reason,
-            transition_metadata=metadata,
+            transition_metadata=final_metadata,
         )
         self.db.add(transition)
 
