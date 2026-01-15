@@ -1105,12 +1105,16 @@ class TestWorkflowServiceFactCheckAutoCreation:
 
         assert result.workflow_state == WorkflowState.ASSIGNED
 
-        # Verify only ONE FactCheck was created (for first claim)
+        # Verify only ONE FactCheck was created (for one of the claims)
         fact_check_result = await db_session.execute(select(FactCheck))
         fact_checks = fact_check_result.scalars().all()
 
         assert len(fact_checks) == 1
-        assert fact_checks[0].claim_id == claim1.id
+        # FactCheck should be for one of the submission's claims
+        assert fact_checks[0].claim_id in [claim1.id, claim2.id, claim3.id]
+        # Verify it's the claim with the lowest ID (deterministic sorting)
+        claim_ids_sorted = sorted([claim1.id, claim2.id, claim3.id])
+        assert fact_checks[0].claim_id == claim_ids_sorted[0]
 
     @pytest.mark.asyncio
     async def test_fact_check_creation_logged_in_transition_metadata(
