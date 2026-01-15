@@ -15,6 +15,7 @@
 	import RatingBadge from '$lib/components/RatingBadge.svelte';
 	import RatingDefinition from '$lib/components/RatingDefinition.svelte';
 	import FactCheckEditor from '$lib/components/FactCheckEditor.svelte';
+	import WorkflowTransitionPanel from '$lib/components/WorkflowTransitionPanel.svelte';
 	import type {
 		Submission,
 		WorkflowCurrentStateResponse,
@@ -39,6 +40,8 @@
 		onRatingSubmit: (rating: FactCheckRatingValue, justification: string) => void;
 		onTransitionClick: (state: WorkflowState) => void;
 		isSubmittingRating: boolean;
+		isSubmittingTransition?: boolean;
+		transitionError?: string | null;
 		onFactCheckSubmit?: () => void;
 	}
 
@@ -55,6 +58,8 @@
 		onRatingSubmit,
 		onTransitionClick,
 		isSubmittingRating,
+		isSubmittingTransition = false,
+		transitionError = null,
 		onFactCheckSubmit
 	}: Props = $props();
 
@@ -244,32 +249,16 @@
 			{/if}
 		</div>
 
-		<!-- Workflow Transitions -->
-		{#if canTransition && workflowState}
-			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="workflow-transitions-card">
-				<h2 class="text-xl font-semibold text-gray-900 mb-4">
-					{$t('submissions.transition.title')}
-				</h2>
-
-				<p class="text-sm text-gray-600 mb-4">
-					{$t('submissions.transition.validTransitions')}
-				</p>
-
-				<div class="space-y-2">
-					{#each workflowState.valid_transitions as transition}
-						<button
-							data-testid="transition-button"
-							onclick={() => onTransitionClick(transition)}
-							class="w-full px-4 py-2 text-left border border-gray-300 rounded-lg hover:bg-gray-50 transition flex items-center justify-between"
-						>
-							<span>{getStateLabel(transition)}</span>
-							<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-							</svg>
-						</button>
-					{/each}
-				</div>
-			</div>
+		<!-- Workflow Transitions Panel (Issue #179) -->
+		{#if workflowState && user}
+			<WorkflowTransitionPanel
+				currentState={workflowState.current_state}
+				validTransitions={workflowState.valid_transitions}
+				userRole={user.role}
+				onTransitionClick={onTransitionClick}
+				isLoading={isSubmittingTransition}
+				error={transitionError}
+			/>
 		{/if}
 
 		<!-- Rating History -->
