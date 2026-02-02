@@ -8,13 +8,13 @@ import asyncio
 import logging
 from typing import Any
 
-from celery import Task  # type: ignore[import]
+from celery import Task
 from sqlalchemy import select
 
 from app.core.celery_app import celery_app
 from app.core.database import AsyncSessionLocal
+from app.models.submission import Submission
 from app.models.spotlight import SpotlightContent
-from app.schemas.claim import ClaimExtractionRequest
 from app.services.llm_claim_extraction_service import LLMClaimExtractionService
 
 logger = logging.getLogger(__name__)
@@ -54,29 +54,53 @@ async def _extract_claims_async(submission_id: str, spotlight_content_id: str) -
                 }
 
             # Extract claims using LLM service
-            llm_service = LLMClaimExtractionService(db)
-            extraction_request = ClaimExtractionRequest(
+            llm_service = LLMClaimExtractionService()
+            extraction_result = await llm_service.extract_claims(
                 transcription=spotlight.transcription,
+                source_type="transcription",
                 language_hint=spotlight.transcription_language or "en",
-                deduplicate=True,
             )
 
-            extraction_result = await llm_service.extract_claims(
-                submission_id=submission_id,
-                request=extraction_request,
-            )
+            # Link extracted claims to the submission
+            stmt_sub = select(Submission).where(Submission.id == submission_id)
+            result_sub = await db.execute(stmt_sub)
+            submission: Submission | None = result_sub.scalar_one_or_none()
+
+            if submission and extraction_result.claims:
+                from app.models.claim import Claim
+                from app.services.embedding_service import EmbeddingService
+
+                embedding_service = EmbeddingService()
+
+                for extracted_claim in extraction_result.claims:
+                    # Generate embedding for the claim
+                    embedding = await embedding_service.generate_embedding(extracted_claim.content)
+
+                    # Create claim in database
+                    claim = Claim(
+                        content=extracted_claim.content,
+                        source="transcription",
+                        language=extracted_claim.language,
+                        embedding=embedding,
+                    )
+                    db.add(claim)
+                    await db.flush()
+
+                    # Link claim to submission
+                    if claim not in submission.claims:
+                        submission.claims.append(claim)
+
+                await db.commit()
 
             logger.info(
-                f"Extracted {extraction_result.total_claims} claims from submission {submission_id}: "
-                f"{extraction_result.new_claims} new, {extraction_result.duplicates_found} duplicates"
+                f"Extracted {extraction_result.total_claims_found} claims from submission {submission_id}"
             )
 
             return {
                 "success": True,
                 "submission_id": submission_id,
-                "total_claims": extraction_result.total_claims,
-                "new_claims": extraction_result.new_claims,
-                "duplicates_found": extraction_result.duplicates_found,
+                "total_claims": extraction_result.total_claims_found,
+                "claims_count": len(extraction_result.claims),
             }
 
         except Exception as e:
