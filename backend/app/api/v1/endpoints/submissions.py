@@ -57,7 +57,6 @@ async def create_submission(
     response_data = SubmissionResponse.model_validate(created)
     return SubmissionWithClaimsResponse(
         **response_data.model_dump(),
-        claims=[ClaimResponse.model_validate(claim) for claim in created.claims],
         extracted_claims_count=len(created.claims),
     )
 
