@@ -87,7 +87,6 @@ class SubmissionResponse(BaseModel):
 class SubmissionWithClaimsResponse(SubmissionResponse):
     """Schema for submission response with extracted claims"""
 
-    claims: List[ClaimResponse] = Field(default_factory=list)
     extracted_claims_count: int = Field(default=0)
 
     model_config = {"from_attributes": True}
