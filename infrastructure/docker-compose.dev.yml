@@ -86,8 +86,8 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - SMTP_HOST=${SMTP_HOST:-smtp.strato.com}
       - SMTP_PORT=${SMTP_PORT:-587}
-      - SMTP_USER=${SMTP_USER:-ans@postxsociety.org}
-      - SMTP_PASSWORD=${SMTP_PASSWORD:-totnUv-0xowwu-fyfqud}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
       - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-ans@postxsociety.org}
       - SMTP_FROM_NAME=${SMTP_FROM_NAME:-AnsCheckt}
       - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
