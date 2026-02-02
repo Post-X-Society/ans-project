@@ -140,6 +140,7 @@ async def _transcribe_spotlight_async(
             return {
                 "success": True,
                 "spotlight_content_id": spotlight_content_id,
+                "submission_id": str(spotlight.submission_id),
                 "transcription": transcription.text,
                 "language": transcription.language,
                 "confidence": transcription.confidence,
@@ -193,15 +194,9 @@ def transcribe_spotlight(
 
     try:
         # Run async handler in event loop
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-        try:
-            result: dict[str, Any] = loop.run_until_complete(
-                _transcribe_spotlight_async(spotlight_content_id)
-            )
-        finally:
-            loop.close()
+        # Note: Use asyncio.run() instead of manually creating event loop
+        # This ensures proper cleanup and avoids event loop conflicts
+        result: dict[str, Any] = asyncio.run(_transcribe_spotlight_async(spotlight_content_id))
 
         # Log result
         if result["success"]:
@@ -209,6 +204,23 @@ def transcribe_spotlight(
                 f"Transcription completed for {spotlight_content_id}: "
                 f"language={result.get('language')}"
             )
+
+            # Trigger claim extraction after successful transcription
+            try:
+                from app.tasks.claim_extraction_tasks import extract_claims_from_transcription
+
+                # Get submission_id from result or query database
+                submission_id: Optional[str] = result.get("submission_id")
+                if not submission_id:
+                    # Query database to get submission_id from spotlight_content_id
+                    logger.warning(f"No submission_id in result, skipping claim extraction for {spotlight_content_id}")
+                else:
+                    logger.info(f"Triggering claim extraction for submission {submission_id}")
+                    extract_claims_from_transcription.delay(submission_id, spotlight_content_id)
+            except ImportError:
+                logger.warning("Claim extraction task not available, skipping")
+            except Exception as e:
+                logger.error(f"Failed to trigger claim extraction: {e}")
         else:
             logger.warning(
                 f"Transcription failed for {spotlight_content_id}: " f"{result.get('error')}"

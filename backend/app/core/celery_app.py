@@ -21,6 +21,7 @@ celery_app = Celery(
         "app.tasks.retention_tasks",
         "app.tasks.report_tasks",  # Issue #89: Monthly transparency reports
         "app.tasks.transcription_tasks",  # Issue #175: Audio transcription
+        "app.tasks.claim_extraction_tasks",  # Issue #176: Claim extraction
     ],
 )
 
@@ -36,6 +37,7 @@ celery_app.conf.update(
         "app.tasks.email_tasks.*": {"queue": "emails"},
         "app.tasks.report_tasks.*": {"queue": "reports"},  # Issue #89
         "app.tasks.transcription_tasks.*": {"queue": "transcription"},  # Issue #175
+        "app.tasks.claim_extraction_tasks.*": {"queue": "claim_extraction"},  # Issue #176
     },
     task_acks_late=True,  # Acknowledge after task completion
     worker_prefetch_multiplier=1,  # Process one task at a time per worker

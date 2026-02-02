@@ -227,6 +227,11 @@ async def create_spotlight_submission(
     await db.commit()
     await db.refresh(spotlight_content)
 
+    # Trigger async transcription task after commit
+    from app.tasks.transcription_tasks import transcribe_spotlight
+
+    transcribe_spotlight.delay(str(spotlight_content.id))
+
     return SpotlightContentResponse.model_validate(spotlight_content)
 
 

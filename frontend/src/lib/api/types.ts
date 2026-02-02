@@ -23,8 +23,9 @@ export interface Submission {
 	created_at: string;
 	updated_at: string;
 	user?: UserBasic;
-	spotlight_content?: SpotlightContentBasic;
+	spotlight_content?: SpotlightContent; // Issue #176: Full spotlight content with transcription
 	reviewers: UserBasic[];
+	claims?: Claim[]; // Issue #176: Extracted claims
 	/** ID of associated fact-check (if any) */
 	fact_check_id?: string;
 	/** Whether peer review has been triggered for this submission */
@@ -64,7 +65,21 @@ export interface SpotlightContent {
 	boost_count: number | null;
 	recommend_count: number | null;
 	upload_timestamp: number | null;
+	transcription: string | null; // Issue #176: Whisper transcription
+	transcription_language: string | null; // Issue #176: Detected language
+	transcription_confidence: number | null; // Issue #176: Confidence score (0.0-1.0)
 	raw_metadata: Record<string, any>;
+	created_at: string;
+	updated_at: string;
+}
+
+// Issue #176: Claim extracted from content
+export interface Claim {
+	id: string;
+	content: string;
+	source: string;
+	language: string | null;
+	embedding: number[] | null;
 	created_at: string;
 	updated_at: string;
 }
