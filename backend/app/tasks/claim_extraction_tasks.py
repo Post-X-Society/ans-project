@@ -10,7 +10,6 @@ from typing import Any
 
 from celery import Task  # type: ignore[import]
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.celery_app import celery_app
 from app.core.database import AsyncSessionLocal
