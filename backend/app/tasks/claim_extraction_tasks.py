@@ -13,8 +13,8 @@ from sqlalchemy import select
 
 from app.core.celery_app import celery_app
 from app.core.database import AsyncSessionLocal
-from app.models.submission import Submission
 from app.models.spotlight import SpotlightContent
+from app.models.submission import Submission
 from app.services.llm_claim_extraction_service import LLMClaimExtractionService
 
 logger = logging.getLogger(__name__)
