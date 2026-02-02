@@ -51,6 +51,14 @@
 	let showAssignDropdown = $state(false);
 	let assignError = $state<string | null>(null);
 
+	// State for manual claim addition (Issue #176)
+	let showAddClaimForm = $state(false);
+	let newClaimContent = $state('');
+	let newClaimSource = $state('manual');
+	let isSubmittingClaim = $state(false);
+	let claimError = $state<string | null>(null);
+	let claimSuccess = $state<string | null>(null);
+
 	// Check if user can manage reviewers (admin or super_admin)
 	let canManageReviewers = $derived(
 		userRole === 'admin' || userRole === 'super_admin'
@@ -169,6 +177,46 @@
 		const assigned = submission.reviewers?.map(r => r.id) || [];
 		return availableReviewers.filter((reviewer) => !assigned.includes(reviewer.id));
 	});
+
+	/**
+	 * Handle manual claim addition (Issue #176)
+	 */
+	async function handleAddClaim() {
+		isSubmittingClaim = true;
+		claimError = null;
+		claimSuccess = null;
+
+		try {
+			const response = await apiClient.post(
+				`/api/v1/submissions/${submission.id}/claims`,
+				{
+					content: newClaimContent,
+					source: newClaimSource,
+				}
+			);
+
+			// Show success message
+			claimSuccess = 'Claim added successfully!';
+
+			// Reset form after a short delay
+			setTimeout(() => {
+				showAddClaimForm = false;
+				newClaimContent = '';
+				newClaimSource = 'manual';
+				claimSuccess = null;
+			}, 1500);
+
+			// Refresh submission data to show new claim
+			if (onReviewersUpdated) {
+				await onReviewersUpdated();
+			}
+		} catch (error: any) {
+			console.error('Failed to add claim:', error);
+			claimError = error.response?.data?.detail || error.message || 'Failed to add claim';
+		} finally {
+			isSubmittingClaim = false;
+		}
+	}
 </script>
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8" data-testid="overview-tab-container">
@@ -296,6 +344,162 @@
 						</div>
 					</dl>
 				</div>
+
+				<!-- Transcription Section (Issue #176) -->
+				{#if submission.spotlight_content.transcription}
+					<div class="mt-6 pt-6 border-t border-gray-100">
+						<div class="flex items-center justify-between mb-3">
+							<h3 class="text-lg font-medium text-gray-900">Transcription</h3>
+							{#if submission.spotlight_content.transcription_language}
+								<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+									{submission.spotlight_content.transcription_language.toUpperCase()}
+									{#if submission.spotlight_content.transcription_confidence}
+										({Math.round(submission.spotlight_content.transcription_confidence * 100)}%)
+									{/if}
+								</span>
+							{/if}
+						</div>
+						<div class="bg-gray-50 rounded-lg p-4">
+							<p class="text-sm text-gray-700 whitespace-pre-wrap">{submission.spotlight_content.transcription}</p>
+						</div>
+					</div>
+				{:else}
+					<div class="mt-6 pt-6 border-t border-gray-100">
+						<p class="text-sm text-gray-500 italic">Transcription in progress...</p>
+					</div>
+				{/if}
+			</div>
+		{/if}
+
+		<!-- Claims Card (Issue #176) -->
+		{#if submission.spotlight_content?.transcription}
+			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="claims-card">
+				<div class="flex items-center justify-between mb-4">
+					<h2 class="text-xl font-semibold text-gray-900">
+						Extracted Claims
+						{#if submission.claims && submission.claims.length > 0}
+							({submission.claims.length})
+						{/if}
+					</h2>
+					{#if userRole && ['reviewer', 'admin', 'super_admin'].includes(userRole)}
+						<button
+							onclick={() => (showAddClaimForm = !showAddClaimForm)}
+							class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+						>
+							<svg class="-ml-0.5 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+							</svg>
+							Add Claim Manually
+						</button>
+					{/if}
+				</div>
+
+				<!-- Manual Claim Addition Form (Issue #176) -->
+				{#if showAddClaimForm}
+					<div class="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+						<form onsubmit={(e) => { e.preventDefault(); handleAddClaim(); }}>
+							<div class="space-y-3">
+								<div>
+									<label for="claim-content" class="block text-sm font-medium text-gray-700">Claim Content</label>
+									<textarea
+										id="claim-content"
+										bind:value={newClaimContent}
+										rows="3"
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+										placeholder="Enter the factual claim to be verified..."
+										required
+									></textarea>
+								</div>
+								<div>
+									<label for="claim-source" class="block text-sm font-medium text-gray-700">Source</label>
+									<select
+										id="claim-source"
+										bind:value={newClaimSource}
+										class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+									>
+										<option value="manual">Manual Entry</option>
+										<option value="transcription">Transcription</option>
+										<option value="comment">User Comment</option>
+									</select>
+								</div>
+								{#if claimError}
+									<div class="rounded-md bg-red-50 p-3">
+										<p class="text-sm text-red-800">{claimError}</p>
+									</div>
+								{/if}
+								{#if claimSuccess}
+									<div class="rounded-md bg-green-50 p-3">
+										<p class="text-sm text-green-800">{claimSuccess}</p>
+									</div>
+								{/if}
+								<div class="flex justify-end gap-2">
+									<button
+										type="button"
+										onclick={() => {
+											showAddClaimForm = false;
+											newClaimContent = '';
+											claimError = null;
+											claimSuccess = null;
+										}}
+										class="px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+									>
+										Cancel
+									</button>
+									<button
+										type="submit"
+										disabled={isSubmittingClaim || !newClaimContent.trim()}
+										class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+									>
+										{isSubmittingClaim ? 'Adding...' : 'Add Claim'}
+									</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				{/if}
+
+				{#if submission.claims && submission.claims.length > 0}
+					<!-- Claims found -->
+					<div class="space-y-3">
+						{#each submission.claims as claim, index}
+							<div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition">
+								<div class="flex items-start gap-3">
+									<span class="flex-shrink-0 inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-800 text-xs font-medium">
+										{index + 1}
+									</span>
+									<div class="flex-1">
+										<p class="text-sm text-gray-900">{claim.content}</p>
+										<div class="mt-2 flex items-center gap-3 text-xs text-gray-500">
+											<span>Source: {claim.source}</span>
+											{#if claim.language}
+												<span>• Language: {claim.language}</span>
+											{/if}
+										</div>
+									</div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{:else if submission.claims && submission.claims.length === 0}
+					<!-- Claims extraction completed but none found -->
+					<div class="bg-gray-50 rounded-lg p-6 text-center">
+						<svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+						</svg>
+						<h3 class="mt-2 text-sm font-medium text-gray-900">No factual claims detected</h3>
+						<p class="mt-1 text-sm text-gray-500">This content does not contain verifiable factual claims that require fact-checking.</p>
+					</div>
+				{:else}
+					<!-- Claim extraction still in progress -->
+					<div class="bg-blue-50 rounded-lg p-6 text-center">
+						<svg class="animate-spin mx-auto h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						</svg>
+						<p class="mt-3 text-sm text-gray-700 font-medium">Extracting claims from transcription...</p>
+						<p class="mt-1 text-xs text-gray-500">This may take 30-60 seconds</p>
+					</div>
+				{/if}
 			</div>
 		{/if}
 

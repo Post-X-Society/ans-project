@@ -16,7 +16,6 @@ from app.models.spotlight import SpotlightContent
 from app.models.submission import Submission
 from app.models.submission_reviewer import SubmissionReviewer
 from app.models.user import User, UserRole
-from app.schemas.claim import ClaimResponse
 from app.schemas.spotlight import SpotlightContentResponse, SpotlightSubmissionCreate
 from app.schemas.submission import (
     SubmissionCreate,
@@ -57,7 +56,6 @@ async def create_submission(
     response_data = SubmissionResponse.model_validate(created)
     return SubmissionWithClaimsResponse(
         **response_data.model_dump(),
-        claims=[ClaimResponse.model_validate(claim) for claim in created.claims],
         extracted_claims_count=len(created.claims),
     )
 
@@ -226,6 +224,11 @@ async def create_spotlight_submission(
 
     await db.commit()
     await db.refresh(spotlight_content)
+
+    # Trigger async transcription task after commit
+    from app.tasks.transcription_tasks import transcribe_spotlight
+
+    transcribe_spotlight.delay(str(spotlight_content.id))
 
     return SpotlightContentResponse.model_validate(spotlight_content)
 

@@ -48,8 +48,7 @@ def upgrade() -> None:
     # We do this once at the top, then use schema_type to reference the existing type
     from sqlalchemy.dialects import postgresql
 
-    op.execute(
-        """
+    op.execute("""
         DO $$ BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'workflowstate') THEN
                 CREATE TYPE workflowstate AS ENUM (
@@ -58,8 +57,7 @@ def upgrade() -> None:
                 );
             END IF;
         END$$;
-    """
-    )
+    """)
 
     # Reference the existing enum type (don't create it)
     workflow_state_enum = postgresql.ENUM(

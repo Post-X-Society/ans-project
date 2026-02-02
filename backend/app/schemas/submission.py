@@ -9,6 +9,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, field_validator
 
 from app.schemas.claim import ClaimResponse
+from app.schemas.spotlight import SpotlightContentResponse
 
 
 class SubmissionUserInfo(BaseModel):
@@ -75,6 +76,10 @@ class SubmissionResponse(BaseModel):
     fact_check_id: Optional[UUID] = None  # From first claim's first fact_check
     peer_review_triggered: bool = False
     submitter_comment: Optional[str] = None  # Issue #177: User context for fact-checking
+    spotlight_content: Optional[SpotlightContentResponse] = (
+        None  # Issue #176: Spotlight video with transcription
+    )
+    claims: List[ClaimResponse] = Field(default_factory=list)  # Issue #176: Extracted claims
 
     model_config = {"from_attributes": True}  # Allow ORM models
 
@@ -82,7 +87,6 @@ class SubmissionResponse(BaseModel):
 class SubmissionWithClaimsResponse(SubmissionResponse):
     """Schema for submission response with extracted claims"""
 
-    claims: List[ClaimResponse] = Field(default_factory=list)
     extracted_claims_count: int = Field(default=0)
 
     model_config = {"from_attributes": True}

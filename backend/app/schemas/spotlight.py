@@ -39,6 +39,9 @@ class SpotlightContentResponse(BaseModel):
     boost_count: Optional[int] = None
     recommend_count: Optional[int] = None
     upload_timestamp: Optional[int] = None
+    transcription: Optional[str] = None
+    transcription_language: Optional[str] = None
+    transcription_confidence: Optional[float] = None
     raw_metadata: dict[str, Any]
     created_at: datetime
     updated_at: datetime

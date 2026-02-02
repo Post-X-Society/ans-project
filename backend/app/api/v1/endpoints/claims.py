@@ -21,6 +21,7 @@ from app.core.dependencies import get_current_user
 from app.models.submission import Submission
 from app.models.user import User
 from app.schemas.claim import (
+    ClaimCreate,
     ClaimExtractionRequest,
     ClaimExtractionResponse,
     ClaimResponse,
@@ -127,6 +128,103 @@ async def extract_claims_for_submission(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=f"Claim extraction service unavailable: {str(e)}",
+        ) from e
+
+
+@router.post(
+    "/submissions/{submission_id}/claims",
+    response_model=ClaimResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Manually add a claim to a submission",
+    description=(
+        "Manually create and link a single claim to a submission. "
+        "This is useful when automatic extraction fails or misses claims. "
+        "Requires Reviewer, Admin, or Super Admin role."
+    ),
+)
+async def create_claim_for_submission(
+    submission_id: UUID,
+    claim_data: ClaimCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> ClaimResponse:
+    """Manually create a claim and link it to a submission
+
+    This endpoint:
+    1. Creates a new claim with the provided content
+    2. Generates an embedding for similarity search
+    3. Links the claim to the submission
+
+    Requires: Reviewer, Admin, or Super Admin role
+    """
+    # Check user has permission (reviewer, admin, or super_admin)
+    from app.models.user import UserRole
+
+    if current_user.role not in [UserRole.REVIEWER, UserRole.ADMIN, UserRole.SUPER_ADMIN]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only reviewers and admins can manually add claims",
+        )
+
+    # Verify submission exists
+    submission: Submission | None = await db.get(Submission, submission_id)
+    if not submission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Submission {submission_id} not found",
+        )
+
+    try:
+        # Initialize embedding service
+        embedding_service: EmbeddingService = EmbeddingService()
+
+        # Generate embedding for the claim
+        embedding: list[float] = await embedding_service.generate_embedding(claim_data.content)
+
+        # Create claim using claim service
+        from app.models.claim import Claim
+
+        claim = Claim(
+            content=claim_data.content,
+            source=claim_data.source,
+            embedding=embedding,
+        )
+
+        db.add(claim)
+        await db.flush()
+
+        # Link claim to submission
+        if claim not in submission.claims:
+            submission.claims.append(claim)
+
+        await db.commit()
+        await db.refresh(claim)
+
+        logger.info(
+            f"Manually created claim {claim.id} for submission {submission_id} "
+            f"(user: {current_user.email})"
+        )
+
+        return ClaimResponse(
+            id=claim.id,
+            content=claim.content,
+            source=claim.source,
+            created_at=claim.created_at,
+            has_embedding=claim.embedding is not None,
+        )
+
+    except EmbeddingServiceError as e:
+        logger.error(f"Embedding generation failed for manual claim: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Embedding service unavailable: {str(e)}",
+        ) from e
+    except Exception as e:
+        logger.error(f"Failed to create manual claim for submission {submission_id}: {e}")
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create claim: {str(e)}",
         ) from e
 
 

@@ -31,8 +31,7 @@ def upgrade() -> None:
     """Add rtbf_requests table for GDPR Right to be Forgotten requests."""
 
     # Create RTBFRequestStatus enum using raw SQL with IF NOT EXISTS
-    op.execute(
-        """
+    op.execute("""
         DO $$ BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'rtbfrequeststatus') THEN
                 CREATE TYPE rtbfrequeststatus AS ENUM (
@@ -40,8 +39,7 @@ def upgrade() -> None:
                 );
             END IF;
         END$$;
-        """
-    )
+        """)
 
     # Reference the enum
     rtbf_status_enum = sa.Enum(

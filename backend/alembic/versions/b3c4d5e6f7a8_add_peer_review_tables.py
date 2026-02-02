@@ -27,19 +27,16 @@ def upgrade() -> None:
     # This prevents duplicate enum errors on fresh database deployments
 
     # Create approval_status enum for peer_reviews
-    op.execute(
-        """
+    op.execute("""
         DO $$ BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'approvalstatus') THEN
                 CREATE TYPE approvalstatus AS ENUM ('pending', 'approved', 'rejected');
             END IF;
         END$$;
-        """
-    )
+        """)
 
     # Create trigger_type enum for peer_review_triggers
-    op.execute(
-        """
+    op.execute("""
         DO $$ BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'triggertype') THEN
                 CREATE TYPE triggertype AS ENUM (
@@ -50,8 +47,7 @@ def upgrade() -> None:
                 );
             END IF;
         END$$;
-        """
-    )
+        """)
 
     # STEP 2: Reference existing enums with create_type=False and schema_type=False
     approval_status_enum = postgresql.ENUM(
@@ -259,14 +255,12 @@ def seed_default_triggers() -> None:
 
         if count == 0:
             connection.execute(
-                text(
-                    """
+                text("""
                     INSERT INTO peer_review_triggers
                     (id, trigger_type, enabled, threshold_value, description, created_at, updated_at)
                     VALUES
                     (CAST(:id AS uuid), :trigger_type, :enabled, :threshold_value, :description, now(), now())
-                    """
-                ),
+                    """),
                 {
                     "id": trigger["id"],
                     "trigger_type": trigger["trigger_type"],

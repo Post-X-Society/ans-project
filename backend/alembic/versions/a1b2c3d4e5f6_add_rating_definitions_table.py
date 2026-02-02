@@ -135,14 +135,12 @@ def upgrade() -> None:
 
     for rating in EFCSN_RATINGS:
         bind.execute(
-            sa.text(
-                """
+            sa.text("""
                 INSERT INTO rating_definitions
                 (id, rating_key, title, description, visual_color, icon_name, display_order)
                 VALUES
                 (:id, :rating_key, :title, :description, :visual_color, :icon_name, :display_order)
-                """
-            ),
+                """),
             {
                 "id": str(uuid4()),
                 "rating_key": rating["rating_key"],

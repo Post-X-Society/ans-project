@@ -48,6 +48,7 @@ services:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ans_dev
       - REDIS_URL=redis://redis:6379/0
       - DEBUG=true
+      - CORS_ORIGINS=http://localhost:5173,http://localhost:3000,https://ans.postxsociety.cloud
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - BENEDMO_API_KEY=${BENEDMO_API_KEY:-}
       - RAPIDAPI_KEY=${RAPIDAPI_KEY:-dfe09ef614mshfd3f4115d69ba3dp1f43f2jsn9697540f75f0}
@@ -72,7 +73,7 @@ services:
     networks:
       - ans-network
 
-  # Celery Worker for async tasks (email queue)
+  # Celery Worker for async tasks (email, transcription queues)
   celery-worker:
     build:
       context: ../backend
@@ -82,16 +83,18 @@ services:
       - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/ans_dev
       - REDIS_URL=redis://redis:6379/0
       - DEBUG=true
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - SMTP_HOST=${SMTP_HOST:-smtp.strato.com}
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USER=${SMTP_USER:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
-      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-server@postxsociety.org}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-ans@postxsociety.org}
       - SMTP_FROM_NAME=${SMTP_FROM_NAME:-AnsCheckt}
       - SMTP_USE_TLS=${SMTP_USE_TLS:-true}
     volumes:
       - ../backend:/app
-    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+      - media_storage:/app/media
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2 --queues=celery,emails,reports,transcription,claim_extraction,maintenance
     depends_on:
       postgres:
         condition: service_healthy
