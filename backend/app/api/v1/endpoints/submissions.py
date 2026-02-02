@@ -16,7 +16,6 @@ from app.models.spotlight import SpotlightContent
 from app.models.submission import Submission
 from app.models.submission_reviewer import SubmissionReviewer
 from app.models.user import User, UserRole
-from app.schemas.claim import ClaimResponse
 from app.schemas.spotlight import SpotlightContentResponse, SpotlightSubmissionCreate
 from app.schemas.submission import (
     SubmissionCreate,
