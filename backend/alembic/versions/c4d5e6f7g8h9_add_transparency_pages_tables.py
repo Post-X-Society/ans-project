@@ -316,16 +316,14 @@ def seed_transparency_pages() -> None:
 
         if count == 0:
             connection.execute(
-                text(
-                    """
+                text("""
                     INSERT INTO transparency_pages
                     (id, slug, title, content, version, last_reviewed, next_review_due,
                      created_at, updated_at)
                     VALUES
                     (CAST(:id AS uuid), :slug, CAST(:title AS jsonb), CAST(:content AS jsonb), 1, :last_reviewed,
                      :next_review_due, now(), now())
-                    """
-                ),
+                    """),
                 {
                     "id": page["id"],
                     "slug": page["slug"],

@@ -27,8 +27,7 @@ def upgrade() -> None:
     # This prevents duplicate enum errors on fresh database deployments
 
     # Create sourcetype enum
-    op.execute(
-        """
+    op.execute("""
         DO $$ BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'sourcetype') THEN
                 CREATE TYPE sourcetype AS ENUM (
@@ -41,12 +40,10 @@ def upgrade() -> None:
                 );
             END IF;
         END$$;
-        """
-    )
+        """)
 
     # Create sourcerelevance enum
-    op.execute(
-        """
+    op.execute("""
         DO $$ BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'sourcerelevance') THEN
                 CREATE TYPE sourcerelevance AS ENUM (
@@ -56,8 +53,7 @@ def upgrade() -> None:
                 );
             END IF;
         END$$;
-        """
-    )
+        """)
 
     # STEP 2: Reference existing enums with create_type=False and schema_type=False
     source_type_enum = postgresql.ENUM(

@@ -127,7 +127,9 @@ def extract_claims_from_transcription(
     logger.info(f"Starting claim extraction for submission: {submission_id}")
 
     try:
-        result: dict[str, Any] = asyncio.run(_extract_claims_async(submission_id, spotlight_content_id))
+        result: dict[str, Any] = asyncio.run(
+            _extract_claims_async(submission_id, spotlight_content_id)
+        )
 
         if result["success"]:
             logger.info(
@@ -135,9 +137,7 @@ def extract_claims_from_transcription(
                 f"{result.get('total_claims')} claims extracted"
             )
         else:
-            logger.warning(
-                f"Claim extraction failed for {submission_id}: {result.get('error')}"
-            )
+            logger.warning(f"Claim extraction failed for {submission_id}: {result.get('error')}")
 
         return result
 

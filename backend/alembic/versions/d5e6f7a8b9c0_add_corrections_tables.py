@@ -30,26 +30,22 @@ def upgrade() -> None:
     # This prevents duplicate enum errors on fresh database deployments
 
     # Create correctiontype enum
-    op.execute(
-        """
+    op.execute("""
         DO $$ BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'correctiontype') THEN
                 CREATE TYPE correctiontype AS ENUM ('minor', 'update', 'substantial');
             END IF;
         END$$;
-        """
-    )
+        """)
 
     # Create correctionstatus enum
-    op.execute(
-        """
+    op.execute("""
         DO $$ BEGIN
             IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'correctionstatus') THEN
                 CREATE TYPE correctionstatus AS ENUM ('pending', 'accepted', 'rejected');
             END IF;
         END$$;
-        """
-    )
+        """)
 
     # STEP 2: Reference existing enums with create_type=False and schema_type=False
     correction_type_enum = postgresql.ENUM(

@@ -213,7 +213,9 @@ def transcribe_spotlight(
                 submission_id: Optional[str] = result.get("submission_id")
                 if not submission_id:
                     # Query database to get submission_id from spotlight_content_id
-                    logger.warning(f"No submission_id in result, skipping claim extraction for {spotlight_content_id}")
+                    logger.warning(
+                        f"No submission_id in result, skipping claim extraction for {spotlight_content_id}"
+                    )
                 else:
                     logger.info(f"Triggering claim extraction for submission {submission_id}")
                     extract_claims_from_transcription.delay(submission_id, spotlight_content_id)
