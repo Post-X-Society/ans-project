@@ -496,3 +496,237 @@ async def get_submission_reviewers(
 
     reviewers = await submission_service.get_submission_reviewers(db, submission_id)
     return [UserResponse.model_validate(reviewer) for reviewer in reviewers]
+
+
+# Rating endpoints - proxy to fact-check ratings
+# These allow rating a submission by submission_id instead of fact_check_id
+
+
+@router.post(
+    "/{submission_id}/ratings",
+    response_model=dict,
+    status_code=status.HTTP_201_CREATED,
+    summary="Assign rating to submission's fact-check",
+    description="Assign a rating to the fact-check associated with this submission",
+)
+async def assign_submission_rating(
+    submission_id: UUID,
+    rating_data: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """
+    Assign a rating to a submission's fact-check.
+
+    This is a convenience endpoint that looks up the fact_check_id from the submission
+    and then calls the rating service.
+
+    - **submission_id**: UUID of the submission
+    - **rating_data**: Rating assignment data (rating key and justification)
+
+    Requires admin or super_admin role.
+    """
+    from app.schemas.rating import RatingCreate
+    from app.services.rating_service import (
+        RatingPermissionError,
+        RatingValidationError,
+        assign_rating,
+    )
+
+    # Get submission to find fact_check_id
+    submission = await submission_service.get_submission(db, submission_id)
+    if not submission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Submission {submission_id} not found",
+        )
+
+    # Auto-create fact-check if it doesn't exist
+    if not submission.fact_check_id:
+        from app.models.claim import Claim
+        from app.models.fact_check import FactCheck
+
+        # Get the first claim for this submission
+        first_claim = submission.claims[0] if submission.claims else None
+
+        if not first_claim:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="This submission has no claims. Please add claims before assigning a rating.",
+            )
+
+        # Check if claim already has a fact-check
+        if first_claim.fact_checks:
+            fact_check = first_claim.fact_checks[0]
+        else:
+            # Create a new fact-check for the first claim
+            fact_check = FactCheck(
+                claim_id=first_claim.id,
+                verdict="pending",  # Default verdict
+                confidence=0.0,  # Default confidence
+                reasoning="Fact-check created automatically when rating was assigned",
+                sources=[],  # Empty sources list
+                sources_count=0,
+            )
+            db.add(fact_check)
+            await db.flush()
+            await db.refresh(fact_check)
+
+        # Use the fact_check_id for rating
+        fact_check_id_to_use = fact_check.id
+    else:
+        fact_check_id_to_use = submission.fact_check_id
+
+    # Convert dict to RatingCreate schema
+    try:
+        rating_create = RatingCreate(**rating_data)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid rating data: {str(e)}",
+        ) from e
+
+    # Assign rating using the rating service
+    try:
+        rating = await assign_rating(
+            db=db,
+            fact_check_id=fact_check_id_to_use,
+            rating_data=rating_create,
+            assigned_by_id=current_user.id,
+        )
+
+        # Return rating as dict
+        return {
+            "id": str(rating.id),
+            "fact_check_id": str(rating.fact_check_id),
+            "assigned_by_id": str(rating.assigned_by_id),
+            "rating": rating.rating,
+            "justification": rating.justification,
+            "version": rating.version,
+            "is_current": rating.is_current,
+            "assigned_at": rating.assigned_at.isoformat(),
+            "created_at": rating.created_at.isoformat(),
+            "updated_at": rating.updated_at.isoformat(),
+        }
+
+    except RatingValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        ) from e
+    except RatingPermissionError as e:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(e),
+        ) from e
+
+
+@router.get(
+    "/{submission_id}/ratings",
+    response_model=list[dict],
+    summary="Get rating history for submission",
+    description="Get all ratings for the fact-check associated with this submission",
+)
+async def get_submission_ratings(
+    submission_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """
+    Get the complete rating history for a submission's fact-check.
+
+    - **submission_id**: UUID of the submission
+
+    Returns all rating versions ordered by version number.
+    """
+    from app.services.rating_service import RatingValidationError, get_rating_history
+
+    # Get submission to find fact_check_id
+    submission = await submission_service.get_submission(db, submission_id)
+    if not submission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Submission {submission_id} not found",
+        )
+
+    if not submission.fact_check_id:
+        # Return empty list if no fact-check exists yet
+        return []
+
+    # Get rating history
+    try:
+        history = await get_rating_history(db=db, fact_check_id=submission.fact_check_id)
+        return [
+            {
+                "id": str(r.id),
+                "fact_check_id": str(r.fact_check_id),
+                "assigned_by_id": str(r.assigned_by_id),
+                "rating": r.rating,
+                "justification": r.justification,
+                "version": r.version,
+                "is_current": r.is_current,
+                "assigned_at": r.assigned_at.isoformat(),
+                "created_at": r.created_at.isoformat(),
+                "updated_at": r.updated_at.isoformat(),
+            }
+            for r in history.ratings
+        ]
+    except RatingValidationError:
+        # If fact-check not found, return empty list
+        return []
+
+
+@router.get(
+    "/{submission_id}/ratings/current",
+    response_model=dict,
+    summary="Get current rating for submission",
+    description="Get the current rating for the fact-check associated with this submission",
+)
+async def get_submission_current_rating(
+    submission_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Get the current rating for a submission's fact-check.
+
+    - **submission_id**: UUID of the submission
+
+    Returns the most recent rating or null if no rating exists.
+    """
+    from app.services.rating_service import get_current_rating
+
+    # Get submission to find fact_check_id
+    submission = await submission_service.get_submission(db, submission_id)
+    if not submission:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Submission {submission_id} not found",
+        )
+
+    if not submission.fact_check_id:
+        # Return response indicating no rating
+        return {"has_rating": False, "rating": None}
+
+    # Get current rating
+    try:
+        current = await get_current_rating(db=db, fact_check_id=submission.fact_check_id)
+        if current.has_rating and current.rating:
+            return {
+                "has_rating": True,
+                "rating": {
+                    "id": str(current.rating.id),
+                    "fact_check_id": str(current.rating.fact_check_id),
+                    "assigned_by_id": str(current.rating.assigned_by_id),
+                    "rating": current.rating.rating,
+                    "justification": current.rating.justification,
+                    "version": current.rating.version,
+                    "is_current": current.rating.is_current,
+                    "assigned_at": current.rating.assigned_at.isoformat(),
+                    "created_at": current.rating.created_at.isoformat(),
+                    "updated_at": current.rating.updated_at.isoformat(),
+                },
+            }
+        else:
+            return {"has_rating": False, "rating": None}
+    except Exception:
+        # If any error occurs, return no rating
+        return {"has_rating": False, "rating": None}

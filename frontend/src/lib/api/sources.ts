@@ -51,5 +51,5 @@ export async function updateSource(
  * Delete a source
  */
 export async function deleteSource(factCheckId: string, sourceId: string): Promise<void> {
-	await apiClient.delete(`/api/v1/fact-checks/${factCheckId}/sources/${sourceId}`);
+	await apiClient.delete(`/api/v1/sources/${sourceId}`);
 }

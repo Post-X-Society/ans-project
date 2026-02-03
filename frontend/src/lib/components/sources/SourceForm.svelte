@@ -6,6 +6,7 @@
 		source?: Source;
 		mode?: 'add' | 'edit';
 		existingSourceCount?: number;
+		factCheckId: string;  // Required: fact-check ID for the source
 		onSubmit?: (data: SourceCreate) => void | Promise<void>;
 		onCancel?: () => void;
 	}
@@ -14,33 +15,47 @@
 		source,
 		mode = 'add',
 		existingSourceCount = 0,
+		factCheckId,
 		onSubmit,
 		onCancel
 	}: Props = $props();
 
+	// Get today's date in YYYY-MM-DD format
+	const getTodayDate = () => new Date().toISOString().split('T')[0];
+
 	// Initialize form state from source prop
+	const initialTitle = source?.title ?? '';
 	const initialUrl = source?.url ?? '';
 	const initialSourceType = source?.source_type ?? '';
-	const initialCredibilityRating = source?.credibility_rating ?? 0;
+	const initialCredibilityScore = source?.credibility_score ?? 0;
 	const initialRelevance = source?.relevance ?? '';
+	const initialAccessDate = source?.access_date ?? getTodayDate();
+	const initialPublicationDate = source?.publication_date ?? '';
+	const initialNotes = source?.notes ?? '';
 
 	// Form state
+	let title = $state(initialTitle);
 	let url = $state(initialUrl);
 	let sourceType = $state<SourceType | ''>(initialSourceType);
-	let credibilityRating = $state(initialCredibilityRating);
+	let credibilityScore = $state(initialCredibilityScore);
 	let relevance = $state<SourceRelevance | ''>(initialRelevance);
+	let accessDate = $state(initialAccessDate);
+	let publicationDate = $state(initialPublicationDate);
+	let notes = $state(initialNotes);
 	let isSubmitting = $state(false);
 
 	// Validation errors
 	let errors = $state<{
+		title?: string;
 		url?: string;
 		sourceType?: string;
-		credibilityRating?: string;
+		credibilityScore?: string;
 		relevance?: string;
+		accessDate?: string;
 	}>({});
 
 	// Source type options
-	const sourceTypes: SourceType[] = ['official', 'news', 'social_media', 'research', 'other'];
+	const sourceTypes: SourceType[] = ['primary', 'secondary', 'expert', 'media', 'government', 'academic'];
 
 	// Relevance options
 	const relevanceOptions: SourceRelevance[] = ['supports', 'contradicts', 'contextualizes'];
@@ -52,23 +67,21 @@
 		errors = {};
 		let isValid = true;
 
-		if (!url.trim()) {
-			errors.url = $t('sources.validation.urlRequired');
+		// Title is required
+		if (!title.trim()) {
+			errors.title = $t('sources.validation.titleRequired');
 			isValid = false;
 		}
 
+		// Source type is required
 		if (!sourceType) {
 			errors.sourceType = $t('sources.validation.typeRequired');
 			isValid = false;
 		}
 
-		if (credibilityRating === 0) {
-			errors.credibilityRating = $t('sources.validation.credibilityRequired');
-			isValid = false;
-		}
-
-		if (!relevance) {
-			errors.relevance = $t('sources.validation.relevanceRequired');
+		// Access date is required
+		if (!accessDate) {
+			errors.accessDate = $t('sources.validation.accessDateRequired');
 			isValid = false;
 		}
 
@@ -84,20 +97,29 @@
 
 		try {
 			const data: SourceCreate = {
-				url: url.trim(),
+				fact_check_id: factCheckId,
 				source_type: sourceType as SourceType,
-				credibility_rating: credibilityRating,
-				relevance: relevance as SourceRelevance
+				title: title.trim(),
+				access_date: accessDate,
+				url: url.trim() || undefined,
+				publication_date: publicationDate || undefined,
+				credibility_score: credibilityScore || undefined,
+				relevance: (relevance as SourceRelevance) || undefined,
+				notes: notes.trim() || undefined,
 			};
 
 			await onSubmit?.(data);
 
 			// Clear form after successful submission in add mode
 			if (mode === 'add') {
+				title = '';
 				url = '';
 				sourceType = '';
-				credibilityRating = 0;
+				credibilityScore = 0;
 				relevance = '';
+				accessDate = getTodayDate();
+				publicationDate = '';
+				notes = '';
 			}
 		} finally {
 			isSubmitting = false;
@@ -105,7 +127,7 @@
 	}
 
 	function handleStarClick(rating: number) {
-		credibilityRating = rating;
+		credibilityScore = rating;
 	}
 
 	function getStarLabel(index: number): string {
@@ -137,34 +159,50 @@
 		</div>
 	{/if}
 
-	<!-- URL Input -->
+	<!-- Title Input (Required) -->
+	<div>
+		<label for="source-title" class="block text-sm font-medium text-gray-700 mb-1">
+			{$t('sources.form.titleLabel')} <span class="text-red-500">*</span>
+		</label>
+		<input
+			id="source-title"
+			type="text"
+			bind:value={title}
+			placeholder={$t('sources.form.titlePlaceholder')}
+			class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+			aria-describedby={errors.title ? 'title-error' : undefined}
+			required
+		/>
+		{#if errors.title}
+			<p id="title-error" role="alert" class="mt-1 text-sm text-red-600">{errors.title}</p>
+		{/if}
+	</div>
+
+	<!-- URL Input (Optional) -->
 	<div>
 		<label for="source-url" class="block text-sm font-medium text-gray-700 mb-1">
 			{$t('sources.form.urlLabel')}
 		</label>
 		<input
 			id="source-url"
-			type="text"
+			type="url"
 			bind:value={url}
 			placeholder={$t('sources.form.urlPlaceholder')}
 			class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-			aria-describedby={errors.url ? 'url-error' : undefined}
 		/>
-		{#if errors.url}
-			<p id="url-error" role="alert" class="mt-1 text-sm text-red-600">{errors.url}</p>
-		{/if}
 	</div>
 
 	<!-- Source Type Dropdown -->
 	<div>
 		<label for="source-type" class="block text-sm font-medium text-gray-700 mb-1">
-			{$t('sources.form.typeLabel')}
+			{$t('sources.form.typeLabel')} <span class="text-red-500">*</span>
 		</label>
 		<select
 			id="source-type"
 			bind:value={sourceType}
 			class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
 			aria-describedby={errors.sourceType ? 'type-error' : undefined}
+			required
 		>
 			<option value="">{$t('sources.form.typePlaceholder')}</option>
 			{#each sourceTypes as type}
@@ -176,7 +214,41 @@
 		{/if}
 	</div>
 
-	<!-- Credibility Rating (1-5 stars) -->
+	<!-- Date Fields -->
+	<div class="grid grid-cols-2 gap-4">
+		<!-- Access Date (Required) -->
+		<div>
+			<label for="access-date" class="block text-sm font-medium text-gray-700 mb-1">
+				{$t('sources.form.accessDateLabel')} <span class="text-red-500">*</span>
+			</label>
+			<input
+				id="access-date"
+				type="date"
+				bind:value={accessDate}
+				class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+				aria-describedby={errors.accessDate ? 'access-date-error' : undefined}
+				required
+			/>
+			{#if errors.accessDate}
+				<p id="access-date-error" role="alert" class="mt-1 text-sm text-red-600">{errors.accessDate}</p>
+			{/if}
+		</div>
+
+		<!-- Publication Date (Optional) -->
+		<div>
+			<label for="publication-date" class="block text-sm font-medium text-gray-700 mb-1">
+				{$t('sources.form.publicationDateLabel')}
+			</label>
+			<input
+				id="publication-date"
+				type="date"
+				bind:value={publicationDate}
+				class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+			/>
+		</div>
+	</div>
+
+	<!-- Credibility Score (1-5 stars, optional) -->
 	<fieldset aria-labelledby="credibility-legend">
 		<legend id="credibility-legend" class="block text-sm font-medium text-gray-700 mb-2">
 			{$t('sources.form.credibilityLabel')}
@@ -187,10 +259,10 @@
 					type="button"
 					onclick={() => handleStarClick(rating)}
 					aria-label={getStarLabel(index)}
-					aria-pressed={credibilityRating >= rating}
+					aria-pressed={credibilityScore >= rating}
 					class="w-8 h-8 flex items-center justify-center text-2xl transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded"
 				>
-					{#if credibilityRating >= rating}
+					{#if credibilityScore >= rating}
 						<span class="text-yellow-400">★</span>
 					{:else}
 						<span class="text-gray-300">☆</span>
@@ -198,12 +270,9 @@
 				</button>
 			{/each}
 		</div>
-		{#if errors.credibilityRating}
-			<p role="alert" class="mt-1 text-sm text-red-600">{errors.credibilityRating}</p>
-		{/if}
 	</fieldset>
 
-	<!-- Relevance Selector -->
+	<!-- Relevance Selector (Optional) -->
 	<div>
 		<label for="source-relevance" class="block text-sm font-medium text-gray-700 mb-1">
 			{$t('sources.form.relevanceLabel')}
@@ -212,16 +281,26 @@
 			id="source-relevance"
 			bind:value={relevance}
 			class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-			aria-describedby={errors.relevance ? 'relevance-error' : undefined}
 		>
 			<option value="">{$t('sources.form.relevancePlaceholder')}</option>
 			{#each relevanceOptions as rel}
 				<option value={rel}>{$t(`sources.relevance.${rel}`)}</option>
 			{/each}
 		</select>
-		{#if errors.relevance}
-			<p id="relevance-error" role="alert" class="mt-1 text-sm text-red-600">{errors.relevance}</p>
-		{/if}
+	</div>
+
+	<!-- Notes (Optional) -->
+	<div>
+		<label for="source-notes" class="block text-sm font-medium text-gray-700 mb-1">
+			{$t('sources.form.notesLabel')}
+		</label>
+		<textarea
+			id="source-notes"
+			bind:value={notes}
+			placeholder={$t('sources.form.notesPlaceholder')}
+			rows="3"
+			class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+		></textarea>
 	</div>
 
 	<!-- Action Buttons -->

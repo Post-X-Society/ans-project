@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 	import SourceForm from './SourceForm.svelte';
+	import SourceDetailModal from './SourceDetailModal.svelte';
 	import type { Source, SourceCreate } from '$lib/api/types';
 	import { getSources, createSource, deleteSource } from '$lib/api/sources';
 	import { t } from '$lib/i18n';
@@ -10,6 +11,9 @@
 	}
 
 	let { factCheckId }: Props = $props();
+
+	let selectedSource = $state<Source | null>(null);
+	let selectedSourceCitation = $state<number | undefined>(undefined);
 
 	const queryClient = useQueryClient();
 
@@ -36,7 +40,7 @@
 		}
 	}));
 
-	let sources = $derived(sourcesQuery.data?.items ?? []);
+	let sources = $derived(sourcesQuery.data?.sources ?? []);
 	let sourceCount = $derived(sources.length);
 	let isLoading = $derived(sourcesQuery.isPending);
 	let error = $derived(sourcesQuery.error);
@@ -48,7 +52,26 @@
 	async function handleDelete(sourceId: string) {
 		if (confirm($t('sources.deleteConfirm'))) {
 			await deleteSourceMutation.mutateAsync(sourceId);
+			// Close modal if it's open
+			if (selectedSource?.id === sourceId) {
+				selectedSource = null;
+				selectedSourceCitation = undefined;
+			}
 		}
+	}
+
+	function handleSourceClick(source: Source, index: number) {
+		selectedSource = source;
+		selectedSourceCitation = index + 1;
+	}
+
+	function handleCloseModal() {
+		selectedSource = null;
+		selectedSourceCitation = undefined;
+	}
+
+	function handleDeleteFromModal(sourceId: string) {
+		handleDelete(sourceId);
 	}
 
 	function getRelevanceBadgeClass(relevance: string): string {
@@ -90,7 +113,11 @@
 						{$t('sources.warning.title')}
 					</p>
 					<p class="text-sm text-yellow-700 mt-1">
-						{sourceCount} {sourceCount === 1 ? $t('sources.warning.source') : $t('sources.warning.sources')} {$t('sources.warning.added')}
+						{#if sourceCount === 1}
+							{$t('sources.warning.sourceCount', { values: { count: sourceCount } })}
+						{:else}
+							{$t('sources.warning.sourcesCount', { values: { count: sourceCount } })}
+						{/if}
 					</p>
 				</div>
 			</div>
@@ -99,8 +126,9 @@
 
 	<!-- Add Source Form -->
 	<div class="bg-white border border-gray-200 rounded-lg p-6">
-		<h3 class="text-lg font-semibold text-gray-900 mb-4">{$t('sources.addSource')}</h3>
+		<h3 class="text-lg font-semibold text-gray-900 mb-4">{$t('sources.form.addSource')}</h3>
 		<SourceForm
+			factCheckId={factCheckId}
 			onSubmit={handleSourceSubmit}
 			existingSourceCount={sourceCount}
 		/>
@@ -109,7 +137,7 @@
 	<!-- Sources List -->
 	<div class="bg-white border border-gray-200 rounded-lg p-6">
 		<h3 class="text-lg font-semibold text-gray-900 mb-4">
-			{$t('sources.sourcesList')} ({sourceCount})
+			{$t('sources.sourcesList', { values: { count: sourceCount } })}
 		</h3>
 
 		{#if isLoading}
@@ -127,21 +155,30 @@
 				{#each sources as source, index}
 					<div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
 						<div class="flex items-start justify-between">
-							<div class="flex-1">
-								<!-- Source Number and URL -->
+							<button
+								type="button"
+								onclick={() => handleSourceClick(source, index)}
+								class="flex-1 text-left focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 rounded"
+							>
+								<!-- Source Number and Title -->
 								<div class="flex items-center gap-2 mb-2">
 									<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 text-sm font-semibold">
 										{index + 1}
 									</span>
+									<h4 class="font-medium text-gray-900">{source.title}</h4>
+								</div>
+
+								<!-- URL if available -->
+								{#if source.url}
 									<a
 										href={source.url}
 										target="_blank"
 										rel="noopener noreferrer"
-										class="text-primary-600 hover:text-primary-700 hover:underline text-sm break-all"
+										class="text-primary-600 hover:text-primary-700 hover:underline text-sm break-all block mb-2"
 									>
 										{source.url}
 									</a>
-								</div>
+								{/if}
 
 								<!-- Metadata -->
 								<div class="flex flex-wrap items-center gap-3 mt-2">
@@ -151,16 +188,20 @@
 									</span>
 
 									<!-- Relevance -->
-									<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium {getRelevanceBadgeClass(source.relevance)}">
-										{$t(`sources.relevance.${source.relevance}`)}
-									</span>
+									{#if source.relevance}
+										<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium {getRelevanceBadgeClass(source.relevance)}">
+											{$t(`sources.relevance.${source.relevance}`)}
+										</span>
+									{/if}
 
 									<!-- Credibility Rating -->
-									<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-50 text-yellow-800" title="{source.credibility_rating}/5 {$t('sources.credibility')}">
-										{renderStars(source.credibility_rating)}
-									</span>
+									{#if source.credibility_score}
+										<span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-50 text-yellow-800" title="{source.credibility_score}/5 stars">
+											{renderStars(source.credibility_score)}
+										</span>
+									{/if}
 								</div>
-							</div>
+							</button>
 
 							<!-- Delete Button -->
 							<button
@@ -185,4 +226,15 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Source Detail Modal -->
+	{#if selectedSource}
+		<SourceDetailModal
+			source={selectedSource}
+			citationNumber={selectedSourceCitation}
+			onClose={handleCloseModal}
+			onDelete={handleDeleteFromModal}
+			isDeleting={deleteSourceMutation.isPending}
+		/>
+	{/if}
 </div>

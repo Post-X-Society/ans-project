@@ -13,6 +13,7 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
 	import WorkflowTimeline from '$lib/components/WorkflowTimeline.svelte';
+	import WorkflowTransitionPanel from '$lib/components/WorkflowTransitionPanel.svelte';
 	import { assignReviewer, removeReviewer } from '$lib/api/submissions';
 	import { apiClient } from '$lib/api/client';
 	import type {
@@ -32,6 +33,9 @@
 		historyError: string | null;
 		userRole?: UserRole;
 		onReviewersUpdated?: () => void;
+		onTransitionClick?: (state: WorkflowState) => void;
+		isSubmittingTransition?: boolean;
+		transitionError?: string | null;
 	}
 
 	let {
@@ -41,7 +45,10 @@
 		isLoadingHistory,
 		historyError,
 		userRole,
-		onReviewersUpdated
+		onReviewersUpdated,
+		onTransitionClick,
+		isSubmittingTransition = false,
+		transitionError = null
 	}: Props = $props();
 
 	// State for reviewer management
@@ -520,9 +527,21 @@
 		{/if}
 	</div>
 
-	<!-- Right Column: Assigned Reviewers (hidden for submitters) -->
+	<!-- Right Column: Workflow Controls & Assigned Reviewers (hidden for submitters) -->
 	{#if userRole !== 'submitter'}
 		<div class="space-y-6">
+			<!-- Workflow Transition Panel -->
+			{#if workflowState?.current_state && workflowState?.valid_transitions && workflowState.valid_transitions.length > 0}
+				<WorkflowTransitionPanel
+					currentState={workflowState.current_state}
+					validTransitions={workflowState.valid_transitions}
+					userRole={userRole ?? 'submitter'}
+					onTransitionClick={onTransitionClick ?? (() => {})}
+					isLoading={isSubmittingTransition}
+					error={transitionError}
+				/>
+			{/if}
+
 			<div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6" data-testid="assigned-reviewers-card">
 				<div class="flex justify-between items-center mb-4">
 					<h2 class="text-xl font-semibold text-gray-900">

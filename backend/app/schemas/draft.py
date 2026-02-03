@@ -58,22 +58,8 @@ class DraftContent(BaseModel):
         description="UUID of the user who last edited the draft",
     )
 
-    @field_validator("justification")
-    @classmethod
-    def validate_justification_length(cls, v: Optional[str]) -> Optional[str]:
-        """Validate justification has minimum 50 characters if provided."""
-        if v is not None:
-            stripped = v.strip()
-            if stripped and len(stripped) < 50:
-                raise ValueError("Justification must be at least 50 characters when provided")
-            return stripped
-        return v
-
-    @field_validator("sources_cited")
-    @classmethod
-    def validate_sources_format(cls, v: list[str]) -> list[str]:
-        """Validate and clean source URLs."""
-        return [source.strip() for source in v if source.strip()]
+    # Note: No validators here - DraftContent is used for reading stored data
+    # Validation only happens on DraftUpdate (when saving)
 
 
 class DraftUpdate(BaseModel):
@@ -110,24 +96,8 @@ class DraftUpdate(BaseModel):
         description="Internal notes visible only to reviewers and admins",
     )
 
-    @field_validator("justification")
-    @classmethod
-    def validate_justification_length(cls, v: Optional[str]) -> Optional[str]:
-        """Validate justification has minimum 50 characters if provided."""
-        if v is not None:
-            stripped = v.strip()
-            if stripped and len(stripped) < 50:
-                raise ValueError("Justification must be at least 50 characters when provided")
-            return stripped
-        return v
-
-    @field_validator("sources_cited")
-    @classmethod
-    def validate_sources_format(cls, v: Optional[list[str]]) -> Optional[list[str]]:
-        """Validate and clean source URLs."""
-        if v is not None:
-            return [source.strip() for source in v if source.strip()]
-        return v
+    # Note: No strict validators on drafts - this is work-in-progress content
+    # Validation happens at the "Submit for Review" stage, not during auto-save
 
 
 class DraftResponse(BaseModel):

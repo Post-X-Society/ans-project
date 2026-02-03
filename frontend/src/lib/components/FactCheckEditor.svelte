@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { t } from '$lib/i18n';
 	import { getDraft, saveDraft } from '$lib/api/drafts';
-	import type { DraftResponse, DraftUpdate, FactCheckRatingValue } from '$lib/api/types';
+	import { getSources } from '$lib/api/sources';
+	import type { DraftResponse, DraftUpdate, FactCheckRatingValue, Source } from '$lib/api/types';
 
 	interface Props {
 		factCheckId: string;
@@ -10,6 +11,10 @@
 	}
 
 	let { factCheckId, claimText = '', onSubmitForReview }: Props = $props();
+
+	// Load sources for citation references
+	let availableSources = $state<Source[]>([]);
+	let loadingSources = $state(false);
 
 	// State
 	let isLoading = $state(true);
@@ -27,7 +32,6 @@
 	let analysis = $state('');
 	let verdict = $state<FactCheckRatingValue | ''>('');
 	let justification = $state('');
-	let sources = $state<string[]>([]);
 	let internalNotes = $state('');
 
 	// Computed values
@@ -48,15 +52,28 @@
 		'unverifiable'
 	];
 
-	// Load draft on mount
+	// Load draft and sources on mount
 	$effect(() => {
 		loadDraft();
+		loadSources();
 		return () => {
 			if (autoSaveTimer) {
 				clearTimeout(autoSaveTimer);
 			}
 		};
 	});
+
+	async function loadSources() {
+		loadingSources = true;
+		try {
+			const response = await getSources(factCheckId);
+			availableSources = response.sources || [];
+		} catch (error) {
+			console.error('Failed to load sources:', error);
+		} finally {
+			loadingSources = false;
+		}
+	}
 
 	async function loadDraft() {
 		isLoading = true;
@@ -69,7 +86,6 @@
 				analysis = response.draft_content.analysis ?? '';
 				verdict = response.draft_content.verdict ?? '';
 				justification = response.draft_content.justification ?? '';
-				sources = response.draft_content.sources_cited ?? [];
 				internalNotes = response.draft_content.internal_notes ?? '';
 			}
 			lastSavedAt = response.draft_updated_at;
@@ -111,12 +127,11 @@
 
 		try {
 			const draftData: DraftUpdate = {
-				claim_summary: claimSummary || null,
-				analysis: analysis || null,
+				claim_summary: claimSummary.trim() || null,
+				analysis: analysis.trim() || null,
 				verdict: verdict || null,
-				justification: justification || null,
-				sources_cited: sources.filter((s) => s.trim() !== ''),
-				internal_notes: internalNotes || null
+				justification: justification.trim() || null,
+				internal_notes: internalNotes.trim() || null
 			};
 
 			const response = await saveDraft(factCheckId, draftData);
@@ -128,8 +143,19 @@
 			setTimeout(() => {
 				successMessage = null;
 			}, 3000);
-		} catch (error) {
+		} catch (error: any) {
 			console.error('Failed to save draft:', error);
+			// Log validation errors for debugging
+			if (error.response?.data?.detail) {
+				console.error('Validation errors:', error.response.data.detail);
+				// Display validation errors to user
+				if (Array.isArray(error.response.data.detail)) {
+					const errorMessages = error.response.data.detail.map((e: any) =>
+						`${e.loc?.join('.') || 'unknown'}: ${e.msg}`
+					).join(', ');
+					loadError = `Validation error: ${errorMessages}`;
+				}
+			}
 		} finally {
 			isSaving = false;
 		}
@@ -175,19 +201,30 @@
 		}
 	}
 
-	function addSource() {
-		sources = [...sources, ''];
-		handleInputChange();
-	}
+	function insertCitation(citationNumber: number) {
+		// Insert [citationNumber] at cursor position in the analysis textarea
+		const textarea = document.getElementById('analysis') as HTMLTextAreaElement;
+		if (!textarea) return;
 
-	function removeSource(index: number) {
-		sources = sources.filter((_, i) => i !== index);
-		handleInputChange();
-	}
+		const start = textarea.selectionStart;
+		const end = textarea.selectionEnd;
+		const citation = `[${citationNumber}]`;
 
-	function updateSource(index: number, value: string) {
-		sources = sources.map((s, i) => (i === index ? value : s));
-		handleInputChange();
+		// Update the analysis value
+		const newValue = analysis.substring(0, start) + citation + analysis.substring(end);
+		analysis = newValue;
+
+		// Mark as changed
+		hasUnsavedChanges = true;
+		successMessage = null;
+
+		// Focus and set cursor position after the inserted citation
+		// Use requestAnimationFrame to ensure DOM has updated
+		requestAnimationFrame(() => {
+			textarea.focus();
+			const newPosition = start + citation.length;
+			textarea.setSelectionRange(newPosition, newPosition);
+		});
 	}
 
 	function formatLastSaved(dateString: string | null): string {
@@ -305,11 +342,41 @@
 				</div>
 			{/if}
 
-			<!-- Analysis Section -->
+			<!-- Analysis Section with Citation Helper -->
 			<div>
-				<label for="analysis" class="block text-sm font-medium text-gray-700 mb-1">
-					{$t('factCheckEditor.analysis.title')}
-				</label>
+				<div class="flex items-center justify-between mb-1">
+					<label for="analysis" class="block text-sm font-medium text-gray-700">
+						{$t('factCheckEditor.analysis.title')}
+					</label>
+					{#if availableSources.length > 0}
+						<span class="text-xs text-gray-500">
+							{$t('factCheckEditor.citations.helper')}
+						</span>
+					{/if}
+				</div>
+
+				<!-- Citation Reference Buttons -->
+				{#if availableSources.length > 0}
+					<div class="mb-2 p-2 bg-gray-50 border border-gray-200 rounded-lg">
+						<div class="flex items-center gap-2 flex-wrap">
+							<span class="text-xs font-medium text-gray-600">{$t('factCheckEditor.citations.insert')}:</span>
+							{#each availableSources as source, index}
+								<button
+									type="button"
+									onclick={() => insertCitation(index + 1)}
+									class="inline-flex items-center px-2 py-1 text-xs font-medium rounded bg-primary-100 text-primary-700 hover:bg-primary-200 transition-colors"
+									title={source.title}
+								>
+									[{index + 1}] {source.title.length > 30 ? source.title.substring(0, 30) + '...' : source.title}
+								</button>
+							{/each}
+						</div>
+						<p class="text-xs text-gray-500 mt-1">
+							{$t('factCheckEditor.citations.note')}
+						</p>
+					</div>
+				{/if}
+
 				<textarea
 					id="analysis"
 					bind:value={analysis}
@@ -369,52 +436,6 @@
 					placeholder={$t('factCheckEditor.justification.placeholder')}
 					class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
 				></textarea>
-			</div>
-
-			<!-- Sources Section -->
-			<div>
-				<div class="flex items-center justify-between mb-2">
-					<h3 class="text-sm font-medium text-gray-700">{$t('factCheckEditor.sources.title')}</h3>
-					<button
-						type="button"
-						onclick={addSource}
-						class="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
-					>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-						</svg>
-						{$t('factCheckEditor.sources.add')}
-					</button>
-				</div>
-
-				{#if sources.length === 0}
-					<p class="text-gray-500 text-sm italic">{$t('factCheckEditor.sources.empty')}</p>
-				{:else}
-					<div class="space-y-2">
-						{#each sources as source, index}
-							<div class="flex gap-2">
-								<input
-									type="text"
-									value={source}
-									oninput={(e) => updateSource(index, (e.target as HTMLInputElement).value)}
-									onblur={handleBlur}
-									placeholder={$t('factCheckEditor.sources.placeholder')}
-									class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-								/>
-								<button
-									type="button"
-									onclick={() => removeSource(index)}
-									class="px-3 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-									aria-label={$t('factCheckEditor.sources.remove')}
-								>
-									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-									</svg>
-								</button>
-							</div>
-						{/each}
-					</div>
-				{/if}
 			</div>
 
 			<!-- Internal Notes Section -->

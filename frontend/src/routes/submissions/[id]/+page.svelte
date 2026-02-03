@@ -22,6 +22,7 @@
 	import SourceManagementInterface from '$lib/components/sources/SourceManagementInterface.svelte';
 	import CorrectionRequestForm from '$lib/components/CorrectionRequestForm.svelte';
 	import WorkflowStateBadge from '$lib/components/WorkflowStateBadge.svelte';
+	import WorkflowProgressBar from '$lib/components/WorkflowProgressBar.svelte';
 	import {
 		SubmissionOverviewTab,
 		SubmissionRatingTab,
@@ -272,18 +273,17 @@
 	 * Handle fact-check submission for review
 	 */
 	async function handleFactCheckSubmit() {
-		// Refresh workflow data after fact-check submission
+		// Transition to "draft_ready" state when reviewer submits fact-check for review
 		if (!submissionId) return;
-		try {
-			const [newWorkflowState, newWorkflowHistory] = await Promise.all([
-				getWorkflowCurrentState(submissionId),
-				getWorkflowHistory(submissionId)
-			]);
-			workflowState = newWorkflowState;
-			workflowHistory = newWorkflowHistory;
-		} catch (err: unknown) {
-			console.error('Error refreshing workflow data:', err);
+
+		// Check if we can transition to draft_ready
+		if (workflowState?.current_state !== 'in_research') {
+			console.warn('Can only submit for review from in_research state');
+			return;
 		}
+
+		// Trigger the draft_ready transition
+		openTransitionModal('draft_ready');
 	}
 
 	/**
@@ -386,6 +386,13 @@
 				</div>
 			</div>
 
+			<!-- Workflow Progress Bar -->
+			{#if workflowState?.current_state}
+				<div class="mb-6">
+					<WorkflowProgressBar currentState={workflowState.current_state} />
+				</div>
+			{/if}
+
 			<!-- Tab Navigation -->
 			<TabNavigation {tabs} activeTab={currentTab} onTabChange={handleTabChange} />
 
@@ -401,6 +408,9 @@
 						historyError={null}
 						userRole={auth.user?.role}
 						onReviewersUpdated={loadData}
+						onTransitionClick={openTransitionModal}
+						{isSubmittingTransition}
+						{transitionError}
 					/>
 
 					<!-- Correction Request Form (shown only for published fact-checks) -->
@@ -425,10 +435,7 @@
 						{isLoadingRating}
 						showFactCheckEditor={showFactCheckEditor ?? false}
 						onRatingSubmit={handleRatingSubmit}
-						onTransitionClick={openTransitionModal}
 						{isSubmittingRating}
-						{isSubmittingTransition}
-						{transitionError}
 						onFactCheckSubmit={handleFactCheckSubmit}
 					/>
 

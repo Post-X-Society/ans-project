@@ -392,6 +392,37 @@
       "under_correction": "Under Correction",
       "corrected": "Corrected",
       "rejected": "Rejected"
+    },
+    "descriptions": {
+      "submitted": "Initial state when user submits content for fact-checking",
+      "queued": "Awaiting assignment to a reviewer",
+      "duplicate_detected": "Identified as duplicate of an existing submission",
+      "archived": "Permanently archived (duplicate or rejected)",
+      "assigned": "A reviewer has been assigned to this submission",
+      "in_research": "Reviewer is actively collecting evidence and analyzing the claim",
+      "draft_ready": "Reviewer has completed research and submitted a draft fact-check",
+      "needs_more_research": "Admin has requested additional research from the reviewer",
+      "admin_review": "Admin is evaluating the draft fact-check",
+      "peer_review": "Under peer review by 2+ editors (required for sensitive claims)",
+      "final_approval": "Super Admin performing final check before publication",
+      "published": "Fact-check is published and public-facing",
+      "under_correction": "A correction is being applied to the published fact-check",
+      "corrected": "Correction has been applied, awaiting republish",
+      "rejected": "Submission was rejected (invalid, out of scope, etc.)"
+    },
+    "progress": {
+      "label": "Workflow Progress",
+      "currentStage": "Current Stage",
+      "step": "Step {current} of {total}"
+    },
+    "stages": {
+      "submitted": "Submitted",
+      "queued": "Queued",
+      "assigned": "Assigned",
+      "research": "Research",
+      "review": "Review",
+      "approval": "Approval",
+      "published": "Published"
     }
   },
   "ratings": {
@@ -430,25 +461,34 @@
   },
   "sources": {
     "title": "Sources",
+    "sourcesList": "Sources List ({count})",
+    "noSources": "No sources have been added yet",
     "form": {
-      "urlLabel": "Source URL or Reference",
-      "urlPlaceholder": "https://example.com/article or text reference",
+      "titleLabel": "Source Title",
+      "titlePlaceholder": "Enter source title or description",
+      "urlLabel": "Source URL (Optional)",
+      "urlPlaceholder": "https://example.com/article",
       "typeLabel": "Source Type",
       "typePlaceholder": "Select source type",
-      "credibilityLabel": "Credibility Rating",
-      "relevanceLabel": "Relevance",
+      "credibilityLabel": "Credibility Rating (Optional)",
+      "relevanceLabel": "Relevance (Optional)",
       "relevancePlaceholder": "Select relevance",
+      "accessDateLabel": "Access Date",
+      "publicationDateLabel": "Publication Date (Optional)",
+      "notesLabel": "Notes (Optional)",
+      "notesPlaceholder": "Add any additional notes about this source...",
       "addSource": "Add Source",
       "updateSource": "Update Source",
       "adding": "Adding...",
       "updating": "Updating..."
     },
     "types": {
-      "official": "Official",
-      "news": "News",
-      "social_media": "Social Media",
-      "research": "Research",
-      "other": "Other"
+      "primary": "Primary Source",
+      "secondary": "Secondary Source",
+      "expert": "Expert Opinion",
+      "media": "Media Report",
+      "government": "Government Source",
+      "academic": "Academic Research"
     },
     "relevance": {
       "supports": "Supports",
@@ -461,19 +501,33 @@
     },
     "warning": {
       "title": "At least 2 sources are recommended",
+      "sources": "{count} sources",
+      "added": "added",
       "sourceCount": "{count} source added",
       "sourcesCount": "{count} sources added"
     },
     "validation": {
+      "titleRequired": "Source title is required",
       "urlRequired": "Source URL or reference is required",
       "typeRequired": "Source type is required",
       "credibilityRequired": "Credibility rating is required",
-      "relevanceRequired": "Relevance is required"
+      "relevanceRequired": "Relevance is required",
+      "accessDateRequired": "Access date is required"
     },
     "list": {
       "empty": "No sources added yet",
       "remove": "Remove source",
       "edit": "Edit source"
+    },
+    "delete": "Delete source",
+    "deleteConfirm": "Are you sure you want to delete this source?",
+    "deleting": "Deleting...",
+    "loadError": "Failed to load sources. Please try again.",
+    "credibility": "credibility",
+    "detail": {
+      "archivedUrl": "Archived URL",
+      "createdAt": "Created",
+      "updatedAt": "Last Updated"
     }
   },
   "factCheckEditor": {
@@ -501,12 +555,10 @@
       "title": "Verdict Justification",
       "placeholder": "Explain the reasoning behind this verdict..."
     },
-    "sources": {
-      "title": "Sources",
-      "add": "Add Source",
-      "remove": "Remove source",
-      "placeholder": "Enter source URL or reference...",
-      "empty": "No sources added yet"
+    "citations": {
+      "helper": "Click to insert citation",
+      "insert": "Insert citation",
+      "note": "Add sources in the Sources tab, then reference them here using [1], [2], etc."
     },
     "notes": {
       "title": "Internal Notes",
