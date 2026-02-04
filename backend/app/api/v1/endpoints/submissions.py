@@ -2,7 +2,7 @@
 Submissions API endpoints
 """
 
-from typing import Optional, Union
+from typing import Any, Dict, Optional, Union
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
@@ -504,17 +504,17 @@ async def get_submission_reviewers(
 
 @router.post(
     "/{submission_id}/ratings",
-    response_model=dict,
+    response_model=Dict[str, Any],
     status_code=status.HTTP_201_CREATED,
     summary="Assign rating to submission's fact-check",
     description="Assign a rating to the fact-check associated with this submission",
 )
 async def assign_submission_rating(
     submission_id: UUID,
-    rating_data: dict,
+    rating_data: Dict[str, Any],
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-) -> dict:
+) -> Dict[str, Any]:
     """
     Assign a rating to a submission's fact-check.
 
@@ -622,14 +622,14 @@ async def assign_submission_rating(
 
 @router.get(
     "/{submission_id}/ratings",
-    response_model=list[dict],
+    response_model=list[Dict[str, Any]],
     summary="Get rating history for submission",
     description="Get all ratings for the fact-check associated with this submission",
 )
 async def get_submission_ratings(
     submission_id: UUID,
     db: AsyncSession = Depends(get_db),
-) -> list[dict]:
+) -> list[Dict[str, Any]]:
     """
     Get the complete rating history for a submission's fact-check.
 
@@ -676,14 +676,14 @@ async def get_submission_ratings(
 
 @router.get(
     "/{submission_id}/ratings/current",
-    response_model=dict,
+    response_model=Dict[str, Any],
     summary="Get current rating for submission",
     description="Get the current rating for the fact-check associated with this submission",
 )
 async def get_submission_current_rating(
     submission_id: UUID,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> Dict[str, Any]:
     """
     Get the current rating for a submission's fact-check.
 
