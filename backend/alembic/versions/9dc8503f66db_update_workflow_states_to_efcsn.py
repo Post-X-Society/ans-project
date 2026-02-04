@@ -16,6 +16,7 @@ New EFCSN states (ADR 0005):
   peer_review, final_approval, published, under_correction,
   corrected, rejected
 """
+# fmt: off
 from typing import Sequence, Union
 
 import sqlalchemy as sa
