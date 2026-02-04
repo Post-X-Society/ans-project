@@ -89,6 +89,11 @@ exclude_lines = [
 line-length = 100
 target-version = ['py311']
 include = '\.pyi?$'
+exclude = '''
+/(
+    alembic/versions/9dc8503f66db_update_workflow_states_to_efcsn\.py
+)/
+'''
 
 [tool.ruff]
 line-length = 100
