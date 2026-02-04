@@ -543,7 +543,6 @@ async def assign_submission_rating(
 
     # Auto-create fact-check if it doesn't exist
     if not submission.fact_check_id:
-        from app.models.claim import Claim
         from app.models.fact_check import FactCheck
 
         # Get the first claim for this submission
