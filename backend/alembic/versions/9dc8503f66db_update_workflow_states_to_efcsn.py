@@ -23,40 +23,40 @@ from alembic import op
 
 
 # revision identifiers, used by Alembic.
-revision: str = '9dc8503f66db'
-down_revision: Union[str, None] = 'm3n4o5p6q7r8'
+revision: str = "9dc8503f66db"
+down_revision: Union[str, None] = "m3n4o5p6q7r8"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 # New EFCSN workflow states
 NEW_WORKFLOW_STATES = [
-    'submitted',
-    'queued',
-    'duplicate_detected',
-    'archived',
-    'assigned',
-    'in_research',
-    'draft_ready',
-    'needs_more_research',
-    'admin_review',
-    'peer_review',
-    'final_approval',
-    'published',
-    'under_correction',
-    'corrected',
-    'rejected',
+    "submitted",
+    "queued",
+    "duplicate_detected",
+    "archived",
+    "assigned",
+    "in_research",
+    "draft_ready",
+    "needs_more_research",
+    "admin_review",
+    "peer_review",
+    "final_approval",
+    "published",
+    "under_correction",
+    "corrected",
+    "rejected",
 ]
 
 # Old workflow states
 OLD_WORKFLOW_STATES = [
-    'submitted',
-    'claim_extraction',
-    'pending_review',
-    'under_review',
-    'peer_review_required',
-    'peer_review',
-    'completed',
-    'rejected',
+    "submitted",
+    "claim_extraction",
+    "pending_review",
+    "under_review",
+    "peer_review_required",
+    "peer_review",
+    "completed",
+    "rejected",
 ]
 
 
