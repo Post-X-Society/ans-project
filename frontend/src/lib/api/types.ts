@@ -431,46 +431,61 @@ export interface SubmissionWithFactCheck extends Submission {
 }
 
 // Source Types (Issue #73 - Source Management Interface)
-export type SourceType = 'official' | 'news' | 'social_media' | 'research' | 'other';
+export type SourceType = 'primary' | 'secondary' | 'expert' | 'media' | 'government' | 'academic';
 
 export type SourceRelevance = 'supports' | 'contradicts' | 'contextualizes';
 
 export interface Source {
 	id: string;
-	url: string;
+	fact_check_id: string;
 	source_type: SourceType;
-	credibility_rating: number; // 1-5
-	relevance: SourceRelevance;
-	fact_check_id?: string;
+	title: string;
+	url?: string;
+	publication_date?: string;
+	access_date: string;
+	credibility_score?: number; // 1-5
+	relevance?: SourceRelevance;
+	archived_url?: string;
+	notes?: string;
 	created_at: string;
 	updated_at: string;
 }
 
 export interface SourceCreate {
-	url: string;
+	fact_check_id: string;
 	source_type: SourceType;
-	credibility_rating: number;
-	relevance: SourceRelevance;
+	title: string;
+	url?: string;
+	publication_date?: string;  // ISO date string
+	access_date: string;  // ISO date string (required)
+	credibility_score?: number;  // 1-5
+	relevance?: SourceRelevance;
+	archived_url?: string;
+	notes?: string;
 }
 
 export interface SourceUpdate {
-	url?: string;
 	source_type?: SourceType;
-	credibility_rating?: number;
+	title?: string;
+	url?: string;
+	publication_date?: string;
+	access_date?: string;
+	credibility_score?: number;
 	relevance?: SourceRelevance;
+	archived_url?: string;
+	notes?: string;
 }
 
 export interface SourceListResponse {
-	items: Source[];
-	total: number;
+	fact_check_id: string;
+	sources: Source[];
+	total_count: number;
 }
 
 // Citation Types (Issue #74 - Citation Display Component)
 // Extended source with metadata for proper citation formatting
 export interface CitationSource extends Source {
-	title?: string;
 	author?: string;
-	publication_date?: string;
 	publisher?: string;
 }
 

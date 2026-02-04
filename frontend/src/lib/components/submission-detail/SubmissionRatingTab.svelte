@@ -15,7 +15,6 @@
 	import RatingBadge from '$lib/components/RatingBadge.svelte';
 	import RatingDefinition from '$lib/components/RatingDefinition.svelte';
 	import FactCheckEditor from '$lib/components/FactCheckEditor.svelte';
-	import WorkflowTransitionPanel from '$lib/components/WorkflowTransitionPanel.svelte';
 	import type {
 		Submission,
 		WorkflowCurrentStateResponse,
@@ -38,10 +37,7 @@
 		isLoadingRating: boolean;
 		showFactCheckEditor: boolean;
 		onRatingSubmit: (rating: FactCheckRatingValue, justification: string) => void;
-		onTransitionClick: (state: WorkflowState) => void;
 		isSubmittingRating: boolean;
-		isSubmittingTransition?: boolean;
-		transitionError?: string | null;
 		onFactCheckSubmit?: () => void;
 	}
 
@@ -56,10 +52,7 @@
 		isLoadingRating,
 		showFactCheckEditor,
 		onRatingSubmit,
-		onTransitionClick,
 		isSubmittingRating,
-		isSubmittingTransition = false,
-		transitionError = null,
 		onFactCheckSubmit
 	}: Props = $props();
 
@@ -68,20 +61,13 @@
 	let justification = $state('');
 	let ratingFormError = $state('');
 
-	// Check if user can assign ratings (reviewer, admin, super_admin)
-	// Allow if no workflow state yet (new submission) or if in an active state
+	// Check if user can assign official EFCSN rating
+	// Rating assignment is ONLY allowed in FINAL_APPROVAL stage (Super Admin)
+	// This is when the official rating is assigned before publication
 	let canAssignRating = $derived(
 		user &&
-			['reviewer', 'admin', 'super_admin'].includes(user.role) &&
-			(!workflowState?.current_state || !['published', 'rejected', 'archived'].includes(workflowState.current_state))
-	);
-
-	// Check if user can transition workflow (admin, super_admin)
-	let canTransition = $derived(
-		user &&
-			['admin', 'super_admin'].includes(user.role) &&
-			workflowState?.valid_transitions &&
-			workflowState.valid_transitions.length > 0
+			user.role === 'super_admin' &&
+			workflowState?.current_state === 'final_approval'
 	);
 
 	/**
@@ -89,13 +75,6 @@
 	 */
 	function formatDate(dateString: string): string {
 		return new Date(dateString).toLocaleString();
-	}
-
-	/**
-	 * Get translated workflow state label
-	 */
-	function getStateLabel(state: WorkflowState): string {
-		return $t(`workflow.states.${state}`) || state;
 	}
 
 	/**
@@ -268,18 +247,6 @@
 				</p>
 			{/if}
 		</div>
-
-		<!-- Workflow Transitions Panel (Issue #179) -->
-		{#if workflowState && user}
-			<WorkflowTransitionPanel
-				currentState={workflowState.current_state}
-				validTransitions={workflowState.valid_transitions}
-				userRole={user.role}
-				onTransitionClick={onTransitionClick}
-				isLoading={isSubmittingTransition}
-				error={transitionError}
-			/>
-		{/if}
 
 		<!-- Rating History -->
 		{#if ratings.length > 0}

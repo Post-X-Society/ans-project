@@ -657,7 +657,7 @@ class TestSaveDraft:
     async def test_save_draft_short_justification_validation(
         self, client: TestClient, db_session: AsyncSession
     ) -> None:
-        """Test saving draft with short justification returns 422."""
+        """Test saving draft with short justification is allowed (work-in-progress)."""
         # Arrange
         admin = User(
             email="admin@example.com",
@@ -716,8 +716,8 @@ class TestSaveDraft:
             headers={"Authorization": f"Bearer {token}"},
         )
 
-        # Assert
-        assert response.status_code == 422
+        # Assert: Drafts allow short text (work-in-progress), validation happens at submit
+        assert response.status_code == 200
 
     @pytest.mark.asyncio
     async def test_save_draft_updates_timestamp(

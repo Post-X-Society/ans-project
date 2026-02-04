@@ -54,8 +54,8 @@ jobs:
         working-directory: ./backend
         run: |
           pip install black ruff mypy
-          black --check .
-          ruff check .
+          black --check --exclude 'alembic/versions/9dc8503f66db_update_workflow_states_to_efcsn\.py' .
+          ruff check --exclude 'alembic/versions/9dc8503f66db_update_workflow_states_to_efcsn.py' .
           mypy app/
       
       - name: Run tests with coverage

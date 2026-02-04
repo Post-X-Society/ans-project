@@ -386,6 +386,37 @@
       "under_correction": "Onder correctie",
       "corrected": "Gecorrigeerd",
       "rejected": "Afgewezen"
+    },
+    "descriptions": {
+      "submitted": "Initiële status wanneer gebruiker inhoud indient voor factchecking",
+      "queued": "Wacht op toewijzing aan een reviewer",
+      "duplicate_detected": "Geïdentificeerd als duplicaat van een bestaande indiening",
+      "archived": "Permanent gearchiveerd (duplicaat of afgewezen)",
+      "assigned": "Een reviewer is toegewezen aan deze indiening",
+      "in_research": "Reviewer verzamelt actief bewijs en analyseert de bewering",
+      "draft_ready": "Reviewer heeft onderzoek afgerond en concept factcheck ingediend",
+      "needs_more_research": "Beheerder heeft aanvullend onderzoek aangevraagd bij de reviewer",
+      "admin_review": "Beheerder beoordeelt de concept factcheck",
+      "peer_review": "Onder collegiale toetsing door 2+ redacteuren (vereist voor gevoelige beweringen)",
+      "final_approval": "Super Admin voert laatste controle uit voor publicatie",
+      "published": "Factcheck is gepubliceerd en openbaar zichtbaar",
+      "under_correction": "Een correctie wordt aangebracht op de gepubliceerde factcheck",
+      "corrected": "Correctie is aangebracht, wacht op herpublicatie",
+      "rejected": "Indiening is afgewezen (ongeldig, buiten scope, etc.)"
+    },
+    "progress": {
+      "label": "Workflow Voortgang",
+      "currentStage": "Huidige Fase",
+      "step": "Stap {current} van {total}"
+    },
+    "stages": {
+      "submitted": "Ingediend",
+      "queued": "In Wachtrij",
+      "assigned": "Toegewezen",
+      "research": "Onderzoek",
+      "review": "Beoordeling",
+      "approval": "Goedkeuring",
+      "published": "Gepubliceerd"
     }
   },
   "ratings": {
@@ -424,25 +455,34 @@
   },
   "sources": {
     "title": "Bronnen",
+    "sourcesList": "Bronnenlijst ({count})",
+    "noSources": "Er zijn nog geen bronnen toegevoegd",
     "form": {
-      "urlLabel": "Bron URL of Referentie",
-      "urlPlaceholder": "https://voorbeeld.nl/artikel of tekstreferentie",
+      "titleLabel": "Brontitel",
+      "titlePlaceholder": "Voer brontitel of beschrijving in",
+      "urlLabel": "Bron URL (Optioneel)",
+      "urlPlaceholder": "https://voorbeeld.nl/artikel",
       "typeLabel": "Brontype",
       "typePlaceholder": "Selecteer brontype",
-      "credibilityLabel": "Betrouwbaarheidsbeoordeling",
-      "relevanceLabel": "Relevantie",
+      "credibilityLabel": "Betrouwbaarheidsbeoordeling (Optioneel)",
+      "relevanceLabel": "Relevantie (Optioneel)",
       "relevancePlaceholder": "Selecteer relevantie",
+      "accessDateLabel": "Toegangsdatum",
+      "publicationDateLabel": "Publicatiedatum (Optioneel)",
+      "notesLabel": "Notities (Optioneel)",
+      "notesPlaceholder": "Voeg eventuele aanvullende notities toe...",
       "addSource": "Bron Toevoegen",
       "updateSource": "Bron Bijwerken",
       "adding": "Toevoegen...",
       "updating": "Bijwerken..."
     },
     "types": {
-      "official": "Officieel",
-      "news": "Nieuws",
-      "social_media": "Sociale Media",
-      "research": "Onderzoek",
-      "other": "Overig"
+      "primary": "Primaire Bron",
+      "secondary": "Secundaire Bron",
+      "expert": "Deskundig Oordeel",
+      "media": "Mediaverslag",
+      "government": "Overheidsbron",
+      "academic": "Academisch Onderzoek"
     },
     "relevance": {
       "supports": "Ondersteunt",
@@ -455,19 +495,33 @@
     },
     "warning": {
       "title": "Minimaal 2 bronnen worden aanbevolen",
+      "sources": "{count} bronnen",
+      "added": "toegevoegd",
       "sourceCount": "{count} bron toegevoegd",
       "sourcesCount": "{count} bronnen toegevoegd"
     },
     "validation": {
+      "titleRequired": "Brontitel is verplicht",
       "urlRequired": "Bron URL of referentie is verplicht",
       "typeRequired": "Brontype is verplicht",
       "credibilityRequired": "Betrouwbaarheidsbeoordeling is verplicht",
-      "relevanceRequired": "Relevantie is verplicht"
+      "relevanceRequired": "Relevantie is verplicht",
+      "accessDateRequired": "Toegangsdatum is verplicht"
     },
     "list": {
       "empty": "Nog geen bronnen toegevoegd",
       "remove": "Bron verwijderen",
       "edit": "Bron bewerken"
+    },
+    "delete": "Bron verwijderen",
+    "deleteConfirm": "Weet je zeker dat je deze bron wilt verwijderen?",
+    "deleting": "Verwijderen...",
+    "loadError": "Laden van bronnen mislukt. Probeer het opnieuw.",
+    "credibility": "betrouwbaarheid",
+    "detail": {
+      "archivedUrl": "Gearchiveerde URL",
+      "createdAt": "Aangemaakt",
+      "updatedAt": "Laatst Bijgewerkt"
     }
   },
   "factCheckEditor": {
@@ -495,12 +549,10 @@
       "title": "Onderbouwing Oordeel",
       "placeholder": "Leg de redenering achter dit oordeel uit..."
     },
-    "sources": {
-      "title": "Bronnen",
-      "add": "Bron Toevoegen",
-      "remove": "Bron verwijderen",
-      "placeholder": "Voer bron-URL of referentie in...",
-      "empty": "Nog geen bronnen toegevoegd"
+    "citations": {
+      "helper": "Klik om citaat in te voegen",
+      "insert": "Citaat invoegen",
+      "note": "Voeg bronnen toe in het Bronnen-tabblad, en verwijs ernaar met [1], [2], etc."
     },
     "notes": {
       "title": "Interne Notities",

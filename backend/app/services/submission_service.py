@@ -12,6 +12,7 @@ from app.models.claim import Claim
 from app.models.submission import Submission
 from app.models.submission_reviewer import SubmissionReviewer
 from app.models.user import User, UserRole
+from app.models.workflow_transition import WorkflowState, WorkflowTransition
 from app.schemas.submission import SubmissionCreate, SubmissionListResponse, SubmissionResponse
 from app.services import claim_service
 
@@ -77,6 +78,16 @@ async def create_submission(
     if claims:
         values = [{"submission_id": submission.id, "claim_id": claim.id} for claim in claims]
         await db.execute(insert(submission_claims).values(values))
+
+    # Create initial workflow transition (Issue: workflow history was empty)
+    initial_transition = WorkflowTransition(
+        submission_id=submission.id,
+        from_state=None,  # No previous state for initial transition
+        to_state=WorkflowState.SUBMITTED,
+        actor_id=user_id,
+        reason="Submission created",
+    )
+    db.add(initial_transition)
 
     await db.commit()
 
