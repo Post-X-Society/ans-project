@@ -249,3 +249,4 @@ def downgrade() -> None:
 
     # Similar updates for workflow_transitions table
     # (omitted for brevity, but should mirror the above)
+# fmt: on
