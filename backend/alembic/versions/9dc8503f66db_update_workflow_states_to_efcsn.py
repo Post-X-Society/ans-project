@@ -77,48 +77,24 @@ def upgrade() -> None:
     # PostgreSQL requires ALTER TYPE ADD VALUE to be in its own transaction
     # We use autocommit to ensure each value is committed before the next
     connection.execute(sa.text("COMMIT"))
+    connection.execute(sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'queued'"))
     connection.execute(
-        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'queued'")
+        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'duplicate_detected'")
     )
+    connection.execute(sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'archived'"))
+    connection.execute(sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'assigned'"))
+    connection.execute(sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'in_research'"))
+    connection.execute(sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'draft_ready'"))
     connection.execute(
-        sa.text(
-            "ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'duplicate_detected'"
-        )
+        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'needs_more_research'")
     )
+    connection.execute(sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'admin_review'"))
+    connection.execute(sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'final_approval'"))
+    connection.execute(sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'published'"))
     connection.execute(
-        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'archived'")
+        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'under_correction'")
     )
-    connection.execute(
-        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'assigned'")
-    )
-    connection.execute(
-        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'in_research'")
-    )
-    connection.execute(
-        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'draft_ready'")
-    )
-    connection.execute(
-        sa.text(
-            "ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'needs_more_research'"
-        )
-    )
-    connection.execute(
-        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'admin_review'")
-    )
-    connection.execute(
-        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'final_approval'")
-    )
-    connection.execute(
-        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'published'")
-    )
-    connection.execute(
-        sa.text(
-            "ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'under_correction'"
-        )
-    )
-    connection.execute(
-        sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'corrected'")
-    )
+    connection.execute(sa.text("ALTER TYPE workflowstate ADD VALUE IF NOT EXISTS 'corrected'"))
 
     # Step 2: Migrate existing data to new states
     # Map old states to new EFCSN states
@@ -240,11 +216,8 @@ def downgrade() -> None:
         UPDATE submissions
         SET workflow_state = 'pending_review'::workflowstate
         WHERE workflow_state IN (
-            'assigned'::workflowstate,
-            'draft_ready'::workflowstate,
-            'needs_more_research'::workflowstate,
-            'admin_review'::workflowstate,
-            'final_approval'::workflowstate
+            'assigned'::workflowstate, 'draft_ready'::workflowstate, 'needs_more_research'::workflowstate,
+            'admin_review'::workflowstate, 'final_approval'::workflowstate
         )
     """
     )
@@ -259,10 +232,7 @@ def downgrade() -> None:
         """
         UPDATE submissions
         SET workflow_state = 'completed'::workflowstate
-        WHERE workflow_state IN (
-            'published'::workflowstate,
-            'corrected'::workflowstate
-        )
+        WHERE workflow_state IN ('published'::workflowstate, 'corrected'::workflowstate)
     """
     )
 
@@ -271,9 +241,7 @@ def downgrade() -> None:
         UPDATE submissions
         SET workflow_state = 'rejected'::workflowstate
         WHERE workflow_state IN (
-            'duplicate_detected'::workflowstate,
-            'archived'::workflowstate,
-            'under_correction'::workflowstate
+            'duplicate_detected'::workflowstate, 'archived'::workflowstate, 'under_correction'::workflowstate
         )
     """
     )
